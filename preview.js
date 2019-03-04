@@ -12,12 +12,14 @@ typeof document === 'object' &&
 			'link[rel="alternate" i][type^="text/markout" i][type^="text/markdown" i][type^="text/md" i][href], link[rel="alternate" i][href$=".md" i][href$=".markdown" i], link[rel="alternate" i][href]',
 		);
 
-		const base = /markout\/preview\.\b/i.exec(import.meta.url)
-			? import.meta.url.replace(/markout\/preview\.\b.*$/i, '/')
+		const MarkoutPreviewBase = /\/?markout\/preview\.js\b.*$/i;
+		const MarkoutBase = /\/?markout(?:\/.*)?$/i;
+		const RootBase = /\/?$/;
+
+		const base = MarkoutPreviewBase.test(import.meta.url)
+			? import.meta.url.replace(MarkoutPreviewBase, '/')
 			: location.origin
-			? `${location.origin}${
-					/\/markout\//i.test(location.pathname) ? location.pathname.replace(/\/markout\/.*$/i, '/') : '/'
-			  }`
+			? location.origin.replace(RootBase, MarkoutBase.test(location.pathname) ? location.pathname.replace(MarkoutBase, '/') : '/')
 			: `${new URL('./', location)}`;
 
 		if (!section.hasAttribute('src')) {
