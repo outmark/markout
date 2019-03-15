@@ -2,7 +2,7 @@
 
 ## Data Structures
 
-If we think of string of text as a series of one or more <kbd>`token`</kbd>, we can say that `a‹tab›b` is actually <kbd>`a`</kbd><kbd>`‹tab›`</kbd><kbd>`b`</kbd> as tokens.
+If we think of string of text as a series of one or more <kbd>`‹token›`</kbd>, we can say that `a‹tab›b` is actually <kbd>`a`</kbd><kbd>`‹tab›`</kbd><kbd>`b`</kbd> as tokens.
 
 If we extends the same logic to table structures where each record will occupy a single row, we can say that the tokens of the text must infer a single `‹key›` and `‹value›` for each `‹record›`, all of which are sharing a single data structure implied by the layout of the table.
 
@@ -10,7 +10,7 @@ If we extends the same logic to table structures where each record will occupy a
 
 The simplest form of records is one that has a single row of column headings, followed by one or more rows of independent records, each having an implicit index start from 0.
 
-So given this table:
+<figcaption>So given this table:</figcaption>
 
 ```text
   (index) >>    a     |     b      |     c     |     d     |  tone  |
@@ -23,7 +23,7 @@ So given this table:
 **Note**: For legability we are using <kbd>`>>`</kbd> to indicate the start of respective rows (or columns) of a well-structured range and <kbd>`|`</kbd> to indicate delimiters between individual keys or their respective values.
 </blockquote>
 
-We can expect this dataset:
+<figcaption>We can expect this dataset:</figcaption>
 
 ```javascript
 [
@@ -33,16 +33,16 @@ We can expect this dataset:
 ]
 ```
 
-And if we created a formatted table, it would look like this:
+<caption>And if we created a formatted table, it would look like this:</caption>
 
 <table style="border: 1px solid var(--border-color); border-collapse: collapse; --cell-padding: 0.5em; --border-color: #999;">
-<thead style="border: inherit; border-bottom-width: 2px;">
+<thead style="border: inherit;">
 <tr style="border: inherit;">
-  <th style="border: inherit; padding: var(--cell-padding)">a
-  <th style="border: inherit; padding: var(--cell-padding)">b
-  <th style="border: inherit; padding: var(--cell-padding)">c
-  <th style="border: inherit; padding: var(--cell-padding)">d
-  <th style="border: inherit; padding: var(--cell-padding)">tone
+  <th style="border: inherit; border-bottom-width: 2px; padding: var(--cell-padding)">a
+  <th style="border: inherit; border-bottom-width: 2px; padding: var(--cell-padding)">b
+  <th style="border: inherit; border-bottom-width: 2px; padding: var(--cell-padding)">c
+  <th style="border: inherit; border-bottom-width: 2px; padding: var(--cell-padding)">d
+  <th style="border: inherit; border-bottom-width: 2px; padding: var(--cell-padding)">tone
 </tr>
 </thead>
 <tbody>
@@ -74,7 +74,7 @@ And if we created a formatted table, it would look like this:
 
 When records are more complicated, they often require layering or nesting, where a heading can encompass multiple subheadings inside a layered structure.
 
-We can visualize this as follows:
+<figcaption>We can visualize this as follows:</figcaption>
 
 ```text
   (index) >> contrast |            |           |           |  tone  |
@@ -84,7 +84,7 @@ We can visualize this as follows:
      2    >>   60%    |   15.33%   |   3.91%   |   1.00%   |   75%  |
 ```
 
-If we extrapolate headings from top to bottom, we can expect this data set to look like this:
+<figcaption>If we extrapolate headings from top to bottom, we can expect this data set to look like this:</figcaption>
 
 ```javascript
 [
@@ -94,19 +94,19 @@ If we extrapolate headings from top to bottom, we can expect this data set to lo
 ]
 ```
 
-And if we created a formatted table, it would look like this:
+<caption>And if we created a formatted table, it would look like this:</caption>
 
 <table style="border: 1px solid var(--border-color); border-collapse: collapse; --cell-padding: 0.5em; --border-color: #999;">
-<thead style="border: inherit; border-bottom-width: 2px;">
+<thead style="border: inherit;">
 <tr style="border: inherit;">
   <th style="border: inherit; padding: var(--cell-padding)" colspan=4>contrast
-  <th style="border: inherit; padding: var(--cell-padding)" rowspan=2>tone
+  <th style="border: inherit; border-bottom-width: 2px; padding: var(--cell-padding)" rowspan=2>tone
 </tr>
 <tr style="border: inherit;">
-  <th style="border: inherit; padding: var(--cell-padding)">a
-  <th style="border: inherit; padding: var(--cell-padding)">b
-  <th style="border: inherit; padding: var(--cell-padding)">c
-  <th style="border: inherit; padding: var(--cell-padding)">d
+  <th style="border: inherit; border-bottom-width: 2px; padding: var(--cell-padding)">a
+  <th style="border: inherit; border-bottom-width: 2px; padding: var(--cell-padding)">b
+  <th style="border: inherit; border-bottom-width: 2px; padding: var(--cell-padding)">c
+  <th style="border: inherit; border-bottom-width: 2px; padding: var(--cell-padding)">d
 </tr>
 </thead>
 <tbody>
@@ -136,7 +136,7 @@ And if we created a formatted table, it would look like this:
 
 ### Records with a "nested" structure using "explicit" keys
 
-It gets a little tricky when we start thinking of non-array structures where instead of implied indices.
+<figcaption>It gets a little tricky when we start thinking of non-array structures where instead of implied indices:</figcaption>
 
 ```text
 >>                             |     X    |     Y   |
@@ -145,7 +145,7 @@ It gets a little tricky when we start thinking of non-array structures where ins
 >> Block Size tight frame (mm) |   93.13  |  93.130 |
 ```
 
-Here we will also extrapolate headings from top to bottom, but more importantly since the first column heading was blank, we will designate this column to hold the "explicit" keys of each record and create a non-array structure of keys and values, that looks like this:
+<figcaption>Here we will also extrapolate headings from top to bottom, but more importantly since the first column heading was blank, we will designate this column to hold the "explicit" keys of each record and create a non-array structure of keys and values, that looks like this:</figcaption>
 
 ```javascript
 {
@@ -155,7 +155,7 @@ Here we will also extrapolate headings from top to bottom, but more importantly 
 }
 ```
 
-And if we created a formatted table, it would look like this:
+<caption>And if we created a formatted table, it would look like this:</caption>
 
 <table style="border: 1px solid var(--border-color); border-collapse: collapse; --cell-padding: 0.5em; --border-color: #999;">
 <thead style="border: inherit; border-bottom-width: 2px;">
