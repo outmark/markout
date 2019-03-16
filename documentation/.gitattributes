@@ -1,5 +1,0 @@
-﻿# See https://github.com/github/linguist#using-gitattributes
-*.mo linguist-language=Markdown
-*.mout linguist-language=Markdown
-*.markout linguist-language=Markdown
-*.mdml linguist-language=Markdown
