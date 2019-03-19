@@ -1,26 +1,27 @@
-﻿{
-  "private": true,
-  "name": "@smotaal/markout",
-  "description": "smotaal.io/markout",
-  "version": "0.0.0-alpha.2",
-  "author": "Saleh Abdel Motaal <saleh@grasppe.com>",
+{
+	"private": true,
+	"name": "@smotaal/markout",
+	"description": "smotaal.io/markout",
+	"version": "0.0.0-alpha.2",
+	"author": "Saleh Abdel Motaal <saleh@grasppe.com>",
 	"repository": {
-    "url": "https://github.com/SMotaal/smotaal.github.io.git",
-    "path": "/markout"
-  },
-  "license": "MIT",
+		"url": "https://github.com/SMotaal/smotaal.github.io.git",
+		"path": "/markout"
+	},
+	"license": "MIT",
 	"type": "module",
-  "exports": {},
-  "main": "index",
-  "scripts": {
-    "serve": "http-server --cors -s"
-  },
-  "devDependencies": {
-    "@types/node": "*",
-    "http-server": "*",
-    "prettier": "*",
-    "rollup": "*",
-    "typescript": "*",
-    "@smotaal/esm": "SMotaal/esm"
-  }
+	"exports": {},
+	"main": "index",
+	"scripts": {
+		"serve": "http-server --cors -s"
+	},
+	"devDependencies": {
+		"@types/node": "*",
+		"http-server": "*",
+		"prettier": "*",
+		"rollup": "*",
+		"typescript": "*",
+		"@smotaal/esm": "SMotaal/esm",
+		"@smotaal/markup": "SMotaal/markup"
+	}
 }
