@@ -35,37 +35,37 @@ The simplest form of records is one that has a single row of column headings, fo
 
 <caption>And if we created a formatted table, it would look like this:</caption>
 
-<table style="border: 1px solid var(--border-color); border-collapse: collapse; --cell-padding: 0.5em; --border-color: #999;">
-<thead style="border: inherit;">
-<tr style="border: inherit;">
-  <th style="border: inherit; border-bottom-width: 2px; padding: var(--cell-padding)">a
-  <th style="border: inherit; border-bottom-width: 2px; padding: var(--cell-padding)">b
-  <th style="border: inherit; border-bottom-width: 2px; padding: var(--cell-padding)">c
-  <th style="border: inherit; border-bottom-width: 2px; padding: var(--cell-padding)">d
-  <th style="border: inherit; border-bottom-width: 2px; padding: var(--cell-padding)">tone
+<table>
+<thead>
+<tr>
+  <th>a
+  <th>b
+  <th>c
+  <th>d
+  <th>tone
 </tr>
 </thead>
 <tbody>
-<tr style="border: 1px var(--border-color) dotted;">
-  <td style="border: inherit; padding: var(--cell-padding)">60%
-  <td style="border: inherit; padding: var(--cell-padding)">15.33%
-  <td style="border: inherit; padding: var(--cell-padding)">3.91%
-  <td style="border: inherit; padding: var(--cell-padding)">1.00%
-  <td style="border: inherit; padding: var(--cell-padding)">25%
+<tr>
+  <td>60%
+  <td>15.33%
+  <td>3.91%
+  <td>1.00%
+  <td>25%
 </tr>
-<tr style="border: 1px var(--border-color) dotted;">
-  <td style="border: inherit; padding: var(--cell-padding)">100%
-  <td style="border: inherit; padding: var(--cell-padding)">21.54%
-  <td style="border: inherit; padding: var(--cell-padding)">4.64%
-  <td style="border: inherit; padding: var(--cell-padding)">1.00%
-  <td style="border: inherit; padding: var(--cell-padding)">50%
+<tr>
+  <td>100%
+  <td>21.54%
+  <td>4.64%
+  <td>1.00%
+  <td>50%
 </tr>
-<tr style="border: 1px var(--border-color) dotted;">
-  <td style="border: inherit; padding: var(--cell-padding)">60%
-  <td style="border: inherit; padding: var(--cell-padding)">15.33%
-  <td style="border: inherit; padding: var(--cell-padding)">3.91%
-  <td style="border: inherit; padding: var(--cell-padding)">1.00%
-  <td style="border: inherit; padding: var(--cell-padding)">75%
+<tr>
+  <td>60%
+  <td>15.33%
+  <td>3.91%
+  <td>1.00%
+  <td>75%
 </tr>
 </tbody>
 </table>
@@ -95,41 +95,40 @@ When records are more complicated, they often require layering or nesting, where
 ```
 
 <caption>And if we created a formatted table, it would look like this:</caption>
-
-<table style="border: 1px solid var(--border-color); border-collapse: collapse; --cell-padding: 0.5em; --border-color: #999;">
-<thead style="border: inherit;">
-<tr style="border: inherit;">
-  <th style="border: inherit; padding: var(--cell-padding)" colspan=4>contrast
-  <th style="border: inherit; border-bottom-width: 2px; padding: var(--cell-padding)" rowspan=2>tone
+<table>
+<thead>
+<tr>
+  <th colspan=4>contrast
+  <th rowspan=2>tone
 </tr>
-<tr style="border: inherit;">
-  <th style="border: inherit; border-bottom-width: 2px; padding: var(--cell-padding)">a
-  <th style="border: inherit; border-bottom-width: 2px; padding: var(--cell-padding)">b
-  <th style="border: inherit; border-bottom-width: 2px; padding: var(--cell-padding)">c
-  <th style="border: inherit; border-bottom-width: 2px; padding: var(--cell-padding)">d
+<tr>
+  <th>a
+  <th>b
+  <th>c
+  <th>d
 </tr>
 </thead>
 <tbody>
-<tr style="border: 1px var(--border-color) dotted;">
-  <td style="border: inherit; padding: var(--cell-padding)">60%
-  <td style="border: inherit; padding: var(--cell-padding)">15.33%
-  <td style="border: inherit; padding: var(--cell-padding)">3.91%
-  <td style="border: inherit; padding: var(--cell-padding)">1.00%
-  <td style="border: inherit; padding: var(--cell-padding)">25%
+<tr>
+  <td>60%
+  <td>15.33%
+  <td>3.91%
+  <td>1.00%
+  <td>25%
 </tr>
-<tr style="border: 1px var(--border-color) dotted;">
-  <td style="border: inherit; padding: var(--cell-padding)">100%
-  <td style="border: inherit; padding: var(--cell-padding)">21.54%
-  <td style="border: inherit; padding: var(--cell-padding)">4.64%
-  <td style="border: inherit; padding: var(--cell-padding)">1.00%
-  <td style="border: inherit; padding: var(--cell-padding)">50%
+<tr>
+  <td>100%
+  <td>21.54%
+  <td>4.64%
+  <td>1.00%
+  <td>50%
 </tr>
-<tr style="border: 1px var(--border-color) dotted;">
-  <td style="border: inherit; padding: var(--cell-padding)">60%
-  <td style="border: inherit; padding: var(--cell-padding)">15.33%
-  <td style="border: inherit; padding: var(--cell-padding)">3.91%
-  <td style="border: inherit; padding: var(--cell-padding)">1.00%
-  <td style="border: inherit; padding: var(--cell-padding)">75%
+<tr>
+  <td>60%
+  <td>15.33%
+  <td>3.91%
+  <td>1.00%
+  <td>75%
 </tr>
 </tbody>
 </table>
@@ -157,29 +156,29 @@ When records are more complicated, they often require layering or nesting, where
 
 <caption>And if we created a formatted table, it would look like this:</caption>
 
-<table style="border: 1px solid var(--border-color); border-collapse: collapse; --cell-padding: 0.5em; --border-color: #999;">
-<thead style="border: inherit; border-bottom-width: 2px;">
-<tr style="border: inherit;">
-  <th style="border: inherit; border-right-width: 2px; padding: var(--cell-padding)">
-  <th style="border: inherit; padding: var(--cell-padding)">X
-  <th style="border: inherit; padding: var(--cell-padding)">Y
+<table>
+<thead>
+<tr>
+  <th>
+  <th>X
+  <th>Y
 </tr>
 </thead>
 <tbody>
-<tr style="border: 1px var(--border-color) dotted;">
-  <th style="border: inherit; border-style: solid; border-right-width: 2px; padding: var(--cell-padding)">Target Size frame (in)
-  <td style="border: inherit; padding: var(--cell-padding)">4.28
-  <td style="border: inherit; padding: var(--cell-padding)">8.655
+<tr>
+  <th>Target Size frame (in)
+  <td>4.28
+  <td>8.655
 </tr>
-<tr style="border: 1px var(--border-color) dotted;">
-  <th style="border: inherit; border-style: solid; border-right-width: 2px; padding: var(--cell-padding)">Target Size frame (mm)
-  <td style="border: inherit; padding: var(--cell-padding)">108.72
-  <td style="border: inherit; padding: var(--cell-padding)">219.84
+<tr>
+  <th>Target Size frame (mm)
+  <td>108.72
+  <td>219.84
 </tr>
-<tr style="border: 1px var(--border-color) dotted;">
-  <th style="border: inherit; border-style: solid; border-right-width: 2px; padding: var(--cell-padding)">Block Size tight frame (mm)
-  <td style="border: inherit; padding: var(--cell-padding)">93.13
-  <td style="border: inherit; padding: var(--cell-padding)">93.13
+<tr>
+  <th>Block Size tight frame (mm)
+  <td>93.13
+  <td>93.13
 </tr>
 </tbody>
 </table>
