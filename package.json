@@ -11,17 +11,24 @@
 	"license": "MIT",
 	"type": "module",
 	"exports": {},
-	"main": "index",
+	"main": "lib/markout.js",
 	"scripts": {
-		"serve": "http-server --cors -s"
+		"serve": "http-server --cors -s",
+		"bundle": "rollup -c rollup.config.js"
 	},
 	"devDependencies": {
 		"@types/node": "*",
 		"http-server": "*",
 		"prettier": "*",
 		"rollup": "*",
+		"rollup-plugin-node-resolve": "*",
 		"typescript": "*",
 		"@smotaal/esm": "SMotaal/esm",
-		"@smotaal/markup": "SMotaal/markup"
+		"@smotaal/tokenizer": "*"
+	},
+	"resolutions": {
+		"SMotaal/esm": "../esm",
+		"@smotaal/tokenizer": "../markup/packages/@smotaal/tokenizer",
+		"pseudom": "../markup/packages/pseudom"
 	}
 }
