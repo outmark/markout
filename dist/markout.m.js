@@ -117,8 +117,16 @@ const normalizeReferences = sourceText => {
 };
 
 class List extends Array {
-	toString(inset = this.inset || '', type = this.type || 'ul', style = this.style) {
-		const rows = [`${inset}<${type}${(style && ` style="list-style: ${style};"`) || ''}>`];
+	toString(inset = this.inset || '', type = this.type || 'ul', style = this.style, start = this.start) {
+		const attributes = `${
+			// TODO: Explore using type attribute instead
+			(style && `style="list-style: ${style}"`) || ''
+		} ${
+			// TODO: Check if guard against invalid start is needed
+			(start && `start="${start}"`) || ''
+		}`.trim();
+
+		const rows = [`${inset}<${type}${(attributes && ` ${attributes}`) || ''}>`];
 		for (const item of this) {
 			if (item && typeof item === 'object') {
 				if (item instanceof List) {
@@ -166,16 +174,17 @@ const normalizeLists = sourceText =>
 					list = new List();
 					list.inset = inset;
 					list.depth = depth;
-					list.type = ((marker === '* ' || marker === '- ') && 'ul') || 'ol';
+					(list.type = marker === '* ' || marker === '- ' ? 'ul' : 'ol') === 'ol' &&
+						(list.start = marker.replace(/\W/g, ''));
 					(list.parent = parent).push(list);
 				} else if (depth < list.depth) {
 					while ((list = list.parent) && depth < list.depth);
 				} else if (!(inset in list)) {
+					// TODO: Figure out if this was just for top!!!
 					list.inset = inset;
 					list.depth = depth;
-					list.type = marker === '* ' || marker === '- ' ? 'ul' : 'ol';
-				} else {
-					console.log(match);
+					(list.type = marker === '* ' || marker === '- ' ? 'ul' : 'ol') === 'ol' &&
+						(list.start = marker.replace(/\W/g, ''));
 				}
 
 				if (!list) break;
@@ -218,8 +227,6 @@ const normalizeBlocks = sourceText =>
 	sourceText.replace(Blocks, (m, fence, paragraphs) =>
 		fence ? m : normalizeReferences(normalizeParagraphs(normalizeLists(paragraphs))),
 	);
-
-// (fence ? m : normalizeParagraphs(normalizeLists(paragraphs))));
 
 const normalized = new Map();
 
