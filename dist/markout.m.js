@@ -246,7 +246,6 @@ const render = (tokens, renderedHTML = '') => {
 
 	const {blocks, spans, entities, tags} = punctuators;
 
-	// tokens = [...tokens];
 	const {raw} = String;
 
 	for (const token of tokens) {
@@ -254,26 +253,25 @@ const render = (tokens, renderedHTML = '') => {
 			let {text, type = 'text', punctuator, breaks, hint, previous} = token;
 			let body = text;
 
-			// text.includes('>') && debug('tag:close')(punctuator || type, text, token);
-
 			if (passthru) {
 				if (fenced) {
 					if (fenced === passthru) {
 						fenced += text;
 						passthru = `<${block} class="markup code" ${text ? ` ${SourceType}="${text}"` : ''}>`;
 					} else if (punctuator === 'closer' && text === '```') {
-						// debug('passthru:rendered:code')({passthru});
+						// passthru rendered code
 						renderedHTML += `${passthru}</${block}>`;
 						indent = fenced = passthru = '';
 					} else {
+						// passthru code
 						passthru += body.replace(indent, '');
-						// debug('passthru:code')({passthru, breaks, indent});
 					}
-					continue;
+					// continue;
 				} else {
+					// passthru body
 					passthru += body;
 					if (punctuator === 'closer' || (comment && punctuator === 'comment')) {
-						// debug('passthru:rendered:body')({passthru});
+						// passthru body rendered
 						renderedHTML += passthru;
 						passthru = '';
 					}
@@ -291,13 +289,7 @@ const render = (tokens, renderedHTML = '') => {
 					(text in entities && (body = entities[text]));
 
 				if (punctuator) {
-					passthru = ((comment = punctuator === 'comment' && text) || tags.has(text)) && text;
-					//  ||
-					// (punctuator === 'opener' && text === '<!' && '>');
-					// (comment = punctuator === 'comment') || tags.has(text) ? text
-					// : (punctuator === 'opener' && (text === '<!')) ? '>'
-					// : undefined;
-					// (((comment = punctuator === 'comment' && text) ||  tags.has(text)) && text);
+					passthru = (((comment = punctuator === 'comment' && text) || tags.has(text)) && text) || '';
 					if (passthru) continue;
 					if (punctuator === 'opener') {
 						if ((fenced = text === '```' && text)) {
@@ -305,24 +297,24 @@ const render = (tokens, renderedHTML = '') => {
 							passthru = fenced;
 							[indent = ''] = /^[ \t]*/gm.exec(previous.text);
 							indent && (indent = new RegExp(raw`^${indent}`, 'mg'));
-							// debug('punctuator:opener:fence:token')(punctuator, token);
+							// punctuator opener fence
 							continue;
 						} else if (text in spans) {
 							before = `<${spans[text]}${render.classes(classes)}>`;
 							classes.push('opener');
-						} else if (text === '<!') {
+						} else if (text === '<!' || text === '<%') {
+							// Likely <!doctype …> || Processing instruction
 							let next;
-							while((next = tokens.next().value) && next.text !== '>') {
-								// 	console.log(text);
-								body += next.text;
-							}
-							// for (const {text} of tokens) {
-							// 	body += text;
-							// 	if (text === '>') break;
-							// }
+							while (
+								(next = tokens.next().value) &&
+								(body += next.text) &&
+								!(
+									(next.punctuator === 'opener' && /^</.test(next.text)) ||
+									(next.punctuator === 'closer' && />$/.test(next.text))
+								)
+							);
 							passthru = body;
 							continue;
-							console.log(punctuator, token);
 						}
 					} else if (punctuator === 'closer') {
 						if (text === '```') {
@@ -333,7 +325,6 @@ const render = (tokens, renderedHTML = '') => {
 						}
 					}
 					(before || after) && (tag = 'tt');
-					// || debug(`punctuator:${punctuator}:token`)(punctuator, token);
 					classes.push(`${punctuator}-token`);
 				} else {
 					if (breaks) {
@@ -364,8 +355,8 @@ const render = (tokens, renderedHTML = '') => {
 								body = text;
 							}
 						} else {
+							// sequence
 							body = text;
-							// debug(`sequence:token`)(type, token);
 						}
 					} else if (type === 'whitespace') {
 						// if (span === 'code') body.replace(/\xA0/g, '&nbsp;');
