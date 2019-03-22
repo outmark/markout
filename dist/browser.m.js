@@ -1625,7 +1625,7 @@ const loadSourceTextFrom = async (src, options) => {
 		 * @param {Anchors} anchors
 		 */
 		rewriteAnchors(...anchors) {
-			const {debugging = true} = MarkoutContent.prototype.rewriteAnchors;
+			const {debugging = false} = MarkoutContent.prototype.rewriteAnchors;
 
 			const {sourceURL} = this;
 
