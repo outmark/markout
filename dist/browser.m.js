@@ -1171,7 +1171,14 @@ const render = (tokens, renderedHTML = '') => {
 					(text in entities && (body = entities[text]));
 
 				if (punctuator) {
-					if ((passthru = ((comment = punctuator === 'comment' && text) || tags.has(text)) && text)) continue;
+					passthru = ((comment = punctuator === 'comment' && text) || tags.has(text)) && text;
+					//  ||
+					// (punctuator === 'opener' && text === '<!' && '>');
+					// (comment = punctuator === 'comment') || tags.has(text) ? text
+					// : (punctuator === 'opener' && (text === '<!')) ? '>'
+					// : undefined;
+					// (((comment = punctuator === 'comment' && text) ||  tags.has(text)) && text);
+					if (passthru) continue;
 					if (punctuator === 'opener') {
 						if ((fenced = text === '```' && text)) {
 							block = 'pre';
@@ -1183,6 +1190,19 @@ const render = (tokens, renderedHTML = '') => {
 						} else if (text in spans) {
 							before = `<${spans[text]}${render.classes(classes)}>`;
 							classes.push('opener');
+						} else if (text === '<!') {
+							let next;
+							while((next = tokens.next().value) && next.text !== '>') {
+								// 	console.log(text);
+								body += next.text;
+							}
+							// for (const {text} of tokens) {
+							// 	body += text;
+							// 	if (text === '>') break;
+							// }
+							passthru = body;
+							continue;
+							console.log(punctuator, token);
 						}
 					} else if (punctuator === 'closer') {
 						if (text === '```') {
@@ -1585,7 +1605,7 @@ const loadSourceTextFrom = async (src, options) => {
 
 	const AnchorClick = '(a#onclick)';
 
-	const RewritableURL = /^(\.*(?=\/)[^?#\n]*\/)([^/?#\n]+?)(?:(\.[a-z]+)|)$|/i;
+	const RewritableURL = /^(\.*(?=\/)[^?#\n]*\/)(?:([^/?#\n]+?)(?:(\.[a-z]+)|)|)(\?[^#]+|)(#.*|)$|/i;
 
 	/**
 	 * @typedef {HTMLAnchorElement} Anchor
@@ -1605,7 +1625,7 @@ const loadSourceTextFrom = async (src, options) => {
 		 * @param {Anchors} anchors
 		 */
 		rewriteAnchors(...anchors) {
-			const {debugging = false} = MarkoutContent.prototype.rewriteAnchors;
+			const {debugging = true} = MarkoutContent.prototype.rewriteAnchors;
 
 			const {sourceURL} = this;
 
@@ -1614,13 +1634,28 @@ const loadSourceTextFrom = async (src, options) => {
 
 			// debugging && groupCollapsed('%O ‹anchors› ', this);
 			debugging && group('%O ‹anchors› ', this);
-			debugging && log(anchors);
+			// debugging && log(anchors);
+
+			// const {pathname, search} = location;
+
+			const search = location.search || '';
+			// /^\?dev\b|\&dev\b/i.test(location.search) ? location.search : '';
 
 			for (const anchor of anchors) {
-				const [href, prefix, name, suffix = '.md'] = RewritableURL.exec(anchor.getAttribute('href'));
+				const [matched, dir, name, extension = '.md', query = '', hash = ''] = RewritableURL.exec(
+					anchor.getAttribute('href'),
+				);
 
-				if (prefix) {
-					anchor.href = `#${new URL(`${prefix}${name}${suffix}`, sourceURL).pathname}`;
+				debugging && console.log({matched, dir, name, extension, query, hash});
+
+				if (dir) {
+					const pathname = `${dir}${name ? `${name}${extension}` : ''}`;
+
+					const href =
+						name && extension.toLowerCase() === '.md'
+							? `/markout/${search}#${new URL(pathname, sourceURL).pathname}`
+							: new URL(`${pathname}${query || ((!hash && search) || '')}${hash}`, sourceURL);
+					anchor.href = href;
 				} else {
 					anchor.target || (anchor.target = '_blank');
 				}
