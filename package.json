@@ -23,12 +23,6 @@
 		"rollup": "*",
 		"rollup-plugin-node-resolve": "*",
 		"typescript": "*",
-		"@smotaal/esm": "SMotaal/esm",
-		"@smotaal/tokenizer": "*"
-	},
-	"resolutions": {
-		"SMotaal/esm": "../esm",
-		"@smotaal/tokenizer": "../markup/packages/@smotaal/tokenizer",
-		"pseudom": "../markup/packages/pseudom"
+		"@smotaal/esm": "SMotaal/esm"
 	}
 }
