@@ -1,5 +1,4 @@
-import { entities, tokenize as tokenize$1, encodeEntities } from '../../../markup/dist/tokenizer/tokenizer.browser.mjs';
-import { render as render$1 } from '../../markup/dist/tokenizer/tokenizer.browser.mjs';
+import { entities, tokenize as tokenize$1, encodeEntities, render as render$1 } from '../../../markup/dist/tokenizer/tokenizer.browser.mjs';
 
 // @ts-check
 
@@ -957,21 +956,25 @@ const Lists = /(?=(\n[> \t]*)(?:[-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. ))((?:\1(?:
 const Item = /^([> \t]*)([-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. |)([^\n]+(?:\n\1(?:   ?|\t ?)(?![ \t]|[-*] |\d+\. |[a-z]\. |[ivx]+\. ).*)*)$/gm;
 
 const References = /\!?\[(\S.+?\S)\](?:\((\S[^\n()\[\]]*?\S)\)|\[(\S[^\n()\[\]]*\S)\])/g;
-const Aliases = /^([> \t]*)\[(\S.+?\S)\]:\s+(\S+)(?:\s+"([^\n]*)")(?=\s*$)/gm;
+const Aliases = /^([> \t]*)\[(\S.+?\S)\]:\s+(\S+)(?:\s+"([^\n]*)"|)(?=\s*$)/gm;
 
 const Link = /\s*(\S+)(?:\s+"([^\n]*)")?/;
 
-const normalizeReferences = sourceText => {
-	const aliases = {};
+const MATCHES = Symbol('matches');
+const ALIASES = 'aliases';
+const BLOCKS = 'blocks';
 
-	let match;
+const normalizeReferences = (sourceText, state = {}) => {
+	const {aliases = (state.aliases = {})} = state;
 
-	Aliases.lastIndex = -1;
-
-	while ((match = Aliases.exec(sourceText))) {
-		const {0: text, 1: alias, 2: href = '', 3: title, index} = match;
-		alias && alias.trim() && (aliases[alias] = {alias, href, title, text, index});
-	}
+	// let match;
+	// Aliases.lastIndex = -1;
+	// while ((match = Aliases.exec(sourceText))) {
+	// 	matches.push(match);
+	// 	const {0: text, 1: alias, 2: href = '', 3: title, index} = match;
+	// 	alias && alias.trim() && (aliases[alias] = {alias, href, title, text, index});
+	// 	match.alias = aliases[alias];
+	// }
 
 	return sourceText.replace(References, (m, text, link, alias, index) => {
 		const reference = (alias && (alias = alias.trim())) || (link && (link = link.trim()));
@@ -981,7 +984,7 @@ const normalizeReferences = sourceText => {
 			if (link) {
 				[, href = '#', title] = Link.exec(link);
 			} else if (alias && alias in aliases) {
-				[, href = '#', title] = aliases[alias];
+				({href = '#', title} = aliases[alias]);
 			}
 			// console.log(m, {href, title, text, link, alias, reference, index});
 			if (m[0] === '!') {
@@ -1051,23 +1054,34 @@ const normalizeLists = sourceText =>
 				let depth = inset.length;
 				if (depth > list.depth) {
 					const parent = list;
-					list = new List();
-					list.inset = inset;
-					list.depth = depth;
-					(list.type = marker === '* ' || marker === '- ' ? 'ul' : 'ol') === 'ol' &&
-						(list.start = marker.replace(/\W/g, ''));
-					(list.parent = parent).push(list);
+					list.push((list = new List()));
+					list.parent = parent;
+
+					// list = new List();
+					// list.inset = inset;
+					// list.depth = depth;
+					// (list.type = marker === '* ' || marker === '- ' ? 'ul' : 'ol') === 'ol' &&
+					// (list.start = marker.replace(/\W/g, ''));
+					// (list.parent = parent).push(list);
 				} else if (depth < list.depth) {
 					while ((list = list.parent) && depth < list.depth);
-				} else if (!(inset in list)) {
-					// TODO: Figure out if this was just for top!!!
-					list.inset = inset;
-					list.depth = depth;
-					(list.type = marker === '* ' || marker === '- ' ? 'ul' : 'ol') === 'ol' &&
-						(list.start = marker.replace(/\W/g, ''));
+					// } else if (first) {
+					// 	// TODO: Figure out if this was just for top!!!
+					// 	list.inset = inset;
+					// 	list.depth = depth;
+					// 	(list.type = marker === '* ' || marker === '- ' ? 'ul' : 'ol') === 'ol' &&
+					// 		(list.start = marker.replace(/\W/g, ''));
+					// } else {
+					// 	// console.log(match);
 				}
 
 				if (!list) break;
+
+				'inset' in list ||
+					((list.inset = inset),
+					(list.depth = depth),
+					(list.type = marker === '* ' || marker === '- ' ? 'ul' : 'ol') === 'ol' &&
+						(list.start = marker.replace(/\W/g, '')));
 
 				'style' in list ||
 					(list.style =
@@ -1103,10 +1117,64 @@ const normalizeParagraphs = sourceText =>
 		return `${feed}<p>${paragraphs.join(`</p>${feed}<p>${feed}`)}</p>`;
 	});
 
-const normalizeBlocks = sourceText =>
-	sourceText.replace(Blocks, (m, fence, paragraphs) =>
-		fence ? m : normalizeReferences(normalizeParagraphs(normalizeLists(paragraphs))),
-	);
+const normalizeBlocks = (sourceText, state = {}) => {
+	const {sources = (state.sources = []), [ALIASES]: aliases = (state[ALIASES] = {})} = state;
+
+	const source = {sourceText, [BLOCKS]: [], [ALIASES]: {}};
+	sources.push(source);
+
+	Blocks: {
+		const {
+			sourceText,
+			[BLOCKS]: sourceBlocks,
+			[BLOCKS]: {
+				[MATCHES]: matchedBlocks = (sourceBlocks[MATCHES] = []),
+				[MATCHES]: {fenced: fenced = (matchedBlocks.fenced = []), unfenced: unfenced = (matchedBlocks.unfenced = [])},
+			},
+			[ALIASES]: sourceAliases,
+			[ALIASES]: {
+				[MATCHES]: matchedAliases = (sourceAliases[MATCHES] = []),
+				[MATCHES]: {aliased = (matchedAliases.aliased = []), unaliased = (matchedAliases.unaliased = [])},
+			},
+		} = source;
+		let match = (Blocks.lastIndex = null);
+
+		const replaceAlias = (text, indent, alias, href, title, index) => {
+			const match = {text, indent, alias, href, title, index};
+
+			// TODO: Figure out anchors: https://www.w3.org/TR/2017/REC-html52-20171214/links.html
+			return alias && alias.trim()
+				? (aliased.push((sourceAliases[alias] = aliases[alias] = match)),
+				  `<a hidden rel="alias" name="${alias}" href="${href}">${title || ''}</a>`)
+				: (unaliased.push(match), text);
+		};
+
+		while ((match = Blocks.exec(sourceText))) {
+			matchedBlocks.push(([match.text, match.fence, match.unfenced] = match));
+			if (match.fence) {
+				fenced.push(match);
+			} else {
+				unfenced.push(match);
+				match.text = match.text.replace(Aliases, replaceAlias);
+			}
+		}
+	}
+
+	Normalization: {
+		const {[BLOCKS]: sourceBlocks} = source;
+		for (const {text, fence, unfenced} of sourceBlocks[MATCHES]) {
+			sourceBlocks.push(fence ? text : normalizeParagraphs(normalizeLists(normalizeReferences(text, state))));
+		}
+		source.normalizedText = sourceBlocks.join('\n');
+		console.log(state);
+	}
+
+	// source.normalizedText = sourceText.replace(Blocks, (text, fence, unfenced) => {
+	// 	return fence ? text : normalizeReferences(normalizeParagraphs(normalizeLists(unfenced)), state);
+	// });
+
+	return source.normalizedText;
+};
 
 const normalized = new Map();
 
