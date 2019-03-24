@@ -8,6 +8,40 @@ Renders markout from any URL by appending it as a hash.
 
 Markout shares a lot of similarities with many markdown renderers, but uses a very different syntax with completely different processing mechanics.
 
+### Markout borrows a lot of nice features from Markdown
+
+<details open><summary>
+#### Lists
+</summary>
+
+- [ ] …
+
+<div column-grid>
+
+<!-- prettier-ignore-start -->
+
+```md
+2. abc
+
+a. 123
+
+3. efg
+```
+
+<figure>
+2. abc
+
+a. 123
+
+3. efg
+</figure>
+
+<!-- prettier-ignore-end -->
+
+</div>
+</details>
+
+
 ### Markout is an expressive way to author HTML
 
 <details><summary>
