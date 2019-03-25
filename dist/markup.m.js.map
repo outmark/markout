@@ -1,1 +1,1 @@
-{"version":3,"file":"markup.m.js","sources":["../lib/markup.js"],"sourcesContent":["export * from '../../../markup/dist/tokenizer/tokenizer.browser.mjs';\n// export * from '../../../markup/packages/@smotaal/tokenizer/browser/markup.js';\n// export * from './entities.js';\n// export * from '../../../markup/dist/tokenizer/browser/markup.mjs';\n"],"names":[],"mappings":";;AACA;;qEAEqE"}
+{"version":3,"file":"markup.m.js","sources":[],"sourcesContent":[],"names":[],"mappings":""}

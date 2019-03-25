@@ -1,4 +1,4 @@
-import { entities, tokenize as tokenize$1, encodeEntities, render as render$1 } from '../../../markup/dist/tokenizer/tokenizer.browser.mjs';
+import { entities, tokenize as tokenize$1, encodeEntities, render as render$1 } from '../../../markup/dist/tokenizer/tokenizer.browser.js';
 
 // @ts-check
 
@@ -878,9 +878,6 @@ class Assets {
 }
 
 /** @package components */
-
-// import {entities} from '../../../markup/dist/tokenizer/extensions/helpers.mjs';
-// import {entities} from './markup.js';
 
 const {
 	UnicodeIdentifier,

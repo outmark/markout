@@ -1,7 +1,4 @@
-import { entities, encodeEntities, tokenize as tokenize$1 } from '../../../markup/dist/tokenizer/tokenizer.browser.mjs';
-
-// import {entities} from '../../../markup/dist/tokenizer/extensions/helpers.mjs';
-// import {entities} from './markup.js';
+import { entities, encodeEntities, tokenize as tokenize$1 } from '../../../markup/dist/tokenizer/tokenizer.browser.js';
 
 const {
 	UnicodeIdentifier,

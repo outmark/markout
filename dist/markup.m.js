@@ -1,6 +1,2 @@
-export * from '../../../markup/dist/tokenizer/tokenizer.browser.mjs';
-
-// export * from '../../../markup/packages/@smotaal/tokenizer/browser/markup.js';
-// export * from './entities.js';
-// export * from '../../../markup/dist/tokenizer/browser/markup.mjs';
+export * from '../../../markup/dist/tokenizer/tokenizer.browser.js';
 //# sourceMappingURL=markup.m.js.map
