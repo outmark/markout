@@ -907,6 +907,29 @@ const {
 	// MarkdownIdentitySeparators: new RegExp(raw`[${MarkdownWordPrefixes}${MarkdownWordJoiners}]+`, 'ug')
 }))(entities.es);
 
+/**
+ * @param {string} context
+ * @param {object} meta
+ * @param {(string | boolean)[]} [flags]
+ */
+const debugging = (context, meta, flags) =>
+	!(meta && context && flags) ||
+	typeof meta.url !== 'string' ||
+	typeof context !== 'string' ||
+	typeof flags !== 'object' ||
+	(Array.isArray(flags) && flags.includes(false)) ||
+	Object.entries(flags).reduce(
+		Array.isArray(flags)
+			? // ? (flags, [, flag]) => (typeof flag === 'string' && (flags[flag] = true), flags)
+			  // : (flags, [flag, value]) => (typeof flag === 'string' && (flags[flag] = value), flags),
+			  (meta, [, flag]) => (typeof flag === 'string' && (meta[`debug:${context}:${flag}`] = true), meta)
+			: (meta, [flag, value = meta[flag]]) => (
+					typeof flag === 'string' && (meta[`debug:${context}:${flag}`] = value), meta
+			  ),
+		meta,
+		// meta[`debug:${context}`] || (meta[`debug:${context}`] = {}),
+	);
+
 const SourceType = 'source-type';
 const MarkupSyntax = 'markup-syntax';
 
@@ -961,29 +984,26 @@ const MATCHES = Symbol('matches');
 const ALIASES = 'aliases';
 const BLOCKS = 'blocks';
 
+/**
+ * @param {string} sourceText
+ * @param {{ aliases?: { [name: string]: alias } }} [state]
+ */
 const normalizeReferences = (sourceText, state = {}) => {
+	const debugging = import.meta['debug:markout:anchor-normalization'];
 	const {aliases = (state.aliases = {})} = state;
-
-	// let match;
-	// Aliases.lastIndex = -1;
-	// while ((match = Aliases.exec(sourceText))) {
-	// 	matches.push(match);
-	// 	const {0: text, 1: alias, 2: href = '', 3: title, index} = match;
-	// 	alias && alias.trim() && (aliases[alias] = {alias, href, title, text, index});
-	// 	match.alias = aliases[alias];
-	// }
 
 	return sourceText.replace(References, (m, text, link, alias, index) => {
 		const reference = (alias && (alias = alias.trim())) || (link && (link = link.trim()));
+
 		if (reference) {
 			let href, title;
-			// console.log(m, {text, link, alias, reference, index});
+			// debugging && console.log(m, {text, link, alias, reference, index});
 			if (link) {
 				[, href = '#', title] = Link.exec(link);
 			} else if (alias && alias in aliases) {
 				({href = '#', title} = aliases[alias]);
 			}
-			// console.log(m, {href, title, text, link, alias, reference, index});
+			debugging && console.log(m, {href, title, text, link, alias, reference, index});
 			if (m[0] === '!') {
 				return `<img src="${href}"${text || title ? ` title="${text || title}"` : ''} />`;
 			} else {
@@ -1024,7 +1044,7 @@ class List extends Array {
 						if (!text.startsWith(character)) break;
 						text = text.slice(1);
 					}
-					console.log({insetText, text, inset});
+					// console.log({insetText, text, inset});
 					rows.push(text);
 				}
 			} else {
@@ -1163,7 +1183,7 @@ const normalizeBlocks = (sourceText, state = {}) => {
 			sourceBlocks.push(fence ? text : normalizeParagraphs(normalizeLists(normalizeReferences(text, state))));
 		}
 		source.normalizedText = sourceBlocks.join('\n');
-		console.log(state);
+		import.meta['debug:markout:block-normalization'] && console.log(state);
 	}
 
 	// source.normalizedText = sourceText.replace(Blocks, (text, fence, unfenced) => {
@@ -1330,8 +1350,12 @@ const render = (tokens, renderedHTML = '') => {
 
 render.classes = classes => ((classes = classes.filter(Boolean).join(' ')) && ` class="${classes}"`) || '';
 
-// export const encodeEntity = entity => `&#${entity.charCodeAt(0)};`;
-// export const encodeEntities = string => string.replace(/[\u00A0-\u9999<>\&]/gim, encodeEntity);
+debugging('markout', import.meta, [
+	import.meta.url.includes('/markout/lib/') ||
+		(typeof location === 'object' && /[?&]debug(?=[&#]|=[^&]*\bmarkout|$)\b/.test(location.search)),
+	'block-normalization',
+	'anchor-normalization',
+]);
 
 const markout = /*#__PURE__*/Object.freeze({
   SourceType: SourceType,
@@ -1350,8 +1374,6 @@ const markout = /*#__PURE__*/Object.freeze({
   MarkdownIdentityWord: MarkdownIdentityWord,
   MarkdownIdentity: MarkdownIdentity
 });
-
-// import * as markup from '../../markup/packages/@smotaal/tokenizer/browser/markup.js';
 
 const assets = new Assets({base: new URL('../', import.meta.url)}, 'style:styles/markout.css');
 
@@ -1654,8 +1676,6 @@ const loadSourceTextFrom = async (src, options) => {
   }
 };
 
-// export * from './markout.js';
-
 (async () => {
 	const {dir, dirxml, group, groupCollapsed, groupEnd, log} = console;
 
@@ -1681,7 +1701,7 @@ const loadSourceTextFrom = async (src, options) => {
 		 * @param {Anchors} anchors
 		 */
 		rewriteAnchors(...anchors) {
-			const {debugging = false} = MarkoutContent.prototype.rewriteAnchors;
+			const debugging = import.meta['debug:markout:anchor-rewrite'];
 
 			const {sourceURL} = this;
 
@@ -1698,14 +1718,14 @@ const loadSourceTextFrom = async (src, options) => {
 			// /^\?dev\b|\&dev\b/i.test(location.search) ? location.search : '';
 
 			for (const anchor of anchors) {
-				const [matched, dir, name, extension = '.md', query = '', hash = ''] = RewritableURL.exec(
+				const [matched, parent, name, extension = '.md', query = '', hash = ''] = RewritableURL.exec(
 					anchor.getAttribute('href'),
 				);
 
-				debugging && console.log({matched, dir, name, extension, query, hash});
+				debugging && console.log({matched, parent, name, extension, query, hash});
 
-				if (dir) {
-					const pathname = `${dir}${name ? `${name}${extension}` : ''}`;
+				if (parent) {
+					const pathname = `${parent}${name ? `${name}${extension}` : ''}`;
 
 					const href =
 						name && extension.toLowerCase() === '.md'
@@ -1740,4 +1760,10 @@ const loadSourceTextFrom = async (src, options) => {
 		section.load || (section.load = load), section.load();
 	}
 })();
+
+debugging('markout', import.meta, [
+	import.meta.url.includes('/markout/lib/') ||
+		(typeof location === 'object' && /[?&]debug(?=[&#]|=[^&]*\bmarkout|$)\b/.test(location.search)),
+	'anchor-rewrite',
+]);
 //# sourceMappingURL=browser.m.js.map
