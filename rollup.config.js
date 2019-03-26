@@ -17,6 +17,7 @@ const defaults = {
 };
 
 const sources = {
+	helpers: `./packages/markout/lib/helpers.js`,
 	markout: `./packages/markout/lib/markout.js`,
 	browser: `./packages/markout/lib/browser.js`,
 	markup: `./packages/markout/lib/markup.js`,
@@ -25,18 +26,25 @@ const sources = {
 };
 
 const bundles = ((
-	{browser, markout, markup},
-	external = (specifier, referrer) =>
-		specifier.startsWith('../') && ((referrer && referrer.includes('/dist/')) || specifier.includes('/dist/')),
-	dir = '/',
+	{browser, markout, markup, helpers},
+	options = {
+		output: {dir: '/'},
+		external: (specifier, referrer) =>
+			specifier.startsWith('../') && ((referrer && referrer.includes('/dist/')) || specifier.includes('/dist/')),
+		// resolve: (specifier, referrer) => console.log({specifier, referrer}),
+		// experimentalOptimizeChunks: true,
+		// manualChunks: {helpers: [helpers]},
+	},
 ) => ({
-	['markup:es']: {input: {markup}, external, output: {dir: '/'}},
-	['markout:es']: {input: {markout}, external, output: {dir: '/'}},
-	['browser:es']: {input: {browser}, external, output: {dir: '/'}},
+	// ['helpers:es']: {input: {helpers}, external, output: {dir: '/'}},
+	['helpers:es']: {input: {helpers}, ...options},
+	['markup:es']: {input: {markup}, ...options},
+	['markout:es']: {input: {markout}, ...options},
+	['browser:es']: {input: {browser}, ...options},
 }))(sources);
 
 const configurations = [
-	//
+	esm('helpers', '.m.js'),
 	esm('browser', '.m.js'),
 	esm('markout', '.m.js'),
 	esm('markup', '.m.js'),
@@ -78,6 +86,7 @@ function configure() {
 		{input, output: {dir: dir = '', name, ...output} = {}, ...options},
 		{root, base, ...defaults} = {},
 	) => {
+		const seen = new WeakSet();
 		root = root ? dirname(root) : cwd;
 		base = base ? dirname(base).replace(root, './') : './dist/';
 
@@ -102,10 +111,11 @@ function configure() {
 			const suffix = buildID && format !== buildID ? `.${buildID.replace(/:.*$/, '')}` : '';
 			const name = `${packageID || output.name || root.replace(/.*\/([^/]+)\/$/, '$1') || 'bundle'}${suffix}`;
 			input = {[name]: input};
-		} else {
+		} else if (!seen.has(input)) {
+			seen.add(input);
 			for (const key of Object.keys(input)) {
 				// const path = input[key];
-				input[key] = input[key].replace(/^[.]?\//, root);
+				input[key] = input[key].replace(/^\.\//, root);
 				// input[key] = resolve(input[key], root);
 			}
 		}
@@ -117,11 +127,12 @@ function configure() {
 		const entryFileNames = `${filename}${extension}`;
 		output.entryFileNames = entryFileNames;
 
-		if (options.manualChunks) {
+		if (options.manualChunks && !seen.has(options.manualChunks)) {
 			output.chunkFileNames || (output.chunkFileNames = entryFileNames);
+			seen.add(options.manualChunks);
 			for (const chunk of Object.values(options.manualChunks)) {
 				for (const key of Object.keys(chunk)) {
-					chunk[key] = chunk[key].replace(/^[.]?\//, root);
+					chunk[key] = chunk[key].replace(/^\.\//, root);
 				}
 			}
 		}
