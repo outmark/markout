@@ -50,7 +50,7 @@ const configurations = [
 	esm('markup', '.m.js'),
 ];
 
-console.log({defaults, bundles}, configurations);
+// console.log({defaults, bundles}, configurations);
 
 export default configurations;
 
