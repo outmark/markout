@@ -472,8 +472,8 @@ const render = (tokens, renderedHTML = '') => {
 render.classes = classes => ((classes = classes.filter(Boolean).join(' ')) && ` class="${classes}"`) || '';
 
 debugging('markout', import.meta, [
-	import.meta.url.includes('/markout/lib/') ||
-		(typeof location === 'object' && /[?&]debug(?=[&#]|=[^&]*\bmarkout|$)\b/.test(location.search)),
+	// import.meta.url.includes('/markout/lib/') ||
+	typeof location === 'object' && /[?&]debug(?=[&#]|=[^&]*\bmarkout|$)\b/.test(location.search),
 	'block-normalization',
 	'anchor-normalization',
 ]);

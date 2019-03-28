@@ -1,62 +1,109 @@
 ﻿import {dynamicImport} from '../pholio/lib/import.js';
 
-if (typeof document === 'object' && typeof location === 'object') {
-	let title, href, hash, type;
-
-	const section =
-		document.querySelector('markout-content') || document.body.appendChild(document.create('markout-content'));
-
+// Only bootstrap preview if in valid browser window scope
+if (typeof document === 'object' && document && typeof location === 'object' && 'hash' in location) {
+	// Pickup declarative link "from head" if present
 	const link = document.head.querySelector(
 		'link[rel="alternate" i][type^="text/markout" i][type^="text/markdown" i][type^="text/md" i][href], link[rel="alternate" i][href$=".md" i][href$=".markdown" i], link[rel="alternate" i][href]',
 	);
 
-	const MarkoutPreviewBase = /\/?markout\/preview\.js\b.*$/i;
-	const MarkoutBase = /\/?markout(?:\/.*)?$/i;
-	const RootBase = /\/?$/;
+	// Pickup or create markdown-section in the body
+	const section = document.body.querySelector('markout-content') || document.create('markout-content');
 
-	const base = MarkoutPreviewBase.test(import.meta.url)
-		? import.meta.url.replace(MarkoutPreviewBase, '/')
-		: location.origin
-		? location.origin.replace(
-				RootBase,
-				MarkoutBase.test(location.pathname) ? location.pathname.replace(MarkoutBase, '/') : '/',
-		  )
-		: `${new URL('./', location)}`;
+	// TODO: https://developers.google.com/web/updates/2015/09/history-api-scroll-restoration
 
-	if (!section.hasAttribute('src')) {
-		const src =
-			(link && ({href, title} = link) && href) ||
-			((hash = location.hash) && (hash = hash.trim().slice(1)) && (href = `${new URL(hash, location.origin)}`)) ||
-			((title = 'Markout'), `${base}./markout/README.md`);
+	bootstrap: {
+		section.isConnected || document.body.appendChild(section);
+		const base = new URL('/markout/', import.meta.url);
 
-		title ||
-			((title = `${href.replace(/(.*?)((?:[^/]+?[/]?){1,2})(?:\..*|)$/, '$2')}`.trim()) &&
-				(document.title = `${title} — Markout`));
+		// Only promote to preview shell if src is not present
+		if (!section.hasAttribute('src')) {
+			// State
+			const README = `${base}README.md`;
+			const hashes = (history.state && history.state.hashes) || {};
 
-		section.setAttribute('src', src);
+			const load = async (source, title = document.title) => {
+				// Pickup current fragment when source is hashchanged event
+				if (source && 'type' in source && source.type === 'hashchange') {
+					if (source.oldURL === source.newURL) return;
+					// Responsibly responsive - nothing more :)
+					await new Promise(requestAnimationFrame);
+					source = location;
+				}
+
+				let href, hash, referrer;
+				let src = source;
+
+				((hash = location.hash.trim()) &&
+					// We're using location fragment
+					(!source || source === location) &&
+					(hashes[hash] ||
+						((referrer = `${location}`), (href = hash.slice(1)), (src = `${new URL(href, referrer)}`)))) ||
+					// We're using an alternate link
+					(link &&
+						(href = link.href) &&
+						(!source || source === link) &&
+						(source = link) &&
+						(src = `${new URL(href, (referrer = `${location}`))}`)) ||
+					// We're using the literal source or defaulting to README
+					(src = `${new URL(
+						(href = `${source || ''}`.trim() || (source = section).getAttribute('src') || (source = README)),
+						(referrer = section.sourceURL || `${location}`),
+					)}`);
+
+				hash || (hash = '#');
+				hashes[hash] ? ({referrer, href, src} = hashes[hash]) : (hashes[hash] = {referrer, href, src});
+
+				// console.log({hashes, hash, referrer, href, src});
+
+				history.replaceState({hashes}, title, `${location}`);
+
+				if (href === section.sourceURL) return;
+
+				await (section.load ? section.load(href) : section.setAttribute('src', href));
+			};
+			section.baseURL || ((section.baseURL = location.href.replace(/[?#].*$|$/, '')) && load());
+			addEventListener('hashchange', load, {passive: true});
+		}
+
+		// Only bootstrap markout-content if not already bootstrapped
+		if (typeof section.load !== 'function' || !section.matches(':defined')) {
+			const DEV = /^\?dev\b|\&dev\b/i.test(location.search);
+			const LIB = `${base}${DEV ? 'lib/browser.js' : 'dist/browser.m.js'}`;
+			dynamicImport(new URL(LIB, base));
+		}
 	}
-
-	addEventListener('hashchange', () => location.reload());
-
-	const DEV = /^\?dev\b|\&dev\b/i.test(location.search);
-	const LIB = `./${DEV ? 'lib/browser.js' : 'dist/browser.m.js'}`;
-
-	dynamicImport(new URL(LIB, `${base}markout/`));
 }
 
-// section.rewriteAnchors = anchors => {
-// 	for (const anchor of anchors) {
-// 		!anchor || anchor.hash || !anchor.href || (anchor.href = `#${anchor.href}`);
-// 	}
-// };
-// addEventListener('hashchange', () => {
+// const {origin, pathname} = location;
+// const MarkoutPreviewBase = /\/?markout\/preview\.js\b.*$/i;
+// const MarkoutBase = /\/?markout(?:\/.*)?$/i;
+// const RootBase = /\/?$/;
+
+// const base = MarkoutPreviewBase.test(import.meta.url)
+// 	? import.meta.url.replace(MarkoutPreviewBase, '/')
+// 	: origin
+// 	? origin.replace(RootBase, MarkoutBase.test(pathname) ? pathname.replace(MarkoutBase, '/') : '/')
+// 	: `${new URL('./', location)}`;
+
+// if (!section.hasAttribute('src')) {
 // 	const src =
-// 		(hash = location.hash) && (hash = hash.trim().slice(1)) && (href = `${new URL(hash, location.origin)}`);
+// 		(link && ({href, title} = link) && href) ||
+// 		((hash = location.hash) && (hash = hash.trim().slice(1)) && (href = `${new URL(hash, origin)}`)) ||
+// 		((title = 'Markout'), `${base}./markout/README.md`);
 
-// 	src && section.load(src);
-// });
+// 	title ||
+// 		((title = `${href.replace(/(.*?)((?:[^/]+?[/]?){1,2})(?:\..*|)$/, '$2')}`.trim()) &&
+// 			(document.title = `${title} — Markout`));
 
-// const lib = `${base}quench/${
-// 	/^\?dev\b|\&dev\b/i.test(location.search) ? 'lib/browser/markout.js' : 'dist/markout.m.js'
-// }`;
-// dynamicImport(lib);
+// 	section.setAttribute('src', src);
+// }
+
+// const LIB = `./${DEV ? 'lib/browser.js' : 'dist/browser.m.js'}`;
+
+// async ({oldURL, newURL}) => {
+// 	if (oldURL !== newURL) {
+// 		await new Promise(requestAnimationFrame);
+// 		load(location);
+// 	}
+// },

@@ -1351,8 +1351,8 @@ const render = (tokens, renderedHTML = '') => {
 render.classes = classes => ((classes = classes.filter(Boolean).join(' ')) && ` class="${classes}"`) || '';
 
 debugging('markout', import.meta, [
-	import.meta.url.includes('/markout/lib/') ||
-		(typeof location === 'object' && /[?&]debug(?=[&#]|=[^&]*\bmarkout|$)\b/.test(location.search)),
+	// import.meta.url.includes('/markout/lib/') ||
+	typeof location === 'object' && /[?&]debug(?=[&#]|=[^&]*\bmarkout|$)\b/.test(location.search),
 	'block-normalization',
 	'anchor-normalization',
 ]);
@@ -1703,7 +1703,7 @@ const loadSourceTextFrom = async (src, options) => {
 		rewriteAnchors(...anchors) {
 			const debugging = import.meta['debug:markout:anchor-rewrite'];
 
-			const {sourceURL} = this;
+			const {sourceURL, baseURL = `/markout/`} = this;
 
 			// TODO: Figure out why anchors is double nested!
 			anchors = anchors.flat();
@@ -1729,7 +1729,7 @@ const loadSourceTextFrom = async (src, options) => {
 
 					const href =
 						name && extension.toLowerCase() === '.md'
-							? `/markout/${search}#${new URL(pathname, sourceURL).pathname}`
+							? `${baseURL}${search}#${new URL(pathname, sourceURL).pathname}`
 							: new URL(`${pathname}${query || ((!hash && search) || '')}${hash}`, sourceURL);
 					anchor.href = href;
 				} else {
@@ -1762,8 +1762,8 @@ const loadSourceTextFrom = async (src, options) => {
 })();
 
 debugging('markout', import.meta, [
-	import.meta.url.includes('/markout/lib/') ||
-		(typeof location === 'object' && /[?&]debug(?=[&#]|=[^&]*\bmarkout|$)\b/.test(location.search)),
+	// import.meta.url.includes('/markout/lib/') ||
+	typeof location === 'object' && /[?&]debug(?=[&#]|=[^&]*\bmarkout|$)\b/.test(location.search),
 	'anchor-rewrite',
 ]);
 //# sourceMappingURL=browser.m.js.map
