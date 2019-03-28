@@ -62,9 +62,9 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 
 					if (tail) {
 						href = `${head}\/${entry}${extension}`;
-						const url = `${location}`.replace(hash, `#${href}`);
-						src = `${new URL(href, location)}`;
-						history.replaceState({hashes}, title, url);
+						referrer = `${location}`.replace(hash, (hash = `#${href}`));
+						src = `${new URL(href, referrer)}`;
+						history.replaceState({hashes}, title, referrer);
 					}
 				}
 
