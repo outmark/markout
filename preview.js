@@ -36,7 +36,7 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 
 				((hash = location.hash.trim()) &&
 					// We're using location fragment
-					(!source || source === location) &&
+					((!source && (source = location)) || source === location) &&
 					(hashes[hash] ||
 						((referrer = `${location}`), (href = hash.slice(1)), (src = `${new URL(href, referrer)}`)))) ||
 					// We're using an alternate link
@@ -50,6 +50,23 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 						(href = `${source || ''}`.trim() || (source = section).getAttribute('src') || (source = README)),
 						(referrer = section.sourceURL || `${location}`),
 					)}`);
+
+				if (source === location && hash && hash.length > 1) {
+					const [
+						,
+						head,
+						tail,
+						entry = 'README',
+						extension = '.md',
+					] = /^#(.*)(\/(?:([^\/.][^\/]*?)(?:(\.\w+)|))?)$/.exec(hash);
+
+					if (tail) {
+						href = `${head}\/${entry}${extension}`;
+						const url = `${location}`.replace(hash, `#${href}`);
+						src = `${new URL(href, location)}`;
+						history.replaceState({hashes}, title, url);
+					}
+				}
 
 				hash || (hash = '#');
 				hashes[hash] ? ({referrer, href, src} = hashes[hash]) : (hashes[hash] = {referrer, href, src});
