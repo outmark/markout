@@ -931,6 +931,7 @@ const debugging = (context, meta, flags) =>
 	);
 
 const SourceType = 'source-type';
+const SourceParameters = 'source-parameters';
 const MarkupSyntax = 'markup-syntax';
 
 const punctuators = ((
@@ -967,6 +968,8 @@ const punctuators = ((
 })();
 
 const Blocks = /(?:^|\n)([> \t]*(?:\`\`\`|\~\~\~))[^]+?(?:\n+\1\n?|$)|([^]+?(?:(?=\n[> \t]*(?:\`\`\`|\~\~\~))|$))/g;
+
+const FencedBlockHeader = /^(?:(\w+)(?:\s+(.*?)\s*|)$|)/m;
 
 const Paragraphs = /(?=(\n[> \t]*)\b)((?:\1(?!(?:\d+|[a-z]|[ivx]+)\. )[^#<>|\-~\s\n][^\n]*?(?:\n[> \t]*(?=\n|$))+)+)/g;
 
@@ -1208,7 +1211,7 @@ const normalize = sourceText => {
 const tokenize = sourceText => tokenize$1(`${sourceText.trim()}\n}`, {sourceType: 'markdown'});
 
 const render = (tokens, renderedHTML = '') => {
-	let passthru, block, fenced, indent, newlines, comment;
+	let passthru, block, fenced, header, indent, newlines, comment;
 
 	const {blocks, spans, entities, tags} = punctuators;
 
@@ -1219,15 +1222,25 @@ const render = (tokens, renderedHTML = '') => {
 			let {text, type = 'text', punctuator, breaks, hint, previous} = token;
 			let body = text;
 
-			if (passthru) {
+			if (passthru || fenced) {
 				if (fenced) {
 					if (fenced === passthru) {
 						fenced += text;
-						passthru = `<${block} class="markup code" ${text ? ` ${SourceType}="${text}"` : ''}>`;
+						header = text;
+						// passthru = `<${block} class="markup code" ${text ? ` ${SourceType}="${text}"` : ''}><code>`;
+						passthru = ''; // `<${block}><code>`;
 					} else if (punctuator === 'closer' && text === '```') {
+						let sourceType, sourceParameters;
+						if (header) {
+							[sourceType = 'markup', sourceParameters] = FencedBlockHeader.exec(header);
+							import.meta['debug:fenced-block-header-rendering'] &&
+								console.log('fenced-block-header', {fenced, header, passthru, sourceType, sourceParameters});
+						}
 						// passthru rendered code
-						renderedHTML += `${passthru}</${block}>`;
-						indent = fenced = passthru = '';
+						renderedHTML += `<${block} class="markup code" ${SourceType}="${sourceType || 'markup'}"${
+							sourceParameters ? ` ${SourceParameters}="${sourceParameters}"` : ''
+						}>${encodeEntities(passthru)}</${block}>`;
+						header = indent = fenced = passthru = '';
 					} else {
 						// passthru code
 						passthru += body.replace(indent, '');
@@ -1356,10 +1369,12 @@ debugging('markout', import.meta, [
 	typeof location === 'object' && /[?&]debug(?=[&#]|=[^&]*\bmarkout|$)\b/.test(location.search),
 	'block-normalization',
 	'anchor-normalization',
+	'fenced-block-header-rendering',
 ]);
 
 const markout = /*#__PURE__*/Object.freeze({
   SourceType: SourceType,
+  SourceParameters: SourceParameters,
   MarkupSyntax: MarkupSyntax,
   normalizeReferences: normalizeReferences,
   normalizeLists: normalizeLists,
@@ -1583,8 +1598,6 @@ class MarkoutContent extends Component {
 		sourceType = element && element.getAttribute(SourceType$1),
 		sourceText = !element || element.hasAttribute(MarkupSyntax$1)
 			? ''
-			: sourceType === 'html' || sourceType === 'md'
-			? element.innerHTML
 			: element.textContent,
 	}) {
 		if (element && sourceType && sourceText) {
