@@ -1596,16 +1596,15 @@ class MarkoutContent extends Component {
 	async renderSourceText({
 		element,
 		sourceType = element && element.getAttribute(SourceType$1),
-		sourceText = !element || element.hasAttribute(MarkupSyntax$1)
-			? ''
-			: element.textContent,
+		sourceText = !element || element.hasAttribute(MarkupSyntax$1) ? '' : element.textContent,
 	}) {
 		if (element && sourceType && sourceText) {
 			element.removeAttribute(SourceType$1);
 			element.setAttribute(MarkupSyntax$1, sourceType);
 			const fragment = document.createDocumentFragment();
 			element.textContent = '';
-			element.sourceText = sourceText = sourceText.replace(/^\t+/gm, indent => '  '.repeat(indent.length));
+			// sourceText = sourceText.replace(/^\t+/gm, indent => '  '.repeat(indent.length));
+			element.sourceText = sourceText;
 			await render$1(`${sourceText}\0\n`, {sourceType, fragment});
 			fragment.normalize();
 			let lastChild = fragment;
