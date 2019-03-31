@@ -59,7 +59,7 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 						tail,
 						entry = 'README',
 						extension = '.md',
-					] = /^#(.*)(\/(?:([^\/.][^\/]*?)(?:(\.\w+)|))?)$/.exec(hash);
+					] = /^#(.*)(\/(?:([^\/.][^\/]*?)(?:(\.\w+)|))?)$/.exec(hash) || '';
 
 					if (tail) {
 						href = `${head}\/${entry}${extension}`;

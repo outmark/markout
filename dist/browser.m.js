@@ -1648,30 +1648,6 @@ try {
 /** @typedef {HTMLSlotElement} SLOT */
 /** @typedef {HTMLDivElement} DIV */
 
-/** @type {(src: string | URL, options?: RequestInit) => Promise<string>} */
-const loadTextFrom = (src, options) => {
-  const url = `${new URL(src, location)}`;
-  const request = fetch(url, options);
-  const text = request
-    .catch(error => {
-      text.error = error;
-    })
-    .then(response => (text.response = response).text());
-  text.url = url;
-  text.request = request;
-  return text;
-};
-
-/** @type {(src: string | URL, options?: RequestInit) => Promise<string>} */
-const loadSourceTextFrom = async (src, options) => {
-  try {
-    return loadTextFrom(src, options);
-  } catch (exception) {
-    // console.warn(exception);
-    return '';
-  }
-};
-
 const RewritableURL = /^(\.*(?=\/)[^?#\n]*\/)(?:([^/?#\n]+?)(?:(\.[a-z]+)|)|)(\?[^#]+|)(#.*|)$|/i;
 
 const {dir, dirxml, group, groupCollapsed, groupEnd, log} = console;
@@ -1724,8 +1700,25 @@ debugging('hashout', import.meta, [
 			arguments.length || (src = this.getAttribute('src'));
 			if (!src) return;
 			const url = new URL(src, this.baseURI);
+			// const previous = this.sourceURL;
+			// try {
+			// const loading = loadTextFrom(url);
+			const response = await fetch(url);
+			if (!response.ok) throw Error(`Failed to fetch ${url}`);
+			const text = await response.text();
+			this.sourceText = text || '';
 			this.sourceURL = url;
-			this.sourceText = (await loadSourceTextFrom(url)) || '';
+			// return;
+			// (error = loading.error) || ((this.sourceURL = url), (this.sourceText = text));
+			// }
+			// catch (exception) {
+			// 	error = (exception.stack, exception);
+			// }
+			// if (error) {
+			// 	// if (previous) this.sourceURL = previous;
+			// 	throw error;
+			// }
+			// return;
 		}
 
 		/**
@@ -1746,7 +1739,7 @@ debugging('hashout', import.meta, [
 		const {load, rewriteAnchors} = MarkoutContent.prototype;
 		for (const section of sections) {
 			section.load || ((section.load = load), section.rewriteAnchors || (section.rewriteAnchors = rewriteAnchors)),
-				section.load();
+				section.load().catch(exception => (section.sourceText = `<pre>${exception}</pre>`));
 		}
 	}
 })();
