@@ -20,6 +20,8 @@ Markout shares a lot of similarities with many markdown renderers, but uses a ve
 
 <!-- prettier-ignore-start -->
 
+<div>
+
 ```md
 2. abc
 
@@ -27,6 +29,8 @@ a. 123
 
 3. efg
 ```
+
+</div>
 
 <figure>
 2. abc
@@ -41,7 +45,6 @@ a. 123
 </div>
 </details>
 
-
 ### Markout is an expressive way to author HTML
 
 <details><summary>
@@ -50,9 +53,13 @@ a. 123
 
 - [ ] Title are implicitly defined from leading heading(s)
 
+<div>
+
 ```md
 # Hello World <!-- Title --->
 ```
+
+</div>
 
 - [ ] Title are explicitly defined from first `<title>` tag
 
@@ -74,6 +81,10 @@ a. 123
 <div column-grid>
 
 <!-- prettier-ignore-start -->
+
+<div>
+
+
 ```md
 # Heading 1
 ---
@@ -89,6 +100,8 @@ a. 123
 ---
 ####### No Heading 7
 ```
+
+</div>
 
 <figure>
 # Heading 1
@@ -105,6 +118,7 @@ a. 123
 ---
 ####### No Heading 7
 </figure>
+
 <!-- prettier-ignore-end -->
 
 </div>
@@ -114,6 +128,9 @@ a. 123
 <div column-grid>
 
 <!-- prettier-ignore-start -->
+
+<div>
+
 ```md
 <h1>Heading 1</h1>
 ---
@@ -129,6 +146,8 @@ a. 123
 ---
 <h7>No Heading 7</h7>
 ```
+
+</div>
 
 <figure>
 <h1>Heading 1</h1>
@@ -160,6 +179,9 @@ a. 123
 <div column-grid>
 
 <!-- prettier-ignore-start -->
+
+<div>
+
 ```md
 # Heading
 ## Subheading
@@ -170,6 +192,8 @@ a. 123
 # Heading
 ### Heading
 ```
+
+</div>
 
 <figure>
 # Heading
@@ -196,9 +220,13 @@ a. 123
 
 <!-- prettier-ignore-start -->
 
+<div>
+
 ```md
 markdown
 ```
+
+</div>
 
 <figure>
 markout
