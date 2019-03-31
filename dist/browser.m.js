@@ -1470,28 +1470,34 @@ class MarkoutContent extends Component {
 
 		if (links) {
 			this.innerHTML = '';
-			links.innerHTML = '';
+			links.innerHTML = `<!-- Links from markout content: ${sourceURL || '‹text›'} -->\n`;
 			const stylesheets = [];
+			const baseURL = sourceURL || this.baseURI;
 			for (const link of content.querySelectorAll(`script[src],style[src]`) || '') {
-				const {nodeName, type, rel, baseURI, href, slot, src = link.getAttribute('src')} = link;
+				const {nodeName, type, rel, baseURI, slot} = link;
 				if (slot && slot !== 'links') continue;
-				const url = src || (href && new URL(src || href, sourceURL || this.baseURI));
+				const src = link.getAttribute('src');
+				const href = link.getAttribute('href');
+				const base = link.hasAttribute('base') ? baseURI : baseURL;
+				const url = new URL(src || href, base);
 				link.slot = 'links';
 				switch (nodeName) {
 					case 'SCRIPT':
-						if (type === 'module') {
+						if (`${type}`.toLowerCase() === 'module') {
 							dynamicImport(url);
-							// link.onerror = link.onabort = link.onload = () => link.remove();
 							link.remove();
-							// document.body.append(link);
+							break;
 						}
-						continue;
 					case 'STYLE':
-						if (src) {
+						if ((src && !type) || `${type}`.toLowerCase() === 'text/css') {
 							stylesheets.push(url);
 							link.remove();
+							break;
 						}
-						continue;
+					default:
+						// TODO: Ensure base attribute bahviour holds
+						link.setAttribute('base', base);
+						links.appendChild(link);
 				}
 			}
 
