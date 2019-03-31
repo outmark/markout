@@ -41,9 +41,7 @@ const debugging = (context, meta, flags) =>
 	(Array.isArray(flags) && flags.includes(false)) ||
 	Object.entries(flags).reduce(
 		Array.isArray(flags)
-			? // ? (flags, [, flag]) => (typeof flag === 'string' && (flags[flag] = true), flags)
-			  // : (flags, [flag, value]) => (typeof flag === 'string' && (flags[flag] = value), flags),
-			  (meta, [, flag]) => (typeof flag === 'string' && (meta[`debug:${context}:${flag}`] = true), meta)
+			? (meta, [, flag]) => (typeof flag === 'string' && (meta[`debug:${context}:${flag}`] = true), meta)
 			: (meta, [flag, value = meta[flag]]) => (
 					typeof flag === 'string' && (meta[`debug:${context}:${flag}`] = value), meta
 			  ),
@@ -100,11 +98,6 @@ const Lists = /(?=(\n[> \t]*)(?:[-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. ))((?:\1(?:
 const Item = /^([> \t]*)([-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. |)([^\n]+(?:\n\1(?:   ?|\t ?)(?![ \t]|[-*] |\d+\. |[a-z]\. |[ivx]+\. ).*)*)$/gm;
 
 const References = /\!?\[(\S.+?\S)\](?:\((\S[^\n()\[\]]*?\S)\)|\[(\S[^\n()\[\]]*\S)\])/g;
-// const References = /\!?\[((?:[^\n()\[\]\\]|\\.)+?)\](?:\((\S[^\n()\[\]]*?\S)\)|\[(\S[^\n()\[\]]*\S)\])/g;
-// const References = /\!?\[((?:[^\n\]\\]|\\.)*?)\](?:\((\S[^\n)]*?\S)\)|\[(\S[^\n\]]*\S)\])/g;
-// const References = /\!?\[((?:[^\n()\[\]\\]|\\.)+?)\](?:\((\S[^\n()\[\]]*?\S)\)|\[(\S[^\n()\[\]]*\S)\])/g;
-// /\[([^\n\]\\\S](?:[^\n\]\\]|\\.)*?)\]/;
-// /\(([^\n\)\\\S](?:[^\n\]\\]|\\.)*?)\)/;
 const Aliases = /^([> \t]*)\[(\S.+?\S)\]:\s+(\S+)(?:\s+"([^\n]*)"|\s+'([^\n]*)'|)(?=\s*$)/gm;
 
 const Link = /\s*(\S+)(?:\s+["']([^\n]*)["'])?/;
@@ -136,7 +129,6 @@ const normalizeReferences = (sourceText, state = {}) => {
 			if (m[0] === '!') {
 				return `<img src="${href}"${text || title ? ` title="${text || title}"` : ''} />`;
 			} else {
-				// text = text ? text.replace(/^[#]/, encodeEntity) : encodeEntities(href);
 				text = text || encodeEntities(href);
 				return `<a href="${href}"${title ? ` title="${title}"` : ''}>${text || reference}</a>`;
 			}
@@ -202,23 +194,8 @@ const normalizeLists = sourceText =>
 					const parent = list;
 					list.push((list = new List()));
 					list.parent = parent;
-
-					// list = new List();
-					// list.inset = inset;
-					// list.depth = depth;
-					// (list.type = marker === '* ' || marker === '- ' ? 'ul' : 'ol') === 'ol' &&
-					// (list.start = marker.replace(/\W/g, ''));
-					// (list.parent = parent).push(list);
 				} else if (depth < list.depth) {
 					while ((list = list.parent) && depth < list.depth);
-					// } else if (first) {
-					// 	// TODO: Figure out if this was just for top!!!
-					// 	list.inset = inset;
-					// 	list.depth = depth;
-					// 	(list.type = marker === '* ' || marker === '- ' ? 'ul' : 'ol') === 'ol' &&
-					// 		(list.start = marker.replace(/\W/g, ''));
-					// } else {
-					// 	// console.log(match);
 				}
 
 				if (!list) break;
@@ -314,10 +291,6 @@ const normalizeBlocks = (sourceText, state = {}) => {
 		source.normalizedText = sourceBlocks.join('\n');
 		import.meta['debug:markout:block-normalization'] && console.log(state);
 	}
-
-	// source.normalizedText = sourceText.replace(Blocks, (text, fence, unfenced) => {
-	// 	return fence ? text : normalizeReferences(normalizeParagraphs(normalizeLists(unfenced)), state);
-	// });
 
 	return source.normalizedText;
 };

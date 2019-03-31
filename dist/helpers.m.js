@@ -11,9 +11,7 @@ const debugging = (context, meta, flags) =>
 	(Array.isArray(flags) && flags.includes(false)) ||
 	Object.entries(flags).reduce(
 		Array.isArray(flags)
-			? // ? (flags, [, flag]) => (typeof flag === 'string' && (flags[flag] = true), flags)
-			  // : (flags, [flag, value]) => (typeof flag === 'string' && (flags[flag] = value), flags),
-			  (meta, [, flag]) => (typeof flag === 'string' && (meta[`debug:${context}:${flag}`] = true), meta)
+			? (meta, [, flag]) => (typeof flag === 'string' && (meta[`debug:${context}:${flag}`] = true), meta)
 			: (meta, [flag, value = meta[flag]]) => (
 					typeof flag === 'string' && (meta[`debug:${context}:${flag}`] = value), meta
 			  ),

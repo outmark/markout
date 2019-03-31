@@ -14,7 +14,8 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 
 	bootstrap: {
 		section.isConnected || document.body.appendChild(section);
-		const base = new URL('/markout/', import.meta.url);
+		// const base = new URL('/markout/', import.meta.url);
+		const base = new URL('../markout/', import.meta.url);
 
 		// Only promote to preview shell if src is not present
 		if (!section.hasAttribute('src')) {
@@ -85,12 +86,17 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 
 		// Only bootstrap markout-content if not already bootstrapped
 		if (typeof section.load !== 'function' || !section.matches(':defined')) {
-			const DEV = /^\?dev\b|\&dev\b/i.test(location.search);
-			const LIB = `${base}${DEV ? 'lib/browser.js' : 'dist/browser.m.js'}`;
+			const url = new URL(import.meta.url);
+			location.search.length > 1 && (url.search += `${url.search ? '&' : '?'}${location.search.slice(1)}`);
+			url.search && (url.search = `?${[...new Set(url.search.slice(1).split('&'))].sort().join('&')}`);
+			// const DEV =  /^\?dev\b|\&dev\b/i.test(location.search);
+			const DEV = /[?&]dev\b/.test(url.search);
+			const LIB = `${base}${DEV ? 'lib/browser.js' : 'dist/browser.m.js'}${url.search}`;
 			dynamicImport(new URL(LIB, base));
 		}
 	}
 }
+// const DEV = /[?&]dev\b/.test(import.meta.url) || /^\?dev\b|\&dev\b/i.test(location.search);
 
 // const {origin, pathname} = location;
 // const MarkoutPreviewBase = /\/?markout\/preview\.js\b.*$/i;

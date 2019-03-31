@@ -920,9 +920,7 @@ const debugging = (context, meta, flags) =>
 	(Array.isArray(flags) && flags.includes(false)) ||
 	Object.entries(flags).reduce(
 		Array.isArray(flags)
-			? // ? (flags, [, flag]) => (typeof flag === 'string' && (flags[flag] = true), flags)
-			  // : (flags, [flag, value]) => (typeof flag === 'string' && (flags[flag] = value), flags),
-			  (meta, [, flag]) => (typeof flag === 'string' && (meta[`debug:${context}:${flag}`] = true), meta)
+			? (meta, [, flag]) => (typeof flag === 'string' && (meta[`debug:${context}:${flag}`] = true), meta)
 			: (meta, [flag, value = meta[flag]]) => (
 					typeof flag === 'string' && (meta[`debug:${context}:${flag}`] = value), meta
 			  ),
@@ -979,11 +977,6 @@ const Lists = /(?=(\n[> \t]*)(?:[-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. ))((?:\1(?:
 const Item = /^([> \t]*)([-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. |)([^\n]+(?:\n\1(?:   ?|\t ?)(?![ \t]|[-*] |\d+\. |[a-z]\. |[ivx]+\. ).*)*)$/gm;
 
 const References = /\!?\[(\S.+?\S)\](?:\((\S[^\n()\[\]]*?\S)\)|\[(\S[^\n()\[\]]*\S)\])/g;
-// const References = /\!?\[((?:[^\n()\[\]\\]|\\.)+?)\](?:\((\S[^\n()\[\]]*?\S)\)|\[(\S[^\n()\[\]]*\S)\])/g;
-// const References = /\!?\[((?:[^\n\]\\]|\\.)*?)\](?:\((\S[^\n)]*?\S)\)|\[(\S[^\n\]]*\S)\])/g;
-// const References = /\!?\[((?:[^\n()\[\]\\]|\\.)+?)\](?:\((\S[^\n()\[\]]*?\S)\)|\[(\S[^\n()\[\]]*\S)\])/g;
-// /\[([^\n\]\\\S](?:[^\n\]\\]|\\.)*?)\]/;
-// /\(([^\n\)\\\S](?:[^\n\]\\]|\\.)*?)\)/;
 const Aliases = /^([> \t]*)\[(\S.+?\S)\]:\s+(\S+)(?:\s+"([^\n]*)"|\s+'([^\n]*)'|)(?=\s*$)/gm;
 
 const Link = /\s*(\S+)(?:\s+["']([^\n]*)["'])?/;
@@ -1015,7 +1008,6 @@ const normalizeReferences = (sourceText, state = {}) => {
 			if (m[0] === '!') {
 				return `<img src="${href}"${text || title ? ` title="${text || title}"` : ''} />`;
 			} else {
-				// text = text ? text.replace(/^[#]/, encodeEntity) : encodeEntities(href);
 				text = text || encodeEntities(href);
 				return `<a href="${href}"${title ? ` title="${title}"` : ''}>${text || reference}</a>`;
 			}
@@ -1081,23 +1073,8 @@ const normalizeLists = sourceText =>
 					const parent = list;
 					list.push((list = new List()));
 					list.parent = parent;
-
-					// list = new List();
-					// list.inset = inset;
-					// list.depth = depth;
-					// (list.type = marker === '* ' || marker === '- ' ? 'ul' : 'ol') === 'ol' &&
-					// (list.start = marker.replace(/\W/g, ''));
-					// (list.parent = parent).push(list);
 				} else if (depth < list.depth) {
 					while ((list = list.parent) && depth < list.depth);
-					// } else if (first) {
-					// 	// TODO: Figure out if this was just for top!!!
-					// 	list.inset = inset;
-					// 	list.depth = depth;
-					// 	(list.type = marker === '* ' || marker === '- ' ? 'ul' : 'ol') === 'ol' &&
-					// 		(list.start = marker.replace(/\W/g, ''));
-					// } else {
-					// 	// console.log(match);
 				}
 
 				if (!list) break;
@@ -1193,10 +1170,6 @@ const normalizeBlocks = (sourceText, state = {}) => {
 		source.normalizedText = sourceBlocks.join('\n');
 		import.meta['debug:markout:block-normalization'] && console.log(state);
 	}
-
-	// source.normalizedText = sourceText.replace(Blocks, (text, fence, unfenced) => {
-	// 	return fence ? text : normalizeReferences(normalizeParagraphs(normalizeLists(unfenced)), state);
-	// });
 
 	return source.normalizedText;
 };
@@ -1693,12 +1666,49 @@ const loadSourceTextFrom = async (src, options) => {
   }
 };
 
+const RewritableURL = /^(\.*(?=\/)[^?#\n]*\/)(?:([^/?#\n]+?)(?:(\.[a-z]+)|)|)(\?[^#]+|)(#.*|)$|/i;
+
+const {dir, dirxml, group, groupCollapsed, groupEnd, log} = console;
+
+const rewriteAnchors = (
+	anchors,
+	{sourceURL, baseURL, search, rootNode = document, debugging = import.meta['debug:hashout:anchor-rewrite']},
+) => {
+	debugging && groupCollapsed('%O ‹anchors› ', rootNode);
+
+	for (const anchor of anchors) {
+		const [matched, parent, name, extension = '.md', query = '', hash = ''] = RewritableURL.exec(
+			anchor.getAttribute('href'),
+		);
+
+		debugging && log({matched, parent, name, extension, query, hash});
+
+		if (parent) {
+			const pathname = `${parent}${name ? `${name}${extension}` : ''}`;
+
+			const href =
+				name && extension.toLowerCase() === '.md'
+					? `${baseURL}${search}#${new URL(pathname, sourceURL).pathname}`
+					: new URL(`${pathname}${query || ((!hash && search) || '')}${hash}`, sourceURL);
+			anchor.href = href;
+		} else {
+			anchor.target || (anchor.target = '_blank');
+		}
+
+		debugging && dirxml(anchor);
+	}
+
+	debugging && groupEnd();
+};
+
+debugging('hashout', import.meta, [
+	// import.meta.url.includes('/markout/lib/') ||
+	typeof location === 'object' && /[?&]debug(?=[&#]|=[^&]*\bhashout|$)\b/.test(location.search),
+	'anchor-rewrite',
+]);
+
 (async () => {
-	const {dir, dirxml, group, groupCollapsed, groupEnd, log} = console;
-
-	const AnchorClick = '(a#onclick)';
-
-	const RewritableURL = /^(\.*(?=\/)[^?#\n]*\/)(?:([^/?#\n]+?)(?:(\.[a-z]+)|)|)(\?[^#]+|)(#.*|)$|/i;
+	await customElements.whenDefined('markout-content');
 
 	/**
 	 * @typedef {HTMLAnchorElement} Anchor
@@ -1709,7 +1719,6 @@ const loadSourceTextFrom = async (src, options) => {
 			if (!src) return;
 			const url = new URL(src, this.baseURI);
 			this.sourceURL = url;
-			this.rewriteAnchors = rewriteAnchors;
 			this.sourceText = (await loadSourceTextFrom(url)) || '';
 		}
 
@@ -1719,68 +1728,30 @@ const loadSourceTextFrom = async (src, options) => {
 		 */
 		rewriteAnchors(...anchors) {
 			const debugging = import.meta['debug:markout:anchor-rewrite'];
-
-			const {sourceURL, baseURL = `/markout/`} = this;
-
-			// TODO: Figure out why anchors is double nested!
-			anchors = anchors.flat();
-
-			// debugging && groupCollapsed('%O ‹anchors› ', this);
-			debugging && group('%O ‹anchors› ', this);
-			// debugging && log(anchors);
-
-			// const {pathname, search} = location;
-
+			const rootNode = this;
+			const {sourceURL, baseURL = `/markout/`} = rootNode;
 			const search = location.search || '';
-			// /^\?dev\b|\&dev\b/i.test(location.search) ? location.search : '';
-
-			for (const anchor of anchors) {
-				const [matched, parent, name, extension = '.md', query = '', hash = ''] = RewritableURL.exec(
-					anchor.getAttribute('href'),
-				);
-
-				debugging && console.log({matched, parent, name, extension, query, hash});
-
-				if (parent) {
-					const pathname = `${parent}${name ? `${name}${extension}` : ''}`;
-
-					const href =
-						name && extension.toLowerCase() === '.md'
-							? `${baseURL}${search}#${new URL(pathname, sourceURL).pathname}`
-							: new URL(`${pathname}${query || ((!hash && search) || '')}${hash}`, sourceURL);
-					anchor.href = href;
-				} else {
-					anchor.target || (anchor.target = '_blank');
-				}
-
-				debugging && dirxml(anchor);
-			}
-			debugging && groupEnd();
-
-			// this.rewriteAnchors = undefined;
+			rewriteAnchors(anchors.flat(), {debugging, sourceURL, baseURL, search, rootNode});
 		}
-
-		// /**
-		//  * @param {PointerEvent & {target: Anchor}} event
-		//  */
-		// [AnchorClick](event) {
-		// 	if (!event || !event.preventDefault) return;
-		// 	event.preventDefault();
-		// 	const {target, currentTarget, relatedTarget, returnValue} = event;
-		// 	log('%O ‹%O› %o', this, event, {target, currentTarget, relatedTarget, returnValue});
-		// }
 	}
 
-	const {load, rewriteAnchors, [AnchorClick]: onclickFallback} = MarkoutContent.prototype;
-
-	for (const section of document.body.querySelectorAll('markout-content[src]') || '') {
-		section.load || (section.load = load), section.load();
+	const sections = document.body.querySelectorAll('markout-content[src]');
+	if (sections) {
+		const {load, rewriteAnchors} = MarkoutContent.prototype;
+		for (const section of sections) {
+			section.load || ((section.load = load), section.rewriteAnchors || (section.rewriteAnchors = rewriteAnchors)),
+				section.load();
+		}
 	}
 })();
 
+// console.log(import.meta.url, /[?&]debug\b/.test(import.meta.url));
+
 debugging('markout', import.meta, [
 	// import.meta.url.includes('/markout/lib/') ||
-	typeof location === 'object' && /[?&]debug(?=[&#]|=[^&]*\bmarkout|$)\b/.test(location.search),
+	// /[?](?:.*[&]|)debug\b/.test(import.meta.url) ||
+	// (typeof location === 'object' && /[?&]debug(?=[&#]|=[^&]*\bmarkout|$)\b/.test(location.search)),
+	/[?&]debug\b/.test(import.meta.url) || /[?&]debug\b/.test(location.search),
 	'anchor-rewrite',
 ]);
 //# sourceMappingURL=browser.m.js.map
