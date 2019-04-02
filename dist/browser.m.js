@@ -1325,13 +1325,24 @@ const render = (tokens, renderedHTML = '') => {
 				}
 			}
 
+			const details =
+				tag &&
+				[
+					punctuator && `punctuator="${punctuator}"`,
+					type && `token-type="${type}"`,
+					breaks && `token-breaks="${breaks}"`,
+					hint && `token-hint="${hint}"`,
+				].join(' ');
+
 			before && (renderedHTML += before);
 			tag === 'br' || (newlines = 0)
 				? (newlines++ && (renderedHTML += '\n')) || (renderedHTML += '<br/>')
 				: tag === 'hr'
 				? (renderedHTML += '<hr/>')
 				: body &&
-				  (tag ? (renderedHTML += `<${tag}${render.classes(classes)}>${body}</${tag}>`) : (renderedHTML += body));
+				  (tag
+						? (renderedHTML += `<${tag} ${details}${render.classes(classes)}>${body}</${tag}>`)
+						: (renderedHTML += body));
 			after && (renderedHTML += after);
 		}
 	}
