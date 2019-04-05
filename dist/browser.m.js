@@ -1485,28 +1485,33 @@ class MarkoutContent extends Component {
 			const stylesheets = [];
 			const baseURL = sourceURL || this.baseURI;
 			for (const link of content.querySelectorAll(`script[src],style[src]`) || '') {
-				const {nodeName, type, rel, baseURI, slot} = link;
+				const {nodeName, rel, baseURI, slot, parentElement, previousElementSibling} = link;
 				if (slot && slot !== 'links') continue;
+				const type = `${link.type || ''}`.trim().toLowerCase();
 				const src = link.getAttribute('src');
 				const href = link.getAttribute('href');
 				const base = link.hasAttribute('base') ? baseURI : baseURL;
 				const url = new URL(src || href, base);
-				link.slot = 'links';
 				switch (nodeName) {
 					case 'SCRIPT':
-						if (`${type}`.toLowerCase() === 'module') {
+						if (type === 'module') {
 							dynamicImport(url);
 							link.remove();
 							break;
+						} else if (!type && parentElement && parentElement.nodeName === 'OUTPUT' && 'evaluateScript' in this) {
+							link.src = url;
+							this.evaluateScript(link);
+							break;
 						}
 					case 'STYLE':
-						if ((src && !type) || `${type}`.toLowerCase() === 'text/css') {
+						if ((src && !type) || type === 'text/css') {
 							stylesheets.push(url);
 							link.remove();
 							break;
 						}
 					default:
 						// TODO: Ensure base attribute bahviour holds
+						// link.slot = 'links';
 						link.setAttribute('base', base);
 						links.appendChild(link);
 				}
@@ -1531,6 +1536,14 @@ class MarkoutContent extends Component {
 			const anchors = content.querySelectorAll('a[href]');
 			anchors && this.rewriteAnchors([...anchors]);
 		}
+	}
+
+	async evaluateScript(script) {
+		const {src} = script;
+		const sourceText = await (await fetch(src)).text();
+		await new Promise(requestAnimationFrame);
+		document['--currentScript--'] = script;
+		(0, eval)(`${sourceText}\ndelete document['--currentScript--']`);
 	}
 
 	renderMarkdown(sourceText = this.sourceText, slot = this['::content']) {
@@ -1717,8 +1730,8 @@ debugging('hashout', import.meta, [
 			const response = await fetch(url);
 			if (!response.ok) throw Error(`Failed to fetch ${url}`);
 			const text = await response.text();
-			this.sourceText = text || '';
 			this.sourceURL = url;
+			this.sourceText = text || '';
 			// return;
 			// (error = loading.error) || ((this.sourceURL = url), (this.sourceText = text));
 			// }
