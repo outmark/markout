@@ -979,7 +979,8 @@ const Item = /^([> \t]*)([-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. |)([^\n]+(?:\n\1(?
 const References = /\!?\[(\S.+?\S)\](?:\((\S[^\n()\[\]]*?\S)\)|\[(\S[^\n()\[\]]*\S)\])/g;
 const Aliases = /^([> \t]*)\[(\S.+?\S)\]:\s+(\S+)(?:\s+"([^\n]*)"|\s+'([^\n]*)'|)(?=\s*$)/gm;
 
-const Link = /\s*(\S+)(?:\s+["']([^\n]*)["'])?/;
+// CHANGE: Add support for spaces in links
+const Link = /\s*(\S+(?:\s[^")].*)*)(?:\s+["']([^\n]*)["'])?/;
 
 const MATCHES = Symbol('matches');
 const ALIASES = 'aliases';
