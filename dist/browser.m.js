@@ -980,7 +980,7 @@ const References = /\!?\[(\S.+?\S)\](?:\((\S[^\n()\[\]]*?\S)\)|\[(\S[^\n()\[\]]*
 const Aliases = /^([> \t]*)\[(\S.+?\S)\]:\s+(\S+)(?:\s+"([^\n]*)"|\s+'([^\n]*)'|)(?=\s*$)/gm;
 
 // CHANGE: Add support for spaces in links
-const Link = /\s*(\S+(?:\s[^")].*)*)(?:\s+["']([^\n]*)["'])?/;
+const Link = /\s*((?:\s?[^'"\(\)\]\[\s]+)*)(?:\s+["']([^\n]*)["']|)/;
 
 const MATCHES = Symbol('matches');
 const ALIASES = 'aliases';
