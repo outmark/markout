@@ -12,7 +12,7 @@ The simplest form of records is one that has a single row of column headings, fo
 
 <figcaption>So given this table:</figcaption>
 
-```text
+```text line-numbers
   (index) >>    a     |     b      |     c     |     d     |  tone  |
      0    >>   60%    |   15.33%   |   3.91%   |   1.00%   |   25%  |
      1    >>   100%   |   21.54%   |   4.64%   |   1.00%   |   50%  |
@@ -25,7 +25,7 @@ The simplest form of records is one that has a single row of column headings, fo
 
 <figcaption>We can expect this dataset:</figcaption>
 
-```javascript
+```javascript line-numbers
 [
   {a: 60%, b: 15.33%, c: 3.91%, d: 1.00%, tone: 25%},
   {a: 100%, b: 21.54%, c: 4.64%, d: 1.00%, tone: 50%},

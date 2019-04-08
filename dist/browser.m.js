@@ -1203,20 +1203,23 @@ const render = (tokens, renderedHTML = '') => {
 			if (passthru || fenced) {
 				if (fenced) {
 					if (fenced === passthru) {
-						fenced += text;
-						header = text;
-						// passthru = `<${block} class="markup code" ${text ? ` ${SourceType}="${text}"` : ''}><code>`;
-						passthru = ''; // `<${block}><code>`;
+						// fenced += text;
+						header += text;
+						breaks && ((header = header.trimRight()), (passthru = ''));
+						// header = text;
+						// // passthru = `<${block} class="markup code" ${text ? ` ${SourceType}="${text}"` : ''}><code>`;
+						// passthru = ''; // `<${block}><code>`;
 					} else if (punctuator === 'closer' && text === '```') {
 						let sourceType, sourceParameters;
 						if (header) {
-							[sourceType = 'markup', sourceParameters] = FencedBlockHeader.exec(header);
+							[, sourceType = 'markup', sourceParameters] = FencedBlockHeader.exec(header);
 							import.meta['debug:fenced-block-header-rendering'] &&
 								console.log('fenced-block-header', {fenced, header, passthru, sourceType, sourceParameters});
 						}
 						// passthru rendered code
 						renderedHTML += `<${block} class="markup code" ${SourceType}="${sourceType || 'markup'}"${
-							sourceParameters ? ` ${SourceParameters}="${sourceParameters}"` : ''
+							// sourceParameters ? ` ${SourceParameters}="${sourceParameters}"` : ''
+							(sourceParameters && ` ${sourceParameters}`) || ''
 						}>${encodeEntities(passthru)}</${block}>`;
 						header = indent = fenced = passthru = '';
 					} else {
@@ -1254,6 +1257,7 @@ const render = (tokens, renderedHTML = '') => {
 							passthru = fenced;
 							[indent = ''] = /^[ \t]*/gm.exec(previous.text);
 							indent && (indent = new RegExp(raw`^${indent}`, 'mg'));
+							header = '';
 							// punctuator opener fence
 							continue;
 						} else if (text in spans) {
