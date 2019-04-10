@@ -90,7 +90,7 @@ const Blocks = /(?:^|\n)([> \t]*(?:\`\`\`|\~\~\~))[^]+?(?:\n+\1\n?|$)|([^]+?(?:(
 
 const FencedBlockHeader = /^(?:(\w+)(?:\s+(.*?)\s*|)$|)/m;
 
-const Paragraphs = /(?=(\n[> \t]*)\b)((?:\1(?!(?:\d+|[a-z]|[ivx]+)\. )[^#<>|\-~\s\n][^\n]*?(?:\n[> \t]*(?=\n|$))+)+)/g;
+const Paragraphs = /(?=((?:[ \t]*\n[> \t]*){2,}))((?:\1(?!(?:\d+|[a-z]|[ivx]+)\. )[^#<>|\-~\s\n][^\n]*?(?:\n[> \t]*(?=\n|$))+)+)/g;
 
 const Lists = /(?=(\n[> \t]*)(?:[-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. ))((?:\1(?:[-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. |   ?)+[^\n]+(?:\n[> \t]*)*(?=\1|$))+)/g;
 
@@ -128,10 +128,10 @@ const normalizeReferences = (sourceText, state = {}) => {
 			}
 			debugging && console.log(m, {href, title, text, link, alias, reference, index});
 			if (m[0] === '!') {
-				return `<img src="${href}"${text || title ? ` title="${text || title}"` : ''} />`;
+				return ` <img src="${href}"${text || title ? ` title="${text || title}"` : ''} /> `;
 			} else {
 				text = text || encodeEntities(href);
-				return `<a href="${href}"${title ? ` title="${title}"` : ''}>${text || reference}</a>`;
+				return ` <a href="${href}"${title ? ` title="${title}"` : ''}>${text || reference}</a>`;
 			}
 		}
 		return m;
@@ -232,9 +232,11 @@ const normalizeLists = sourceText =>
 	});
 
 const normalizeParagraphs = sourceText =>
-	sourceText.replace(Paragraphs, (m, feed, body) => {
+	sourceText.replace(/(\b|\b[^\s#\]]+)[ \t]*\n[ \t]*(?=\b|\[.*?\]\()/g, '$1 ').replace(Paragraphs, (m, feed, body) => {
 		const paragraphs = body
 			.trim()
+			// .replace(/(\S)[ \t]*\n[ \t]*\n(\S)/g, '$1 $2')
+
 			.split(/^(?:[> \t]*\n)+[> \t]*/m)
 			.filter(Boolean);
 
@@ -310,9 +312,11 @@ const normalize = sourceText => {
 const tokenize = sourceText => tokenize$1(`${sourceText.trim()}\n}`, {sourceType: 'markdown'});
 
 const render = (tokens, renderedHTML = '') => {
-	let passthru, block, fenced, header, indent, newlines, comment;
+	let passthru, block, span, fenced, header, indent, newlines, comment;
 
 	const {blocks, spans, entities, tags} = punctuators;
+
+	const stack = [];
 
 	const {raw} = String;
 
@@ -372,6 +376,9 @@ const render = (tokens, renderedHTML = '') => {
 				if (punctuator) {
 					passthru = (((comment = punctuator === 'comment' && text) || tags.has(text)) && text) || '';
 					if (passthru) continue;
+					if (punctuator === 'opener' && stack[text] >= 0) {
+						punctuator = 'closer';
+					}
 					if (punctuator === 'opener') {
 						if ((fenced = text === '```' && text)) {
 							block = 'pre';
@@ -382,8 +389,16 @@ const render = (tokens, renderedHTML = '') => {
 							// punctuator opener fence
 							continue;
 						} else if (text in spans) {
-							before = `<${spans[text]}${render.classes(classes)}>`;
-							classes.push('opener');
+							if (stack[text] < 0) {
+								stack[text] = undefined;
+								continue;
+							} else {
+								before = `<${(span = spans[text])}${render.classes(classes)}>`;
+								if (stack[text] >= 0) debugger;
+								let index = (stack[span] = stack[text] = stack.length);
+								stack.push({text, body, span, index});
+								classes.push('opener');
+							}
 						} else if (text === '<!' || text === '<%') {
 							// Likely <!doctype …> || Processing instruction
 							let next;
@@ -402,8 +417,24 @@ const render = (tokens, renderedHTML = '') => {
 						if (text === '```') {
 							block = blocks['```'] || 'pre';
 						} else if (text in spans) {
-							after = `</${spans[text]}>`;
-							classes.push('closer');
+							let index = stack[(span = spans[text])];
+							if (index === stack.length - 1) {
+								index >= 0 && (stack.pop(), (stack[span] = stack[text] = -1));
+								after = `</${spans[text]}>`;
+								classes.push('closer');
+							} else if (index >= 0) {
+								after = '';
+								classes.push('closer', `${punctuator}-token`);
+								const details = `token-type="auto"${render.classes(classes)}`;
+								for (let {span, text, body} of stack.splice(index, stack.length).reverse()) {
+									renderedHTML += `<tt punctuator="closer" ${details}>${body}</tt></${span}>`;
+									stack[span] = stack[text] = -1;
+								}
+								continue;
+							} else {
+								renderedHTML += text;
+								continue;
+							}
 						}
 					}
 					(before || after) && (tag = 'tt');
