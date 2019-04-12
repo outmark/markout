@@ -53,13 +53,8 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 					)}`);
 
 				if (source === location && hash && hash.length > 1) {
-					const [
-						,
-						head,
-						tail,
-						entry = 'README',
-						extension = '.md',
-					] = /^#(.*)(\/(?:([^\/.][^\/]*?)(?:(\.\w+)|))?)$/.exec(hash) || '';
+					const [, head, tail, entry = 'README', extension = '.md'] =
+						/^#(.*)(\/(?:([^\/.][^\/]*?)(?:(\.\w+)|))?)$/.exec(hash) || '';
 
 					if (tail) {
 						href = `${head}\/${entry}${extension}`;
@@ -93,8 +88,23 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 			const DEV = /[?&]dev\b/.test(url.search);
 			const LIB = `${base}${DEV ? 'lib/browser.js' : 'dist/browser.m.js'}${url.search}`;
 			dynamicImport(new URL(LIB, base));
+			// globalThis.$mo = specifier => debug(specifier);
+			// globalThis.$mo = specifier =>
+			// 	import(`/markout/debug.js${
+			// 		specifier && (specifier = `${specifier}`.trim()) ? `?${encodeURIComponent(new URL(specifier, location))}` : ''
+			// 	}#${Date.now()}`);
 		}
 	}
+
+	// async function debug(specifier = '/markout/examples/markdown-testsuite.md') {
+	// 	const timestamp = `?${encodeURIComponent(Date.now())}`;
+	// 	const {MarkoutSegments} = await import(`/markout/lib/experimental/markout-segmenter.js${timestamp}`);
+	// 	const url = new URL(specifier, location);
+	// 	const response = await fetch(url);
+	// 	if (!response.ok) console.warn(Error(`Failed to fetch ${url}`));
+	// 	const sourceText = await response.text();
+	// 	MarkoutSegments.debug(sourceText);
+	// }
 }
 // const DEV = /[?&]dev\b/.test(import.meta.url) || /^\?dev\b|\&dev\b/i.test(location.search);
 

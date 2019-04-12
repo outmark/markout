@@ -1,6 +1,56 @@
 ﻿import nodeResolve from 'rollup-plugin-node-resolve';
 
-const root = __dirname.replace(/(?:\/packages)\/markout\/?$/, '');
+const root = __dirname.replace(/(?:\/packages)?\/markout\/?$/, '');
+
+const SCOPED = /^(?:(?:\.\.\/)*|\/)(markup|markout)\/(?:lib|dist)\//;
+
+const resolver = new class RollupHooks {
+	resolveScope(specifier, referrer) {
+		const absolute = specifier.startsWith('/');
+		const relative = !absolute && specifier.startsWith('../');
+		const scoped = (absolute || relative) && SCOPED.test(specifier);
+		const bundled = specifier.includes('/dist/') || (referrer && referrer.includes('/dist/'));
+		const id = scoped ? specifier.replace(/^(?:(?:\.\.\/)*|\/)/, `${root}/`) : specifier;
+		const external = scoped || bundled;
+		return {specifier, referrer, id, external, absolute, relative, scoped, bundled};
+	}
+	resolveId(specifier, referrer) {
+		let returned;
+		try {
+			const {id, external} = resolver.resolveScope(specifier, referrer);
+			if (external) return false;
+			if (id !== specifier) return {id};
+			return null;
+			// if (scoped || bundled) {
+			// 	// scoped && specifier.replace(/^(?:(?:\.\.\/)*|\/)/, `${root}/`);
+			// 	return id;
+			// 	// return (returned = {id: specifier, external: true});
+			// }
+			// console.log('resolveId(%O, %O) [%O] => %O', specifier, referrer, root, null);
+		} finally {
+			returned === undefined ||
+				console.log(
+					`resolveId(${'\n\t\t%O, '.repeat(arguments.length).slice(0, -2)}\n\t) => %O`,
+					...arguments,
+					returned,
+				);
+		}
+	}
+	// external(specifier, referrer) {
+	// 	let returned;
+	// 	try {
+	// 		// console.log('external(%O, %O) =>', specifier, referrer);
+	// 		if (
+	// 			(specifier.startsWith('/') && SCOPED.test(specifier)) ||
+	// 			(specifier.startsWith('../') && ((referrer && referrer.includes('/dist/')) || specifier.includes('/dist/')))
+	// 		)
+	// 			return (returned = true);
+	// 	} finally {
+	// 		returned === undefined ||
+	// 			console.log(`external(${'%O, '.repeat(arguments.length).slice(0, -2)}) => %O`, ...arguments, returned);
+	// 	}
+	// }
+}();
 
 // SEE: https://rollupjs.org/
 const defaults = {
@@ -10,7 +60,7 @@ const defaults = {
 	// chunkGroupingSize: 100000,
 	// treeshake: {propertyReadSideEffects: false},
 	plugins: [
-		// Resolver(),
+		resolver,
 		// /// SEE: https://github.com/rollup/rollup-plugin-node-resolve
 		// nodeResolve(),
 	],
@@ -29,8 +79,12 @@ const bundles = ((
 	{browser, markout, markup, helpers},
 	options = {
 		output: {dir: '/'},
-		external: (specifier, referrer) =>
-			specifier.startsWith('../') && ((referrer && referrer.includes('/dist/')) || specifier.includes('/dist/')),
+		// external: resolver.external,
+		// external: (specifier, referrer) => (
+		// 	console.log('external: %O from %O', specifier, referrer),
+		// 	specifier.startsWith('/') ||
+		// 		(specifier.startsWith('../') && ((referrer && referrer.includes('/dist/')) || specifier.includes('/dist/')))
+		// ),
 		// resolve: (specifier, referrer) => console.log({specifier, referrer}),
 		// experimentalOptimizeChunks: true,
 		// manualChunks: {helpers: [helpers]},
@@ -44,7 +98,7 @@ const bundles = ((
 }))(sources);
 
 const configurations = [
-	esm('helpers', '.m.js'),
+	// esm('helpers', '.m.js'),
 	esm('browser', '.m.js'),
 	esm('markout', '.m.js'),
 	esm('markup', '.m.js'),
