@@ -1,6 +1,5 @@
 import { entities, encodeEntities, tokenize as tokenize$1 } from '../../../markup/dist/tokenizer/tokenizer.browser.js';
 import { sequence, debugging, matchAll, normalizeString } from '../../../../../../markout/lib/helpers.js';
-import { debugSegmenter } from '../../../../../../markout/lib/debug.js';
 
 const {
 	UnicodeIdentifier,
@@ -335,23 +334,6 @@ class Segmenter extends RegExp {
 					return;
 			}
 		}
-
-		// !(type = this.types[(typeIndex = index) - 1]) ||
-		// 	(typeIndex === this.insets
-		// 		? (match.inset = text)
-		// 		: typeIndex === this.lookaheads
-		// 		? (match.lookahead = text)
-		// 		: (type !== UNKNOWN &&
-		// 				typeIndex > -1 &&
-		// 				((typeOf = typeof type) === 'string'
-		// 					? ((match[type] = text),
-		// 					  match.typeIndex > -1 || ((match.typeIndex = typeIndex), (match.type = type)),
-		// 					  true)
-		// 					: typeOf === 'symbol'
-		// 					? ((match[type] = text), true)
-		// 					: typeOf !== 'function' || type(text, index, match))) ||
-		// 		  (match.typeIndex > -1 || ((match.type = 'unknown'), (match.typeIndex = typeIndex))));
-		// console.log({text, index, match, type, typeIs: typeOf, this: this});
 	}
 
 	/**
@@ -360,42 +342,47 @@ class Segmenter extends RegExp {
 	 */
 	exec(source) {
 		const match = super.exec(source);
-		// match && (match.type = this.types[(match.matcher = match.findIndex(this.matchType, match)) - 1]);
 		match &&
-			// ((match.types = this.types),
 			((match.typeIndex = -1),
 			match.forEach(this.capture || Segmenter.prototype.capture, this),
 			match.typeIndex > -1 || ((match.type = 'unknown'), (match.typeIndex = -1)),
-			// this.lastIndex = match.index + match[0].length,
 			null);
 
 		return match;
-	}
-
-	async debug(sourceText) {
-		debugSegmenter(this, sourceText);
-		// (await import()).debugSegmenter(this, sourceText);
-	}
+  }
 
 	static define(factory, flags) {
-		const types = []; // [ 'stub', 'feed', 'fence-block', 'code-block', 'table', 'heading', 'list', 'reference', 'divider', 'paragraph'],
-		let pattern;
+		const types = [];
 		const RegExp = (this && (this.prototype === Segmenter || this.prototype instanceof Segmenter) && this) || Segmenter;
-		return new RegExp(
-			(pattern = factory(type => (types.push((type != null || undefined) && type), ''))),
-			(flags = `${(flags == null ? pattern && pattern.flags : flags) || ''}`),
-			types,
-		);
+    const pattern = factory(type => (types.push((type != null || undefined) && type), ''));
+
+    flags = `${(flags == null ? pattern && pattern.flags : flags) || ''}`;
+
+		return new RegExp(pattern, flags, types);
 	}
 }
 
 const {INSET, UNKNOWN, LOOKAHEAD} = Object.defineProperties(Segmenter, {
-	INSET: {value: Symbol.for('INSET')},
-	UNKNOWN: {value: Symbol.for('UNKNOWN')},
-	LOOKAHEAD: {value: Symbol.for('LOOKAHEAD')},
+	INSET: {value: Symbol.for('INSET'), enumerable: true},
+	UNKNOWN: {value: Symbol.for('UNKNOWN'), enumerable: true},
+	LOOKAHEAD: {value: Symbol.for('LOOKAHEAD'), enumerable: true},
 });
 
+// import dynamicImport from '/browser/dynamicImport.js';
+
 // console.log(import.meta.url);
+
+globalThis.$mo = async function debug(specifier = '/markout/examples/markdown-testsuite.md') {
+	// const {MarkoutSegments} = await import(`/markout/lib/experimental/markout-segmenter.js${timestamp}`);
+	const url = new URL(specifier, location);
+	const response = await fetch(url);
+	if (!response.ok) console.warn(Error(`Failed to fetch ${url}`));
+	const sourceText = await response.text();
+	// console.log(dynamicImport);
+	// const {debugSegmenter} = await dynamicImport('/modules/segmenter/segmenter.debug.js');
+	const {debugSegmenter} = await (0, eval)('specifier => import(specifier)')('/modules/segmenter/segmenter.debug.js');
+	debugSegmenter(MarkoutSegments, sourceText);
+};
 
 const MarkoutSegments = (() => {
 	const MarkoutLists = sequence`[-*]|[1-9]+\d*\.|[ivx]+\.|[a-z]\.`;
@@ -433,15 +420,6 @@ const MarkoutSegments = (() => {
 	);
 	return MarkoutSegments;
 })();
-
-globalThis.$mo = async function debug(specifier = '/markout/examples/markdown-testsuite.md') {
-	// const {MarkoutSegments} = await import(`/markout/lib/experimental/markout-segmenter.js${timestamp}`);
-	const url = new URL(specifier, location);
-	const response = await fetch(url);
-	if (!response.ok) console.warn(Error(`Failed to fetch ${url}`));
-	const sourceText = await response.text();
-	MarkoutSegments.debug(sourceText);
-};
 
 const ALIASES$1 = 'aliases';
 
