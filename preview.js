@@ -1,4 +1,5 @@
-﻿import {dynamicImport} from '../pholio/lib/import.js';
+﻿// import {dynamicImport} from '../pholio/lib/import.js';
+import dynamicImport from '/browser/dynamicImport.js';
 
 // Only bootstrap preview if in valid browser window scope
 if (typeof document === 'object' && document && typeof location === 'object' && 'hash' in location) {
