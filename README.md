@@ -1,4 +1,4 @@
-﻿# smotaal.io/markout <code> DRAFT </code>
+﻿# smotaal.io/markout <code tag>Draft</code>
 
 Renders markout from any URL by appending it as a hash.
 
