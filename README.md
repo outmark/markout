@@ -1,6 +1,5 @@
-﻿# `www.smotaal.io`
-
-## `/markout`
+﻿
+# smotaal.io/markout <small>` DRAFT `</small>
 
 Renders markout from any URL by appending it as a hash.
 
