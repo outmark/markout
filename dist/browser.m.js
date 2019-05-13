@@ -1,5 +1,5 @@
 import dynamicImport from '../../../../../../browser/dynamicImport.js';
-import { entities, encodeEntities, tokenize as tokenize$1, render as render$1 } from '../../../markup/dist/tokenizer/tokenizer.browser.js';
+import { entities, encodeEntities, tokenize as tokenize$1, render as render$1 } from '../../../markup/dist/tokenizer.browser.js';
 import { sequence, debugging, matchAll, normalizeString } from '../../../../../../markout/lib/helpers.js';
 
 // @ts-check
@@ -1929,21 +1929,22 @@ class MarkoutContent extends Component {
 			element.textContent = '';
 			// sourceText = sourceText.replace(/^\t+/gm, indent => '  '.repeat(indent.length));
 			element.sourceText = sourceText;
-			await render$1(`${sourceText}\0\n`, {sourceType, fragment});
+			// await markup.render(`${sourceText}\0\n`, {sourceType, fragment});
+			await render$1(sourceText, {sourceType, fragment});
 			fragment.normalize();
-			let lastChild = fragment;
-			while (lastChild) {
-				lastChild.normalize();
-				if (lastChild.nodeType === fragment.TEXT_NODE) {
-					let {textContent} = lastChild;
-					(textContent = textContent.slice(0, textContent.lastIndexOf('\0\n')))
-						? (lastChild.textContent = textContent)
-						: lastChild.remove();
-					break;
-				} else {
-					lastChild = lastChild.lastChild;
-				}
-			}
+			// let lastChild = fragment;
+			// while (lastChild) {
+			// 	lastChild.normalize();
+			// 	if (lastChild.nodeType === fragment.TEXT_NODE) {
+			// 		let {textContent} = lastChild;
+			// 		(textContent = textContent.slice(0, textContent.lastIndexOf('\0\n')))
+			// 			? (lastChild.textContent = textContent)
+			// 			: lastChild.remove();
+			// 		break;
+			// 	} else {
+			// 		lastChild = lastChild.lastChild;
+			// 	}
+			// }
 			element.appendChild(fragment);
 		}
 	}

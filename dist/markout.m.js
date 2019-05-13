@@ -1,4 +1,4 @@
-import { entities, encodeEntities, tokenize as tokenize$1 } from '../../../markup/dist/tokenizer/tokenizer.browser.js';
+import { entities, encodeEntities, tokenize as tokenize$1 } from '../../../markup/dist/tokenizer.browser.js';
 import { sequence, debugging, matchAll, normalizeString } from '../../../../../../markout/lib/helpers.js';
 
 const {
