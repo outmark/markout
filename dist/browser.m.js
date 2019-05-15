@@ -1666,7 +1666,7 @@ const markout = /*#__PURE__*/Object.freeze({
 const {
 	'markout-content-normalization': CONTENT_NORMALIZATION = undefined,
 	'markout-content-breaks-normalization': BREAKS_NORMALIZATION = undefined,
-	'markout-content-headings-normalization': HEADINGS_NORMALIZATION = undefined,
+	'markout-content-headings-normalization': HEADINGS_NORMALIZATION = true,
 	'markout-content-paragraph_normalization': PARAGRAPHS_NORMALIZATION = true,
 	'markout-content-source-text-rendering': SOURCE_TEXT_RENDERING = true,
 } = import.meta;
@@ -1725,14 +1725,10 @@ const styles = css`
 class MarkoutContent extends Component {
 	constructor() {
 		super();
-		const {instance = (new.target.instance = 0)} = new.target;
 
 		this.name = `${this.tagName}-${++new.target.instance}`.toLocaleLowerCase();
 
 		/** @type {SLOT} */ const slot = this['::'];
-		/** @type {SLOT} */ const styles = this['::styles'];
-		/** @type {SLOT} */ const content = this['::content'];
-
 		slot && slot.addEventListener('slotchange', event => this.isConnected && this.updateContent(slot), {passive: true});
 	}
 
@@ -1776,7 +1772,8 @@ class MarkoutContent extends Component {
 			links.innerHTML = `<!-- Links from markout content: ${sourceURL || '‹text›'} -->\n`;
 			const stylesheets = [];
 			const baseURL = sourceURL || this.baseURI;
-			for (const link of content.querySelectorAll(`script[src],style[src]`) || '') {
+
+			for (const link of content.querySelectorAll(`script[src],style[src]`)) {
 				const {nodeName, rel, baseURI, slot, parentElement, previousElementSibling} = link;
 				if (slot && slot !== 'links') continue;
 				const type = `${link.type || ''}`.trim().toLowerCase();
@@ -1807,14 +1804,13 @@ class MarkoutContent extends Component {
 						link.setAttribute('base', base);
 						links.appendChild(link);
 				}
-			}
 
-			if (stylesheets.length) {
-				links.appendChild(
-					Object.assign(document.createElement('style'), {
-						textContent: stylesheets.map(url => `@import "${url}";`).join('\n'),
-					}),
-				);
+				!stylesheets.length ||
+					links.appendChild(
+						Object.assign(document.createElement('style'), {
+							textContent: stylesheets.map(url => `@import "${url}";`).join('\n'),
+						}),
+					);
 			}
 		}
 
@@ -1830,6 +1826,15 @@ class MarkoutContent extends Component {
 		}
 	}
 
+	scrollToAnchor(anchor) {
+		/** @type {HTMLAnchorElement} */
+		let target;
+		const {'::content': content} = this;
+		anchor && (target = content.querySelector(`a[id="${anchor}"]`))
+			? target.scrollIntoView({behavior: 'smooth', block: 'start', inline: 'nearest'})
+			: console.warn('scrollIntoView: %o', {anchor, target});
+	}
+
 	async evaluateScript(script) {
 		const {src} = script;
 		const sourceText = await (await fetch(src)).text();
@@ -1839,11 +1844,10 @@ class MarkoutContent extends Component {
 	}
 
 	normalizeBreaksInFragment(fragment) {
-		for (const br of fragment.querySelectorAll('br') || '') {
+		for (const br of fragment.querySelectorAll('br')) {
 			const {previousSibling, nextSibling, parentElement} = br;
 			(!previousSibling ||
 				previousSibling.nodeName !== 'SPAN' ||
-				// /^(?:H[1-6]|)$/.test(previousSibling.nodeName) ||
 				!nextSibling ||
 				nextSibling.nodeName !== 'SPAN' ||
 				(parentElement && !/^(?:CODE|PRE|LI)$/.test(parentElement.nodeName))) &&
@@ -1852,47 +1856,41 @@ class MarkoutContent extends Component {
 	}
 
 	normalizeHeadingsInFragment(fragment) {
-		for (const heading of fragment.querySelectorAll(`h1,h2`) || '') {
-			const {id, textContent} = heading;
-			if (!id && textContent) {
-				const match = MarkdownIdentity.exec(textContent);
-				const identity = match && match[1];
-				if (identity) {
-					const identifier = identity
-						.replace(MarkdownIdentityPrefixer, '')
-						.replace(MarkdownIdentityJoiner, '-')
-						.toLowerCase();
-					const anchor = document.createElement('a');
-					anchor.id = identifier;
-					heading.before(anchor);
-					anchor.append(heading);
-				}
-			}
+		const {MarkdownIdentity: Identity, MarkdownIdentityPrefixer: Prefixer, MarkdownIdentityJoiner: Joiner} = markout;
+		for (const heading of fragment.querySelectorAll(
+			`h1:not([id]):not(:empty),h2:not([id]):not(:empty),h3:not([id]):not(:empty)`,
+		)) {
+			const [, identity] = Identity.exec(heading.textContent) || '';
+			if (!identity) continue;
+			const anchor = document.createElement('a');
+			anchor.id = identity
+				.replace(Prefixer, '')
+				.replace(Joiner, '-')
+				.toLowerCase();
+			heading.before(anchor);
+			anchor.append(heading);
 		}
 	}
 
 	normalizeParagraphsInFragment(fragment) {
-		for (const paragraph of fragment.querySelectorAll(':not(code) p') || '')
+		for (const paragraph of fragment.querySelectorAll(':not(code) p'))
 			(paragraph.textContent && paragraph.textContent.trim()) || paragraph.remove();
 	}
 
 	renderSourceTextsInFragment(fragment) {
 		const promises = [];
-		for (const code of fragment.querySelectorAll(`[${SourceType$1}]:not(:empty)`) || '') {
-			const sourceType = code.getAttribute(SourceType$1);
-			!sourceType ||
-				code.removeAttribute(SourceType$1) ||
-				promises.push(this.renderSourceText({element: code, sourceType}));
-		}
-		return promises;
+
+		for (const node of fragment.querySelectorAll(`[${SourceType$1}]:not(:empty)`))
+			promises.push(this.renderSourceText({element: node, sourceType: node.getAttribute(SourceType$1)}));
+
+		return promises.length ? Promise.all(promises) : Promise.resolve();
 	}
 
 	createRenderedMarkdownFragment(sourceText) {
+		let fragment, normalizedText, tokens;
 		const {template = (this.template = document.createElement('template'))} = this;
-		const normalizedText = normalize(sourceText);
-		const tokens = tokenize(normalizedText);
-		template.innerHTML = render(tokens);
-		const fragment = template.content.cloneNode(true);
+		template.innerHTML = render((tokens = tokenize((normalizedText = normalize(sourceText)))));
+		fragment = template.content.cloneNode(true);
 		fragment.fragment = fragment;
 		fragment.sourceText = sourceText;
 		fragment.normalizedText = normalizedText;
@@ -1901,9 +1899,9 @@ class MarkoutContent extends Component {
 	}
 
 	async renderMarkdown(sourceText = this.sourceText, slot = this['::content']) {
-		slot.innerHTML = '';
-
 		const {fragment} = this.createRenderedMarkdownFragment(sourceText);
+
+		slot.innerHTML = '';
 
 		CONTENT_NORMALIZATION !== false &&
 			((BREAKS_NORMALIZATION || CONTENT_NORMALIZATION === true) && this.normalizeBreaksInFragment(fragment),
@@ -1913,50 +1911,38 @@ class MarkoutContent extends Component {
 		SOURCE_TEXT_RENDERING && (await this.renderSourceTextsInFragment(fragment));
 
 		slot.appendChild(fragment);
-
-		// return promises.length ? (async () => void (await Promise.all(promises)))() : Promise.resolve();
 	}
 
-	async renderSourceText({
-		element,
-		sourceType = element && element.getAttribute(SourceType$1),
-		sourceText = !element || element.hasAttribute(MarkupSyntax$1) ? '' : element.textContent,
-	}) {
-		if (element && sourceType && sourceText) {
-			element.removeAttribute(SourceType$1);
-			element.setAttribute(MarkupSyntax$1, sourceType);
-			const fragment = document.createDocumentFragment();
-			element.textContent = '';
-			// sourceText = sourceText.replace(/^\t+/gm, indent => '  '.repeat(indent.length));
-			element.sourceText = sourceText;
-			// await markup.render(`${sourceText}\0\n`, {sourceType, fragment});
-			await render$1(sourceText, {sourceType, fragment});
-			fragment.normalize();
-			// let lastChild = fragment;
-			// while (lastChild) {
-			// 	lastChild.normalize();
-			// 	if (lastChild.nodeType === fragment.TEXT_NODE) {
-			// 		let {textContent} = lastChild;
-			// 		(textContent = textContent.slice(0, textContent.lastIndexOf('\0\n')))
-			// 			? (lastChild.textContent = textContent)
-			// 			: lastChild.remove();
-			// 		break;
-			// 	} else {
-			// 		lastChild = lastChild.lastChild;
-			// 	}
-			// }
-			element.appendChild(fragment);
-		}
+	/**
+	 * @param {HTMLElement} element
+	 * @param {string} [sourceType]
+	 * @param {string} [sourceText]
+	 */
+	async renderSourceText({element, sourceType, sourceText}) {
+		!element ||
+			!(sourceType || (sourceType = element.getAttribute(SourceType$1))) ||
+			!(sourceText || (sourceText = (!element.hasAttribute(MarkupSyntax$1) && element.textContent) || '')) ||
+			void element.removeAttribute(SourceType$1) ||
+			void element.setAttribute(MarkupSyntax$1, sourceType) ||
+			(element.textContent = '') ||
+			element
+				.appendChild(
+					await render$1((element.sourceText = sourceText), {
+						sourceType,
+						fragment: document.createDocumentFragment(),
+					}),
+				)
+				.normalize();
 	}
 
 	/// Properties
 	get sourceText() {
-		const {childNodes, childElementCount, firstElementChild, renderedText} = this;
-		if (renderedText || renderedText === '') {
-			return renderedText;
-		} else if (firstElementChild && firstElementChild.nodeName === 'TEMPLATE') {
-			return firstElementChild.innerHTML.trim() || '';
-		} else if (childNodes.length) {
+		const {childNodes, firstElementChild, renderedText} = this;
+		if (renderedText || renderedText === '') return renderedText;
+
+		if (firstElementChild && firstElementChild.nodeName === 'TEMPLATE') return firstElementChild.innerHTML.trim() || '';
+
+		if (childNodes.length) {
 			const innerHTML = this.innerHTML;
 			const [, indent] = /^\n?([ \t*]*|)/.exec(innerHTML);
 			return indent ? innerHTML.replace(new RegExp(`^${indent}`, 'mg'), '') : innerHTML.trim() || '';
