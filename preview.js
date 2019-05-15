@@ -15,7 +15,6 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 
 	bootstrap: {
 		section.isConnected || document.body.appendChild(section);
-		// const base = new URL('/markout/', import.meta.url);
 		const base = new URL('../markout/', import.meta.url);
 
 		// Only promote to preview shell if src is not present
@@ -102,59 +101,23 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 			const url = new URL(import.meta.url);
 			location.search.length > 1 && (url.search += `${url.search ? '&' : '?'}${location.search.slice(1)}`);
 			url.search && (url.search = `?${[...new Set(url.search.slice(1).split('&'))].sort().join('&')}`);
-			// const DEV =  /^\?dev\b|\&dev\b/i.test(location.search);
 			const DEV = /[?&]dev\b/.test(url.search);
 			const LIB = `${base}${DEV ? 'lib/browser.js' : 'dist/browser.m.js'}${url.search}`;
 			dynamicImport(new URL(LIB, base));
-			// globalThis.$mo = specifier => debug(specifier);
-			// globalThis.$mo = specifier =>
-			// 	import(`/markout/debug.js${
-			// 		specifier && (specifier = `${specifier}`.trim()) ? `?${encodeURIComponent(new URL(specifier, location))}` : ''
-			// 	}#${Date.now()}`);
 		}
 	}
-
-	// async function debug(specifier = '/markout/examples/markdown-testsuite.md') {
-	// 	const timestamp = `?${encodeURIComponent(Date.now())}`;
-	// 	const {MarkoutSegments} = await import(`/markout/lib/experimental/markout-segmenter.js${timestamp}`);
-	// 	const url = new URL(specifier, location);
-	// 	const response = await fetch(url);
-	// 	if (!response.ok) console.warn(Error(`Failed to fetch ${url}`));
-	// 	const sourceText = await response.text();
-	// 	MarkoutSegments.debug(sourceText);
-	// }
 }
-// const DEV = /[?&]dev\b/.test(import.meta.url) || /^\?dev\b|\&dev\b/i.test(location.search);
 
-// const {origin, pathname} = location;
-// const MarkoutPreviewBase = /\/?markout\/preview\.js\b.*$/i;
-// const MarkoutBase = /\/?markout(?:\/.*)?$/i;
-// const RootBase = /\/?$/;
-
-// const base = MarkoutPreviewBase.test(import.meta.url)
-// 	? import.meta.url.replace(MarkoutPreviewBase, '/')
-// 	: origin
-// 	? origin.replace(RootBase, MarkoutBase.test(pathname) ? pathname.replace(MarkoutBase, '/') : '/')
-// 	: `${new URL('./', location)}`;
-
-// if (!section.hasAttribute('src')) {
-// 	const src =
-// 		(link && ({href, title} = link) && href) ||
-// 		((hash = location.hash) && (hash = hash.trim().slice(1)) && (href = `${new URL(hash, origin)}`)) ||
-// 		((title = 'Markout'), `${base}./markout/README.md`);
-
-// 	title ||
-// 		((title = `${href.replace(/(.*?)((?:[^/]+?[/]?){1,2})(?:\..*|)$/, '$2')}`.trim()) &&
-// 			(document.title = `${title} — Markout`));
-
-// 	section.setAttribute('src', src);
+// if (document.readyState !== 'complete') {
+// 	let listener;
+// 	(await new Promise(resolve =>
+// 		addEventListener(
+// 			...(listener = [
+// 				'readystatechange',
+// 				() =>
+// 					document.readyState !== 'complete' || resolve(Reflect.apply(removeEventListener, document, listener)),
+// 				{passive: true},
+// 			]),
+// 		),
+// 	)) || (await new Promise(resolve => requestAnimationFrame(resolve)));
 // }
-
-// const LIB = `./${DEV ? 'lib/browser.js' : 'dist/browser.m.js'}`;
-
-// async ({oldURL, newURL}) => {
-// 	if (oldURL !== newURL) {
-// 		await new Promise(requestAnimationFrame);
-// 		load(location);
-// 	}
-// },
