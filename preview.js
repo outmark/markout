@@ -24,7 +24,21 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 			const README = `${base}README.md`;
 			const hashes = (history.state && history.state.hashes) || {};
 
+			const scrollToFragment = async fragment => {
+				const [, anchor] = /#?([\-\w]*)/.exec(fragment);
+
+				await new Promise(requestAnimationFrame);
+				await new Promise(resolve => setTimeout(resolve, 150));
+				await new Promise(requestAnimationFrame);
+				await new Promise(resolve => setTimeout(resolve, 150));
+				await new Promise(requestAnimationFrame);
+
+				section.scrollToAnchor(anchor);
+			};
+
 			const load = async (source, title = document.title) => {
+				let href, referrer, src, hash, head, tail, entry, extension, fragment;
+
 				// Pickup current fragment when source is hashchanged event
 				if (source && 'type' in source && source.type === 'hashchange') {
 					if (source.oldURL === source.newURL) return;
@@ -32,9 +46,6 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 					await new Promise(requestAnimationFrame);
 					source = location;
 				}
-
-				let href, hash, referrer;
-				let src = source;
 
 				((hash = location.hash.trim()) &&
 					// We're using location fragment
@@ -54,11 +65,13 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 					)}`);
 
 				if (source === location && hash && hash.length > 1) {
-					const [, head, tail, entry = 'README', extension = '.md'] =
-						/^#(.*)(\/(?:([^\/.][^\/]*?)(?:(\.\w+)|))?)$/.exec(hash) || '';
+					[, head, tail, entry = 'README', extension = '.md', fragment = ''] =
+						/^#([^#]*)(\/(?:([^#\/.][^#\/]*?)(?:(\.\w+)|))?)(#.*|)$/.exec(hash) || '';
+
+					// console.log({head, tail, entry, extension, fragment});
 
 					if (tail) {
-						href = `${head}\/${entry}${extension}`;
+						href = `${head}\/${entry}${extension}${fragment}`;
 						referrer = `${location}`.replace(hash, (hash = `#${href}`));
 						src = `${new URL(href, referrer)}`;
 						history.replaceState({hashes}, title, referrer);
@@ -66,7 +79,9 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 				}
 
 				hash || (hash = '#');
-				hashes[hash] ? ({referrer, href, src} = hashes[hash]) : (hashes[hash] = {referrer, href, src});
+				hashes[hash]
+					? ({referrer, href, src, fragment} = hashes[hash])
+					: (hashes[hash] = {referrer, href, src, fragment});
 
 				// console.log({hashes, hash, referrer, href, src});
 
@@ -75,6 +90,8 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 				if (href === section.sourceURL) return;
 
 				await (section.load ? section.load(href) : section.setAttribute('src', href));
+
+				scrollToFragment(fragment);
 			};
 			section.baseURL || ((section.baseURL = location.href.replace(/[?#].*$|$/, '')) && load());
 			addEventListener('hashchange', load, {passive: true});
