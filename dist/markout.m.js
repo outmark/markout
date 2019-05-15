@@ -540,7 +540,7 @@ class MarkoutRenderer {
 
 		for (const token of context.tokens) {
 			if (!token || !token.text) continue;
-			let {text, type = 'text', punctuator, breaks, hint, previous} = token;
+			let {text, type = 'text', punctuator, breaks, hint = 'text', previous} = token;
 			let body = text;
 
 			if (context.passthru || context.fenced) {

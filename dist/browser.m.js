@@ -1395,7 +1395,7 @@ class MarkoutRenderer {
 
 		for (const token of context.tokens) {
 			if (!token || !token.text) continue;
-			let {text, type = 'text', punctuator, breaks, hint, previous} = token;
+			let {text, type = 'text', punctuator, breaks, hint = 'text', previous} = token;
 			let body = text;
 
 			if (context.passthru || context.fenced) {
@@ -1919,20 +1919,50 @@ class MarkoutContent extends Component {
 	 * @param {string} [sourceText]
 	 */
 	async renderSourceText({element, sourceType, sourceText}) {
-		!element ||
+		let fragment;
+
+		if (
+			!element ||
 			!(sourceType || (sourceType = element.getAttribute(SourceType$1))) ||
-			!(sourceText || (sourceText = (!element.hasAttribute(MarkupSyntax$1) && element.textContent) || '')) ||
-			void element.removeAttribute(SourceType$1) ||
-			void element.setAttribute(MarkupSyntax$1, sourceType) ||
-			(element.textContent = '') ||
-			element
-				.appendChild(
-					await render$1((element.sourceText = sourceText), {
-						sourceType,
-						fragment: document.createDocumentFragment(),
-					}),
-				)
-				.normalize();
+			!(sourceText || (sourceText = (!element.hasAttribute(MarkupSyntax$1) && element.textContent) || ''))
+		)
+			return;
+
+		element.removeAttribute(SourceType$1);
+		element.setAttribute(MarkupSyntax$1, sourceType);
+		fragment = document.createDocumentFragment();
+		element.textContent = '';
+		// sourceText = sourceText.replace(/^\t+/gm, indent => '  '.repeat(indent.length));
+		element.sourceText = sourceText;
+		// await markup.render(`${sourceText}\0\n`, {sourceType, fragment});
+		await render$1(sourceText, {sourceType, fragment});
+		// fragment.normalize();
+		// lastChild = fragment;
+		// while (lastChild) {
+		// 	lastChild.normalize();
+		// 	if (lastChild.nodeType === fragment.TEXT_NODE) {
+		// 		let {textContent} = lastChild;
+		// 		(textContent = textContent.slice(0, textContent.lastIndexOf('\0\n')))
+		// 			? (lastChild.textContent = textContent)
+		// 			: lastChild.remove();
+		// 		break;
+		// 	} else {
+		// 		lastChild = lastChild.lastChild;
+		// 	}
+		// }
+		element.appendChild(fragment);
+		// !element ||
+		// 	!(sourceType || (sourceType = element.getAttribute(SourceType))) ||
+		// 	!(sourceText || (sourceText = (!element.hasAttribute(MarkupSyntax) && element.textContent) || '')) ||
+		// 	void element.removeAttribute(SourceType) ||
+		// 	void element.setAttribute(MarkupSyntax, sourceType) ||
+		// 	(element.textContent = '') ||
+		// 	(fragment = await markup.render((element.sourceText = sourceText), {
+		// 		sourceType,
+		// 		fragment: document.createDocumentFragment(),
+		// 	})).normalize() ||
+		// 	element.appendChild(fragment);
+		// return;
 	}
 
 	/// Properties
