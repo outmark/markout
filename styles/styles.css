@@ -1,0 +1,358 @@
+﻿@import './typography.css';
+
+:root,
+:host {
+	/* box-sizing: initial; */
+	scrollbar-width: thin;
+}
+
+details:focus-within > summary,
+summary:focus {
+	outline-width: 3px;
+	outline-color: Highlight;
+	outline-style: solid;
+	outline-style: auto;
+	outline-offset: 1px;
+}
+
+@media screen {
+	html {
+		background: var(--shade, #eee);
+		-webkit-text-size-adjust: 100%;
+	}
+}
+
+hr {
+	/* border: 2px solid #9993; */
+	/* border: 0 solid currentColor; */
+	border: 0 solid #9993;
+	-webkit-border-before-width: 4px;
+	border-block-start-width: 4px;
+	-webkit-margin-before: 2em;
+	margin-block-start: 2em;
+	-webkit-margin-after: 2em;
+	margin-block-end: 2em;
+}
+
+:is([hidden]):not([hidden~='no' i], [hidden~='false' i]),
+:is([hidden~='true'], [hidden~='yes']) {
+	display: none;
+}
+
+:is(body, :host)
+	:where(script, style, template, meta, link, head, body, html):not([hidden~='no' i]):not([hidden~='false' i]):not([style]):not([class]) {
+	/* display: revert; */
+	display: hidden;
+	contain: strict;
+}
+
+[column-grid] {
+	display: grid;
+	grid-auto-flow: column;
+}
+
+[table-row] {
+	/* display: flex; */
+	/* flex-flow: row; */
+	display: grid;
+	grid-auto-flow: column;
+	grid-auto-columns: 1fr;
+	justify-content: stretch;
+	grid-gap: 1em;
+	/* grid-template-columns: repeat(auto-fill, 1fr); */
+}
+
+[table-row] > * {
+	/* flex-basis: 100%; */
+	overflow: hidden;
+	margin: 0;
+}
+
+[column-flow] {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min-content, fit-content));
+	grid-auto-flow: column dense;
+}
+
+/* details[no-margin] summary, */
+[no-margin] {
+	margin: 0;
+}
+
+/* details[no-inset] summary, */
+[no-inset] {
+	margin: 0;
+	padding: 0;
+}
+
+[no-padding] {
+	padding: 0;
+}
+
+[inline=''] *[force-inline] {
+	display: inline;
+}
+
+[float='right' i],
+[float-right] {
+	float: right;
+	max-width: 33.3%;
+	/* font-size: 90%; */
+	z-index: 1;
+}
+
+[float='left' i],
+[float-left] {
+	float: left;
+	max-width: 33.3%;
+	/* font-size: 90%; */
+	z-index: 1;
+}
+
+[float='right' i] + :not([float]),
+[float-right] + :not([float]),
+[float='left' i] + :not([float]),
+[float-left] + :not([float]) {
+	clear: none;
+}
+
+[float^='clear' i],
+[clear='both' i],
+[float-clear],
+[clear-both] {
+	clear: both;
+}
+
+[float='clear left' i],
+[clear='left' i],
+[float-clear-left],
+[clear-left] {
+	clear: left;
+}
+
+[float='clear right' i],
+[clear='right' i],
+[float-clear-right],
+[clear-right] {
+	clear: right;
+}
+
+:root {
+	--section-shadow: #0003;
+	--section-band: #0002;
+	--section-overlay: #fffa;
+	--section-background: #ffffffee;
+	--section-padding: 2ex 4ex;
+	--section-spacing: 12px;
+	--section-spacing-collapsed: 4px;
+}
+
+/** INHERIT **/ /* @import '/pholio/styles/inherit.css'; */
+@media only screen {
+	html {
+		box-sizing: border-box;
+		min-height: 100vh;
+		min-width: 100vw;
+	}
+
+	html:not([horizontal]) {
+		max-width: 100vw;
+	}
+
+	html[horizontal] {
+		max-height: 100vh;
+	}
+
+	body {
+		/* width: inherit; */
+		/* height: inherit; */
+		max-width: inherit;
+		min-height: inherit;
+		min-width: inherit;
+		max-height: inherit;
+	}
+
+	body > main {
+		height: max-content;
+		width: max-content;
+		max-width: inherit;
+		min-height: inherit;
+		/* min-width: inherit; */
+		max-height: inherit;
+	}
+
+	body > main > * {
+		max-width: inherit;
+		max-height: inherit;
+	}
+}
+
+/** FLEX **/ /* @import '/pholio/styles/flex.css'; */
+@supports (display: flex) {
+	body > main > * {
+		margin: calc(var(--section-spacing) * 2);
+		/* border: var(--section-spacing, 12px) dotted #0cc; */
+	}
+
+	body > main {
+		display: flex;
+		flex-flow: column;
+		flex: 1 0 100%;
+	}
+
+	body > main > * + * {
+		margin-top: 0;
+		/* margin-bottom: var(--section-spacing); */
+	}
+
+	body > main > :first-child:last-child {
+		flex: 1 0 100%;
+	}
+}
+
+html {
+	background: var(--shade, #eee);
+	-webkit-text-size-adjust: 100%;
+}
+
+/* SEE: https://jeffclayton.wordpress.com/2014/07/14/separating-chrome-vs-safari-using-css-styles/ */
+@media screen and (-webkit-min-device-pixel-ratio: 0) and (min-color-index: 0) {
+	:root {
+		--section-shadow: #0006;
+		--section-band: #0004;
+	}
+}
+
+body {
+	margin: 0;
+	overflow-x: hidden;
+}
+
+body > main {
+	/* border: var(--section-spacing, 12px) dotted #0cc; */
+	/* background-color: #9990; */
+	/* border-radius: 8px; */
+	align-content: space-around;
+	/* justify-content: center; */
+	overflow-x: hidden;
+	align-items: stretch;
+	margin: 0 auto;
+	width: 55em;
+
+	/* align-content: space-evenly; */
+}
+
+body > main > * {
+	/* min-width: 50vw; */
+	background-color: var(--section-background, #ffffffee);
+	padding: var(--section-padding, 1em);
+}
+
+@media only screen {
+	html {
+		margin-left: calc(100vw - 100%);
+	}
+
+	body {
+		overflow-y: scroll;
+		touch-action: pan-y;
+	}
+
+	body > main > details > :not(summary) {
+		box-shadow: 0 0 15px -10px var(--section-shadow, #0003);
+		/* z-index: -1; */
+	}
+
+	body > main > * {
+		box-shadow: 0 1px 20px -10px var(--section-shadow, #0003);
+	}
+}
+
+@media only screen and (min-width: 600px) {
+	body > main.column-layout,
+	body > main > *.column-layout {
+		height: 100vh;
+		margin: 0;
+		/* overflow-x: scroll; */
+		/* overflow-y: hidden; */
+	}
+
+	body > main.column-layout,
+	body > main > *.column-layout,
+	body > main.column-layout > *,
+	body > main > *.column-layout > * {
+		width: -webkit-fill-available;
+		width: fill-available;
+		/* width: -webkit-fill-available; */
+		/* width: fill-available; */
+	}
+	body > main.column-layout > *,
+	body > main > *.column-layout > * {
+		/* overflow-x: hidden; */
+		/* overflow-y: visible; */
+	}
+	body > main.column-layout > *,
+	body > main > *.column-layout {
+		column-gap: 5em;
+		column-width: 35em;
+		column-rule: 2px solid #9991;
+	}
+}
+
+@media only screen and (min-width: 800px) {
+	body > main.column-layout,
+	body > main > *.column-layout {
+		max-height: calc(100vh + calc(-3 * var(--section-padding, 1em)));
+		/* margin-bottom: 0; */
+	}
+}
+
+@media only screen and (max-width: 800px) {
+	body > main {
+		--section-spacing: var(
+			--section-spacing-collapsed,
+			calc(4px * var(--section-spacing, 1) / var(--section-spacing, 1))
+		);
+		border-width: 0;
+		border-radius: 0;
+	}
+
+	body > main > * {
+		border-radius: 0;
+		border-width: 0;
+		border-left-width: 0;
+		border-right-width: 0;
+		box-shadow: 0 1px 15px -7.5px var(--section-shadow, #0003);
+	}
+
+	body > main > details {
+		padding: 2ex 0;
+	}
+	body > main > details > summary {
+		margin: 1rem;
+	}
+}
+
+@supports (-webkit-text-size-adjust: 100%) {
+	html {
+		-webkit-text-size-adjust: 100%;
+	}
+}
+
+body > main > details > summary:defined {
+	padding: 0;
+	outline-style: none;
+}
+
+body > main > details > summary > :first-child:last-child {
+	display: inline-block;
+	vertical-align: middle;
+	margin: 0;
+}
+
+/* body > main > details, */
+body > main > markout-content,
+body > main > details > summary,
+body > main > details > markout-content {
+	/* background-color: #fffffff0; */
+}

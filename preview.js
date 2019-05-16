@@ -17,6 +17,8 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 		section.isConnected || document.body.appendChild(section);
 		const base = new URL('../markout/', import.meta.url);
 
+		const defined = customElements.whenDefined(section.localName);
+
 		// Only promote to preview shell if src is not present
 		if (!section.hasAttribute('src')) {
 			// State
@@ -25,13 +27,15 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 
 			const scrollToFragment = async fragment => {
 				const [, anchor] = /#?([\-\w]*)/.exec(fragment);
+				if (!anchor) return;
 
+
+				await defined;
 				await new Promise(requestAnimationFrame);
 				await new Promise(resolve => setTimeout(resolve, 150));
 				await new Promise(requestAnimationFrame);
 				await new Promise(resolve => setTimeout(resolve, 150));
 				await new Promise(requestAnimationFrame);
-
 				section.scrollToAnchor(anchor);
 			};
 
@@ -102,7 +106,7 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 			location.search.length > 1 && (url.search += `${url.search ? '&' : '?'}${location.search.slice(1)}`);
 			url.search && (url.search = `?${[...new Set(url.search.slice(1).split('&'))].sort().join('&')}`);
 			const DEV = /[?&]dev\b/.test(url.search);
-			const LIB = `${base}${DEV ? 'lib/browser.js' : 'dist/browser.m.js'}${url.search}`;
+			const LIB = `${base}${DEV ? 'lib/browser.js' : 'dist/browser.js'}${url.search}`;
 			dynamicImport(new URL(LIB, base));
 		}
 	}

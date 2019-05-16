@@ -1,1 +1,14 @@
-﻿@import '../../../pholio/styles/markdown.css';
+﻿@import '/markup/styles/markup.css';
+@import './markdown.css';
+@import './styles.css';
+
+pre.markup.code[markup-syntax='log'] {
+	-webkit-tab-size: 12 !important;
+	-moz-tab-size: 12 !important;
+	tab-size: 12 !important;
+}
+
+pre.markup > .markup-line {
+	/* display: inline-block; */
+	min-width: max-content;
+}

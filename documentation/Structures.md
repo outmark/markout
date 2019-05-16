@@ -1,6 +1,6 @@
 ﻿# Markout
 
-## Data Structures
+## Structures
 
 If we think of string of text as a series of one or more <kbd>`‹token›`</kbd>, we can say that `a‹tab›b` is actually <kbd>`a`</kbd><kbd>`‹tab›`</kbd><kbd>`b`</kbd> as tokens.
 

@@ -12,7 +12,7 @@
 
 	const template = document.createElement('template');
 	template.innerHTML = `
-		<link rel="stylesheet" href="/pholio/styles/fonts/iosevka/iosevka.css" />
+		<link rel="stylesheet" href="/fonts/iosevka.css" />
     <link rel="stylesheet" href="/pholio/styles/styles.css" />
     <!-- <link rel="preload" as="style" href="/pholio/styles/styles.css" /> -->
 		<link rel="preload" as="style" href="/pholio/styles/typography.css" />
