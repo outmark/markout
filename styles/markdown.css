@@ -100,6 +100,15 @@ li > :not(ol):not(ul) {
 	page-break-inside: avoid;
 }
 
+li > label:first-child:not([for]) {
+	pointer-events: none;
+}
+
+label > input[type='checkbox']:first-child {
+	margin-inline-end: 0.5em;
+	vertical-align: 0.25ex;
+}
+
 h1 + :not(:empty),
 h2 + :not(:empty),
 h3 + :not(:empty),
