@@ -1,6 +1,11 @@
 import { sequence, debugging, matchAll, normalizeString } from '/markout/lib/helpers.js';
 import { encodeEntities, tokenize as tokenize$1 } from '/markup/dist/tokenizer.browser.js';
 
+// export const MarkupSourceTypeAttribute = 'source-type';
+// export const MarkupModeAttribute = 'markup-mode';
+// export const MarkupOptionsAttribute = 'markup-options';
+// export const MarkupSyntaxAttribute = 'markup-syntax';
+
 class ComposableList extends Array {
 	toString(inset = this.inset || '', type = this.type || 'ul', style = this.style, start = this.start) {
 		const attributes = `${
@@ -30,13 +35,75 @@ class ComposableList extends Array {
 					rows.push(text);
 				}
 			} else {
-				rows.push(`${inset}\t<li>${`${item}`.trim()}</li>`);
+				const [, checkbox, content] = /^\s*(?:\[([xX]| )\] |)(.+?)\s*$/.exec(item);
+
+				content &&
+					rows.push(
+						`${inset}\t<li>${
+							checkbox
+								? `<label><input type=checkbox ${checkbox === ' ' ? '' : ' checked'}>${content}</label>`
+								: content
+						}</li>`,
+					);
 			}
 		}
 		rows.push(`${inset}</${type}>`);
 		return `\n${rows.join('\n')}\n`;
 	}
 }
+
+ComposableList.SQUARE = /^[-](?=\s|$)/;
+ComposableList.DISC = /^[*](?=\s|$)/;
+ComposableList.DECIMAL = /^0*\d+\./;
+ComposableList.LATIN = /^[a-z]\./i;
+ComposableList.ROMAN = /^[ivx]+\./i;
+ComposableList.ORDERED = /^(?:0+[1-9]\d*|\d+|[ivx]+|[a-z])(?=\. |$)/i;
+ComposableList.UNORDERED = /^[-*](?= |$)/i;
+
+ComposableList.ORDERED_STYLE = /^(?:(0+[1-9]\d*)|(\d+)|([ivx]+)|([a-z]))(?=\. )|/i;
+ComposableList.ORDERED_STYLE.key = ['decimal-leading-zero', 'decimal', 'roman', 'latin'];
+
+ComposableList.orderedStyleOf = (marker, variant, fallback) => {
+	const category =
+		ComposableList.ORDERED_STYLE.key[
+			ComposableList.ORDERED_STYLE.exec(marker)
+				.slice(1)
+				.findIndex(Boolean)
+		];
+	return (
+		(category !== undefined &&
+			(category === 'latin' || category === 'roman'
+				? `${
+						variant === 'lower' || (variant !== 'upper' && marker === marker.toLowerCase()) ? 'lower' : 'upper'
+				  }-${category}`
+				: category === 'decimal'
+				? variant !== 'leading-zero'
+					? 'decimal'
+					: 'decimal-leading-zero'
+				: variant !== 'decimal'
+				? 'decimal-leading-zero'
+				: 'decimal')) ||
+		fallback
+	);
+};
+
+ComposableList.markerIsLike = (marker, expected) =>
+	expected in ComposableList.LIKE ? ComposableList.LIKE[expected].test(marker) : undefined;
+
+ComposableList.LIKE = {
+	['square']: ComposableList.SQUARE,
+	['disc']: ComposableList.DISC,
+	['decimal']: ComposableList.DECIMAL,
+	['decimal-leading-zero']: ComposableList.DECIMAL,
+	['roman']: ComposableList.ROMAN,
+	['lower-roman']: ComposableList.ROMAN,
+	['upper-roman']: ComposableList.ROMAN,
+	['latic']: ComposableList.LATIN,
+	['lower-latic']: ComposableList.LATIN,
+	['upper-latic']: ComposableList.LATIN,
+	['ul']: ComposableList.UNORDERED,
+	['ol']: ComposableList.ORDERED,
+};
 
 const {
 	/** Attempts to overcome **__** */
@@ -166,11 +233,13 @@ class MarkoutBlockNormalizer {
 		return sourceText.replace(NormalizableLists, (m, feed, body) => {
 			let match, indent;
 			indent = feed.slice(1);
-			const top = new ComposableList();
+			let top = new ComposableList();
 			let list = top;
+			const lists = [top];
 			NormalizableListItem.lastIndex = 0;
 			while ((match = NormalizableListItem.exec(m))) {
 				let [, inset, marker, line] = match;
+				let like;
 				if (!line.trim()) continue;
 
 				if (marker) {
@@ -181,6 +250,15 @@ class MarkoutBlockNormalizer {
 						list.parent = parent;
 					} else if (depth < list.depth) {
 						while ((list = list.parent) && depth < list.depth);
+					} else if (
+						'style' in list &&
+						!(like = ComposableList.markerIsLike(marker, list.style))
+						// ((like = ComposableList.markerIsLike(marker, list.style)) === undefined
+						// 	? (like = ComposableList.markerIsLike(marker, list.type))
+						// 	: like)
+					) {
+						const parent = list.parent;
+						((list = new ComposableList()).parent = parent) ? parent.push(list) : lists.push((top = list));
 					}
 
 					if (!list) break;
@@ -193,12 +271,8 @@ class MarkoutBlockNormalizer {
 
 					'style' in list ||
 						(list.style =
-							(list.type === 'ul' && ((marker[0] === '*' && 'disc') || 'square')) ||
-							(marker[0] === '0' && 'decimal-leading-zero') ||
-							(marker[0] > 0 && 'decimal') ||
-							`${marker === marker.toLowerCase() ? 'lower' : 'upper'}-${
-								/^[ivx]+\. $/i.test(marker) ? 'roman' : 'latin'
-							}`);
+							(list.type === 'ul' && ((marker === '* ' && 'disc') || 'square')) ||
+							ComposableList.orderedStyleOf(marker));
 
 					line = line.replace(/[ \t]*\n[> \t]*/g, ' ');
 					list.push(line);
@@ -212,7 +286,7 @@ class MarkoutBlockNormalizer {
 				}
 			}
 
-			return top.toString(indent);
+			return lists.map(list => list.toString(indent)).join('\n');
 		});
 	}
 
@@ -248,6 +322,15 @@ class MarkoutBlockNormalizer {
 		});
 	}
 }
+
+// 'style' in list ||
+// 	(list.style =
+// 		(list.type === 'ul' && ((marker[0] === '*' && 'disc') || 'square')) ||
+// 		(marker[0] === '0' && 'decimal-leading-zero') ||
+// 		(marker[0] > 0 && 'decimal') ||
+// 		`${marker === marker.toLowerCase() ? 'lower' : 'upper'}-${
+// 			/^[ivx]+\. $/i.test(marker) ? 'roman' : 'latin'
+// 		}`);
 
 class Segmenter extends RegExp {
 	/**
@@ -455,15 +538,15 @@ class MarkoutNormalizer extends MarkoutSegmentNormalizer {
 	}
 }
 
+const SourceTypeAttribute = 'source-type';
+const MarkupModeAttribute = 'markup-mode';
+const MarkupSyntaxAttribute = 'markup-syntax';
+
 const {
 	// Attempts to overcome **__**
 	'markout-render-span-restacking': SPAN_RESTACKING = true,
 	'markout-render-newline-consolidation': NEWLINE_CONSOLIDATION = false,
 } = import.meta;
-
-const SourceType = 'source-type';
-const SourceParameters = 'source-parameters';
-const MarkupSyntax = 'markup-syntax';
 
 const normalize = sourceText => {
 	const {normalizer = (normalize.normalizer = new MarkoutNormalizer())} = normalize;
@@ -521,22 +604,24 @@ class MarkoutRenderer {
 						context.header += text;
 						breaks && ((context.header = context.header.trimRight()), (context.passthru = ''));
 					} else if (punctuator === 'closer' && text === '```') {
-						let sourceType, sourceParameters;
+						let sourceType, sourceAttributes;
 						if (context.header) {
-							[, sourceType = 'markup', sourceParameters] = FencedBlockHeader.exec(context.header);
+							[, sourceType = 'markup', sourceAttributes] = FencedBlockHeader.exec(context.header);
 							import.meta['debug:fenced-block-header-rendering'] &&
 								console.log('fenced-block-header', {
 									fenced: context.fenced,
 									header: context.header,
 									passthru: context.passthru,
 									sourceType,
-									sourceParameters,
+									sourceAttributes,
+									context,
 								});
 						}
 						// passthru rendered code
-						context.renderedText += `<${context.block} class="markup code" ${SourceType}="${sourceType || 'markup'}"${
+						context.renderedText += `<${context.block} class="markup code" ${SourceTypeAttribute}="${sourceType ||
+							'markup'}"${
 							// sourceParameters ? ` ${SourceParameters}="${sourceParameters}"` : ''
-							(sourceParameters && ` ${sourceParameters}`) || ''
+							(sourceAttributes && ` ${sourceAttributes}`) || ''
 						}>${encodeEntities(context.passthru)}</${context.block}>`;
 						context.header = context.indent = context.fenced = context.passthru = '';
 					} else {
@@ -766,14 +851,5 @@ debugging('markout', import.meta, [
 	'fenced-block-header-rendering',
 ]);
 
-const renderer = /*#__PURE__*/Object.freeze({
-	SourceType: SourceType,
-	SourceParameters: SourceParameters,
-	MarkupSyntax: MarkupSyntax,
-	normalize: normalize,
-	render: render,
-	tokenize: tokenize
-});
-
-export { render as a, tokenize as b, normalize as c, renderer as d };
+export { render as a, tokenize as b, normalize as c, SourceTypeAttribute as d, MarkupModeAttribute as e, MarkupSyntaxAttribute as f };
 //# sourceMappingURL=common.js.map

@@ -1,6 +1,6 @@
 import { debugging } from '/markout/lib/helpers.js';
 import { entities as entities$1, render as render$1 } from '/markup/dist/tokenizer.browser.js';
-import { a as render, b as tokenize, c as normalize, d as renderer } from './common.js';
+import { a as render, b as tokenize, c as normalize, d as SourceTypeAttribute, e as MarkupModeAttribute, f as MarkupSyntaxAttribute } from './common.js';
 import { Assets, css, html, Component } from './components.js';
 
 async function dynamicImport(specifier, referrer) {
@@ -128,8 +128,6 @@ const {
 
 const assets = new Assets({base: new URL('../', import.meta.url)}, 'style:styles/markout.css');
 
-const {SourceType, MarkupSyntax} = renderer;
-
 const stylesheet = assets['style:styles/markout.css'];
 
 const styles = css`
@@ -183,7 +181,7 @@ class MarkoutContent extends Component {
 
 		this.name = `${this.tagName}-${++new.target.instance}`.toLocaleLowerCase();
 
-		/** @type {SLOT} */ const slot = this['::'];
+		/** @type {HTMLSlotElement} */ const slot = this['::'];
 		slot && slot.addEventListener('slotchange', event => this.isConnected && this.updateContent(slot), {passive: true});
 	}
 
@@ -198,7 +196,7 @@ class MarkoutContent extends Component {
 	}
 
 	async renderContent(sourceText) {
-		/** @type {this & {'::': SLOT, '::content': SLOT, '#wrapper': DIV, '#links': DIV, sourceURL?: string | URL}} */
+		/** @type {this & {'::': HTMLSlotElement, '::content': HTMLSlotElement, '#wrapper': HTMLDivElement, '#links': HTMLDivElement, sourceURL?: string | URL}} */
 		const {'::content': content, '::': slot = content, '#wrapper': wrapper, '#links': links, sourceURL} = this;
 
 		arguments.length || (sourceText = this.sourceText);
@@ -281,21 +279,34 @@ class MarkoutContent extends Component {
 		}
 	}
 
-	scrollToAnchor(anchor) {
-		/** @type {HTMLAnchorElement} */
-		let target;
-		const {'::content': content} = this;
-		anchor && (target = content.querySelector(`a[id="${anchor}"]`))
-			? target.scrollIntoView({behavior: 'smooth', block: 'start', inline: 'nearest'})
-			: console.warn('scrollIntoView: %o', {anchor, target});
+	async renderMarkdown(sourceText = this.sourceText, slot = this['::content']) {
+		const {fragment} = this.createRenderedMarkdownFragment(sourceText);
+
+		slot.innerHTML = '';
+
+		CONTENT_NORMALIZATION !== false &&
+			((BREAKS_NORMALIZATION || CONTENT_NORMALIZATION === true) && this.normalizeBreaksInFragment(fragment),
+			(HEADINGS_NORMALIZATION || CONTENT_NORMALIZATION === true) && this.normalizeHeadingsInFragment(fragment),
+			(PARAGRAPHS_NORMALIZATION || CONTENT_NORMALIZATION === true) && this.normalizeParagraphsInFragment(fragment));
+
+		SOURCE_TEXT_RENDERING && (await this.renderSourceTextsInFragment(fragment));
+
+		slot.appendChild(fragment);
+		this['(content)'] = {slot, sourceText, fragment, ...fragment};
 	}
 
-	async evaluateScript(script) {
-		const {src} = script;
-		const sourceText = await (await fetch(src)).text();
-		await new Promise(requestAnimationFrame);
-		document['--currentScript--'] = script;
-		(0, eval)(`${sourceText}\ndelete document['--currentScript--']`);
+	createRenderedMarkdownFragment(sourceText) {
+		let fragment, normalizedText, tokens;
+		const {template = (this.template = document.createElement('template'))} = this;
+		template.innerHTML = render(
+			(tokens = tokenize((normalizedText = normalize(sourceText)))),
+		);
+		fragment = template.content.cloneNode(true);
+		fragment.fragment = fragment;
+		fragment.sourceText = sourceText;
+		fragment.normalizedText = normalizedText;
+		fragment.tokens = tokens;
+		return fragment;
 	}
 
 	normalizeBreaksInFragment(fragment) {
@@ -340,92 +351,66 @@ class MarkoutContent extends Component {
 	renderSourceTextsInFragment(fragment) {
 		const promises = [];
 
-		for (const node of fragment.querySelectorAll(`[${SourceType}]:not(:empty)`))
-			promises.push(this.renderSourceText({element: node, sourceType: node.getAttribute(SourceType)}));
+		// :not([${MarkupSyntaxAttribute}])
+		for (const element of fragment.querySelectorAll(`[${SourceTypeAttribute}]:not(:empty)`))
+			promises.push(
+				this.renderSourceText({
+					element,
+					sourceType: element.getAttribute(MarkupModeAttribute) || element.getAttribute(SourceTypeAttribute),
+					sourceText: element.textContent,
+				}),
+			);
 
 		return promises.length ? Promise.all(promises) : Promise.resolve();
 	}
 
-	createRenderedMarkdownFragment(sourceText) {
-		let fragment, normalizedText, tokens;
-		const {template = (this.template = document.createElement('template'))} = this;
-		template.innerHTML = render(
-			(tokens = tokenize((normalizedText = normalize(sourceText)))),
-		);
-		fragment = template.content.cloneNode(true);
-		fragment.fragment = fragment;
-		fragment.sourceText = sourceText;
-		fragment.normalizedText = normalizedText;
-		fragment.tokens = tokens;
-		return fragment;
-	}
-
-	async renderMarkdown(sourceText = this.sourceText, slot = this['::content']) {
-		const {fragment} = this.createRenderedMarkdownFragment(sourceText);
-
-		slot.innerHTML = '';
-
-		CONTENT_NORMALIZATION !== false &&
-			((BREAKS_NORMALIZATION || CONTENT_NORMALIZATION === true) && this.normalizeBreaksInFragment(fragment),
-			(HEADINGS_NORMALIZATION || CONTENT_NORMALIZATION === true) && this.normalizeHeadingsInFragment(fragment),
-			(PARAGRAPHS_NORMALIZATION || CONTENT_NORMALIZATION === true) && this.normalizeParagraphsInFragment(fragment));
-
-		SOURCE_TEXT_RENDERING && (await this.renderSourceTextsInFragment(fragment));
-
-		slot.appendChild(fragment);
-		this['(content)'] = {slot, sourceText, fragment, ...fragment};
-	}
-
 	/**
-	 * @param {HTMLElement} element
-	 * @param {string} [sourceType]
-	 * @param {string} [sourceText]
+	 * @param {Partial<{element: HTMLElement, sourceType: string, sourceText: String}>} options
+	 * @returns {Promise<HTMLElement>}
 	 */
-	async renderSourceText({element, sourceType, sourceText}) {
-		let fragment;
+	async renderSourceText(options) {
+		let element, fragment, sourceType, sourceText;
 
 		if (
-			!element ||
-			!(sourceType || (sourceType = element.getAttribute(SourceType))) ||
-			!(sourceText || (sourceText = (!element.hasAttribute(MarkupSyntax) && element.textContent) || ''))
+			!options ||
+			typeof options !== 'object' ||
+			(({element, sourceType, sourceText, ...options} = options),
+			!(element
+				? !element.hasAttribute(MarkupSyntaxAttribute) &&
+				  (sourceType ||
+						(sourceType = element.getAttribute(MarkupModeAttribute) || element.getAttribute(SourceTypeAttribute)),
+				  sourceText || (sourceText = element.textContent || ''))
+				: sourceText))
 		)
-			return;
+			return void console.warn('Aborted: renderSourceText(%o => %o)', arguments[0], {element, sourceType, sourceText});
 
-		element.removeAttribute(SourceType);
-		element.setAttribute(MarkupSyntax, sourceType);
+		element || ((element = document.createElement('pre')).className = 'markup code');
+		element.removeAttribute(SourceTypeAttribute);
+		element.setAttribute(MarkupSyntaxAttribute, sourceType);
 		fragment = document.createDocumentFragment();
 		element.textContent = '';
-		// sourceText = sourceText.replace(/^\t+/gm, indent => '  '.repeat(indent.length));
 		element.sourceText = sourceText;
-		// await markup.render(`${sourceText}\0\n`, {sourceType, fragment});
 		await render$1(sourceText, {sourceType, fragment});
-		// fragment.normalize();
-		// lastChild = fragment;
-		// while (lastChild) {
-		// 	lastChild.normalize();
-		// 	if (lastChild.nodeType === fragment.TEXT_NODE) {
-		// 		let {textContent} = lastChild;
-		// 		(textContent = textContent.slice(0, textContent.lastIndexOf('\0\n')))
-		// 			? (lastChild.textContent = textContent)
-		// 			: lastChild.remove();
-		// 		break;
-		// 	} else {
-		// 		lastChild = lastChild.lastChild;
-		// 	}
-		// }
 		element.appendChild(fragment);
-		// !element ||
-		// 	!(sourceType || (sourceType = element.getAttribute(SourceType))) ||
-		// 	!(sourceText || (sourceText = (!element.hasAttribute(MarkupSyntax) && element.textContent) || '')) ||
-		// 	void element.removeAttribute(SourceType) ||
-		// 	void element.setAttribute(MarkupSyntax, sourceType) ||
-		// 	(element.textContent = '') ||
-		// 	(fragment = await markup.render((element.sourceText = sourceText), {
-		// 		sourceType,
-		// 		fragment: document.createDocumentFragment(),
-		// 	})).normalize() ||
-		// 	element.appendChild(fragment);
-		// return;
+
+		return element;
+	}
+
+	async evaluateScript(script) {
+		const {src} = script;
+		const sourceText = await (await fetch(src)).text();
+		await new Promise(requestAnimationFrame);
+		document['--currentScript--'] = script;
+		(0, eval)(`${sourceText}\ndelete document['--currentScript--']`);
+	}
+
+	scrollToAnchor(anchor) {
+		/** @type {HTMLAnchorElement} */
+		let target;
+		const {'::content': content} = this;
+		anchor && (target = content.querySelector(`a[id="${anchor}"]`))
+			? target.scrollIntoView({behavior: 'smooth', block: 'start', inline: 'nearest'})
+			: console.warn('scrollIntoView: %o', {anchor, target});
 	}
 
 	/// Properties
@@ -465,9 +450,6 @@ try {
 } catch (exception) {
 	console.warn(exception);
 }
-
-/** @typedef {HTMLSlotElement} SLOT */
-/** @typedef {HTMLDivElement} DIV */
 
 const RewritableURL = /^(\.*(?=\/)[^?#\n]*\/)(?:([^/?#\n]+?)(?:(\.[a-z]+)|)|)(\?[^#]+|)(#.*|)$|/i;
 
