@@ -1,0 +1,48 @@
+﻿@import '/markup/styles/markup.css';
+
+:host {
+}
+
+pre.markup[line-wrap] > .markup-line,
+pre.markup[line-numbers] > .markup-line {
+	--markup-soft-indent: 1em;
+}
+
+pre.markup[line-wrap] > .markup-line {
+	--markup-gutter: 0.01pt;
+	min-width: initial;
+}
+
+pre.markup[line-numbers] > .markup-line {
+	--markup-gutter: 2em;
+}
+
+pre.markup[line-numbers] {
+	padding-inline-start: 0;
+	/* max-height: 75vh; */
+}
+
+pre.markup[line-wrap] {
+	overflow-x: hidden;
+	overflow-wrap: break-word;
+}
+
+[small-block] {
+	max-height: calc(5vmax + 10vmin);
+	overflow: scroll;
+}
+
+[medium-block] {
+	max-height: calc(15vmax + 20vmin);
+	overflow: scroll;
+}
+
+[large-block] {
+	max-height: calc(25vmax + 30vmin);
+	overflow: scroll;
+}
+
+[huge-block] {
+	max-height: calc(35vmax + 40vmin);
+	overflow: scroll;
+}

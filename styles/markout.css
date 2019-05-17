@@ -1,5 +1,5 @@
-﻿@import '/markup/styles/markup.css';
-@import './markdown.css';
+﻿@import './markdown.css';
+@import './markup.css';
 @import './styles.css';
 
 pre.markup.code[markup-syntax='log'] {
