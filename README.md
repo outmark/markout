@@ -12,7 +12,11 @@ Markout shares a lot of similarities with many markdown renderers, but uses a ve
 #### Lists
 </summary>
 
-- [ ] …
+- [x] Unordered Lists
+- [x] Ordered Lists
+- [x] Checklists
+- [x] Complex Lists
+- [ ] Dynamic Checklists
 
 <div column-grid>
 

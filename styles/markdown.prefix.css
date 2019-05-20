@@ -1,0 +1,99 @@
+﻿@supports (not (margin-block-start: 0)) or (not (padding-block-start: 0)) {
+	p,
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6,
+	summary,
+	blockquote,
+	dd,
+	caption {
+		-webkit-margin-before: var(--block-margin);
+		-webkit-margin-after: var(--block-margin);
+	}
+
+	label > input[type='checkbox']:first-child {
+		-webkit-margin-end: 0.5em;
+	}
+
+	pre,
+	details,
+	table {
+		-webkit-margin-before: var(--block-margin);
+		-webkit-margin-after: var(--block-margin);
+	}
+
+	figcaption + * {
+		-webkit-margin-before: 0;
+	}
+
+	blockquote,
+	ol,
+	ul {
+		-webkit-padding-start: var(--inline-inset);
+		-webkit-margin-start: var(--inline-margin);
+		-webkit-margin-end: var(--inline-margin);
+	}
+
+	h1 > *,
+	h2 > *,
+	h3 > *,
+	h4 > *,
+	h5 > *,
+	h6 > * {
+		-webkit-margin-before: 0;
+		-webkit-margin-after: 0;
+	}
+
+	blockquote {
+		-webkit-border-start-width: var(--inline-start-border-width);
+		-webkit-margin-start: var(--inline-margin);
+		-webkit-margin-end: var(--inline-margin);
+	}
+
+	hr {
+		-webkit-border-before-width: var(--block-start-border-width);
+		-webkit-margin-before: var(--block-margin);
+		-webkit-margin-after: var(--block-margin);
+	}
+
+	thead,
+	tbody,
+	tfoot,
+	thead > tr,
+	tfoot > tr {
+		-webkit-border-start-width: var(--cell-border-inline);
+		-webkit-border-end-width: var(--cell-border-inline);
+	}
+
+	th + th,
+	tfoot > td + td {
+		-webkit-border-start-width: var(--cell-border-before);
+	}
+
+	thead > tr + tr {
+		-webkit-border-before-width: var(--cell-border-before);
+	}
+
+	thead:first-of-type {
+		-webkit-border-before-width: var(--cell-border-before);
+	}
+
+	thead:last-of-type,
+	thead ~ tbody,
+	tfoot ~ tbody,
+	tbody > tr:first-child > th:first-child:last-child,
+	tfoot:last-of-type {
+		-webkit-border-after-width: var(--cell-border-after);
+	}
+
+	thead + thead > tr:first-child,
+	thead + thead > tr:last-child,
+	tfoot + tfoot > tr:first-child,
+	tfoot + tfoot > tr:last-child,
+	tbody + tbody > tr:first-child {
+		-webkit-border-before-width: var(cell-border-before);
+	}
+}

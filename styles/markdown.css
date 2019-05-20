@@ -1,57 +1,53 @@
-﻿/**/ /**/ /* VARIABLES */ /**/ /**/
+﻿@import './root.css';
+/* @import './markdown.prefix.css'; */
+/* @import './primer-reset.css'; */
+
+/**/ /**/ /* VARIABLES */ /**/ /**/
 
 :host {
-	--cell-padding: 1em;
-	--microline: 0.5px;
-	--hairline: 1px;
-	--thinline: 1px;
-	--thickline: 2px;
+	--cell-padding: var(--markout--cell-padding);
+	--microline: var(--markout--microline);
+	--hairline: var(--markout--hairline);
+	--thinline: var(--markout--thinline);
+	--thickline: var(--markout--thickline);
+
+	--markup-tab-size: var(--markout--code-tab-size);
+	--markup-line-height: var(--markout--code-line-height);
+
+	--body-spacing-size: 1;
+	--body-offset-size: 2;
+	--list-indent-size: 2;
+
+	--band-line: var(--markout--band-line);
+	--band-stroke: var(--markout--band-stroke);
+	--band-fade: var(--markout--band-fade);
+	--band-fade\-: var(--markout--band-fade\-);
+	--band-fade\-\-: var(--markout--band-fade\-\-);
+	--band-text: var(--markout--band-text);
+	--band-text\-: var(--markout--band-text\-);
+	--band-text\-\-: var(--markout--band-text\-\-);
+	--band-fill: var(--markout--band-fill);
+	--band-fill\-: var(--markout--band-fill\-);
+	--band-fill\-\-: var(--markout--band-fill\-\-);
+
+	--field-fill: var(--markout--field-fill);
+	--field-text: var(--markout--field-text);
+	--field-line: var(--markout--field-line);
+	--field-line\-: var(--markout--field-line\-);
+	--field-stroke: var(--markout--field-stroke);
+
 	--φ: 0.6180339887498948482;
 	--ß: 0.85;
-	--markup-tab-size: 2;
-	--markup-line-height: 1.5em;
 }
 
-@media only screen and (min-resolution: 192dpi), only screen and (min-resolution: 2dppx) {
-	:host {
-		--microline: 0.05rem;
-		--hairline: 1.25px;
-		--thinline: 1.5px;
-		--thickline: 2.5px;
-	}
-}
-
-:host,
-:host .markout-content {
+:host {
 	box-sizing: border-box;
 	line-height: 1.75em;
 	overflow: scroll;
-
-	--band-line: #9993;
-	--band-stroke: #ccc;
-	--band-fill: #c6c6c636;
-	--band-fill\-: #d6d6d636;
-	--band-fill\-\-: #e6e6e636;
-	--band-fade: #fff3;
-	--band-fade\-: #fff2;
-	--band-fade\-\-: #fff1;
-	--band-text: #000e;
-	--band-text\-: #000b;
-	--band-text\-\-: #0009;
 	-webkit-text-size-adjust: 100%;
 }
 
-@supports (color: -webkit-text) or (-moz-box-flex: initial) {
-	:host,
-	:host .markout-content {
-		--band-fill: #c3c3c336;
-		--band-fill\-: #d3d3d336;
-		--band-fill\-\-: #e3e3e336;
-	}
-}
-
-:host *,
-.markout-content {
+:host * {
 	line-height: 1.75em;
 	orphans: 2;
 	widows: 3;
@@ -70,10 +66,9 @@ summary,
 blockquote,
 dd,
 caption {
-	-webkit-margin-before: 1em;
-	margin-block-start: 1em;
-	-webkit-margin-after: 1em;
-	margin-block-end: 1em;
+	--block-margin: calc(1em * var(--body-spacing-size, 1));
+	margin-block-start: var(--block-margin);
+	margin-block-end: var(--block-margin);
 	widows: 2;
 	orphans: 2;
 }
@@ -127,15 +122,27 @@ figcaption + * {
 pre,
 details,
 table {
-	-webkit-margin-before: 2em;
-	margin-block-start: 2em;
-	-webkit-margin-after: 2em;
-	margin-block-end: 2em;
+	--block-margin: calc(1em * var(--body-offset-size, 2));
+	margin-block-start: var(--block-margin);
+	margin-block-end: var(--block-margin);
 }
 
+figcaption {
+	margin: 0.25em;
+}
+
+figcaption + * {
+	margin-block-start: 0;
+}
+
+blockquote,
+ol,
 ul {
-	-webkit-padding-start: 2em;
-	padding-inline-start: 2em;
+	--inline-margin: 0;
+	--inline-inset: calc(1em * var(--list-indent-size, 2));
+	padding-inline-start: var(--inline-inset);
+	margin-inline-start: var(--inline-margin);
+	margin-inline-end: var(--inline-margin);
 }
 
 summary > :first-child:last-child {
@@ -144,14 +151,6 @@ summary > :first-child:last-child {
 	margin: 0;
 }
 
-figcaption {
-	margin: 0.25em;
-}
-
-figcaption + * {
-	-webkit-margin-before: 0;
-	margin-block-start: 0;
-}
 /*
 p:empty {
 	display: none;
@@ -176,9 +175,7 @@ h3 > *,
 h4 > *,
 h5 > *,
 h6 > * {
-	-webkit-margin-before: 0;
 	margin-block-start: 0;
-	-webkit-margin-after: 0;
 	margin-block-end: 0;
 }
 
@@ -211,24 +208,22 @@ aside {
 figure,
 table,
 aside {
+	--block-margin: calc(1em * var(--body-spacing-size, 1));
 	position: relative;
-	margin: 1em;
+	margin: var(--block-margin);
 	padding: 1em 2em;
 	padding-inline-start: 2em;
 	overflow: hidden;
 }
 
 blockquote {
-	border: 0 var(--band-line) solid;
-	border-inline-start-width: 0.25em;
-	-webkit-border-start-width: 0.25em;
-	-webkit-padding-start: 1em;
-	padding-inline-start: 1em;
+	--inline-margin: 0;
+	--inline-start-border-width: 0.25em;
 
-	-webkit-margin-start: 0;
-	margin-inline-start: 0;
-	-webkit-margin-end: 0;
-	margin-inline-end: 0;
+	border: 0 var(--band-line) solid;
+	border-inline-start-width: var(--inline-start-border-width);
+	margin-inline-start: var(--inline-margin);
+	margin-inline-end: var(--inline-margin);
 
 	color: var(--band-text\-\-);
 	opacity: 0.9;
@@ -246,14 +241,12 @@ blockquote > q + cite {
 }
 
 hr {
-	/* border: 2px solid #9993; */
+	--block-margin: calc(1em * var(--body-offset-size, 2));
+	--block-start-border-width: 4px;
 	border: 0 solid var(--band-line);
-	-webkit-border-before-width: 4px;
-	border-block-start-width: 4px;
-	-webkit-margin-before: 2em;
-	margin-block-start: 2em;
-	-webkit-margin-after: 2em;
-	margin-block-end: 2em;
+	border-block-start-width: var(--block-start-border-width);
+	margin-block-start: var(--block-margin);
+	margin-block-end: var(--block-margin);
 }
 
 table,
@@ -263,7 +256,12 @@ tfoot,
 th,
 tr,
 td {
-	border-width: 0;
+	--cell-border: 0;
+	--cell-border-block: initial;
+	--cell-border-inline: initial;
+	--cell-border-before: initial;
+	--cell-border-after: initial;
+	border-width: var(--cell-border);
 	border-color: var(--band-stroke);
 	border-style: solid;
 }
@@ -273,26 +271,25 @@ tbody,
 tfoot,
 thead > tr,
 tfoot > tr {
-	-webkit-border-start-width: var(--hairline);
-	border-inline-start-width: var(--hairline);
-	-webkit-border-end-width: var(--hairline);
-	border-inline-end-width: var(--hairline);
+	--cell-border-inline: var(--hairline);
+	border-inline-start-width: var(--cell-border-inline);
+	border-inline-end-width: var(--cell-border-inline);
 }
 
 th + th,
 tfoot > td + td {
-	-webkit-border-start-width: var(--microline);
-	border-inline-start-width: var(--microline);
+	--cell-border-before: var(--microline);
+	border-inline-start-width: var(--cell-border-before);
 }
 
 thead > tr + tr {
-	-webkit-border-before-width: var(--microline);
-	border-block-start-width: var(--microline);
+	--cell-border-before: var(--microline);
+	border-block-start-width: var(--cell-border-before);
 }
 
 thead:first-of-type {
-	-webkit-border-before-width: var(--hairline);
-	border-block-start-width: var(--hairline);
+	--cell-border-before: var(--hairline);
+	border-block-start-width: var(--cell-border-before);
 }
 
 thead:last-of-type,
@@ -300,8 +297,8 @@ thead ~ tbody,
 tfoot ~ tbody,
 tbody > tr:first-child > th:first-child:last-child,
 tfoot:last-of-type {
-	-webkit-border-after-width: var(--hairline);
-	border-block-end-width: var(--hairline);
+	--cell-border-after: var(--hairline);
+	border-block-end-width: var(--cell-border-after);
 }
 
 thead + thead > tr:first-child,
@@ -309,13 +306,17 @@ thead + thead > tr:last-child,
 tfoot + tfoot > tr:first-child,
 tfoot + tfoot > tr:last-child,
 tbody + tbody > tr:first-child {
-	-webkit-border-before-width: var(--hairline);
-	border-block-start-width: var(--hairline);
+	--cell-border-before: var(--hairline);
+	border-block-start-width: var(cell-border-before);
 }
 
 td,
 th {
 	padding: calc(0.25 * var(--cell-padding, 1em)) calc(0.75 * var(--cell-padding, 1em));
+}
+
+tbody > tr > * {
+	vertical-align: baseline;
 }
 
 td > :first-child:last-child,
@@ -331,7 +332,7 @@ tfoot {
 
 thead,
 tfoot {
-	background: linear-gradient(0deg, var(--band-fill) 0%, var(--band-fill) 0%) #fff9;
+	background: linear-gradient(0deg, var(--band-fill) 0%, var(--band-fill) 0%) var(--field-fill);
 	background-blend-mode: overlay;
 }
 
@@ -366,15 +367,10 @@ code,
 samp,
 kbd,
 tt {
-	font-family: var(--source-code-font, cursive);
-	font-variant-ligatures: common-ligatures discretionary-ligatures contextual historical-ligatures;
-	text-rendering: optimizeLegibility;
+	/* text-rendering: optimizeLegibility; */
 	box-decoration-break: clone;
 	-webkit-box-decoration-break: clone;
 	line-break: strict;
-	-webkit-tab-size: var(--markup-tab-size, 2);
-	-moz-tab-size: var(--markup-tab-size, 2);
-	tab-size: var(--markup-tab-size, 2);
 	box-sizing: border-box;
 }
 
@@ -414,10 +410,14 @@ kbd,
 
 kbd {
 	padding-bottom: 0.5ex;
-	background-color: #fff6;
-	border: 0.5px solid #6663;
-	border-bottom-color: #666c;
-	box-shadow: inset 0 -0.25ch 0 #6666;
+	/* background-color: #fff6; */
+	/* border: 0.5px solid #6663; */
+	/* border-bottom-color: #666c; */
+	/* box-shadow: inset 0 -0.25ch 0 #6666; */
+	background-color: var(--field-fill);
+	box-shadow: inset 0 -0.25ch 0 var(--field-line);
+	border: var(--markout--hairline) solid var(--field-line\-);
+	border-bottom-color: var(--field-stroke);
 }
 
 small {
@@ -449,17 +449,17 @@ pre samp {
 	background-color: transparent;
 }
 
-@media only screen and (min-width: 600px) {
-	:host-context(.column-layout) pre {
-		max-height: -webkit-fill-available;
-		max-height: -moz-fill-available;
-		max-height: fill-available;
-		overflow-y: scroll;
-	}
-}
-
 tt.opener:first-child,
 tt.closer:last-child,
 tt.normalized-break {
 	display: none;
+}
+
+@media only screen and (min-width: 600px) {
+	:host-context(.column-layout) pre {
+		max-height: -webkit-fill-available;
+		max-height: -moz-available;
+		max-height: fill-available;
+		overflow-y: scroll;
+	}
 }

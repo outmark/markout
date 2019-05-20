@@ -1,5 +1,8 @@
 ﻿// import {dynamicImport} from '../pholio/lib/import.js';
 import dynamicImport from '/browser/dynamicImport.js';
+// import {darkMode} from '/browser/dark-mode.js#autoOnly';
+
+// console.log({darkMode});
 
 // Only bootstrap preview if in valid browser window scope
 if (typeof document === 'object' && document && typeof location === 'object' && 'hash' in location) {
@@ -28,7 +31,6 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 			const scrollToFragment = async fragment => {
 				const [, anchor] = /#?([\-\w]*)/.exec(fragment);
 				if (!anchor) return;
-
 
 				await defined;
 				await new Promise(requestAnimationFrame);
@@ -71,10 +73,8 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 					[, head, tail, entry = 'README', extension = '.md', fragment = ''] =
 						/^#([^#]*)(\/(?:([^#\/.][^#\/]*?)(?:(\.\w+)|))?)(#.*|)$/.exec(hash) || '';
 
-					// console.log({head, tail, entry, extension, fragment});
-
 					if (tail) {
-						href = `${head}\/${entry}${extension}${fragment}`;
+						href = `${head}\/${entry}${extension}${fragment || ''}`;
 						referrer = `${location}`.replace(hash, (hash = `#${href}`));
 						src = `${new URL(href, referrer)}`;
 						history.replaceState({hashes}, title, referrer);
@@ -94,7 +94,7 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 
 				await (section.load ? section.load(href) : section.setAttribute('src', href));
 
-				scrollToFragment(fragment);
+				fragment && scrollToFragment(fragment);
 			};
 			section.baseURL || ((section.baseURL = location.href.replace(/[?#].*$|$/, '')) && load());
 			addEventListener('hashchange', load, {passive: true});

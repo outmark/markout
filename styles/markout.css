@@ -1,6 +1,11 @@
-﻿@import './markdown.css';
+﻿@import './root.css';
+@import './markdown.css';
 @import './markup.css';
 @import './styles.css';
+
+:host {
+	color-scheme: light dark;
+}
 
 pre.markup.code[markup-syntax='log'] {
 	-webkit-tab-size: 12 !important;
@@ -12,3 +17,18 @@ pre.markup > .markup-line {
 	/* display: inline-block; */
 	min-width: max-content;
 }
+
+:host {
+	font-family: var(--markout--body-font-family);
+}
+
+/* :host(source-code), */
+/* :matches(.source-code, pre, code, tt, samp)  */
+/* :host pre,
+:host code,
+:host samp,
+:host kbd,
+:host tt {
+	font-family: var(--markout--code-font-family);
+	font-variant-ligatures: common-ligatures discretionary-ligatures contextual historical-ligatures;
+} */

@@ -1,6 +1,29 @@
-﻿@import './typography.css';
+﻿@import './root.css';
+/* @import './typography.css'; */
 
-:root,
+body {
+	font-family: var(--markout--body-font-family);
+}
+
+pre,
+code,
+samp,
+kbd,
+tt {
+	font-family: var(--markout--code-font-family);
+}
+
+/* :root, */
+body > main {
+	--section-shadow: var(--markout--section-shadow, #0003);
+	--section-band: var(--markout--section-band, #0002);
+	--section-overlay: var(--markout--section-overlay, #fffa);
+	--section-background: var(--markout--section-background, #ffffffee);
+	--section-padding: var(--markout--section-padding, 2ex 4ex);
+	--section-spacing: var(--markout--section-spacing, 12px);
+	--section-spacing-collapsed: var(--markout--section-spacing-collapsed, 4px);
+}
+
 :host {
 	/* box-sizing: initial; */
 	scrollbar-width: thin;
@@ -19,6 +42,17 @@ summary:focus {
 	html {
 		background: var(--shade, #eee);
 		-webkit-text-size-adjust: 100%;
+	}
+}
+
+@media screen and (prefers-color-scheme: dark) {
+	html {
+		background: var(--shade-dark, #101010);
+		/* background: radial-gradient(#000a, #000e), var(--shade, #333); */
+		/* background: linear-gradient(to right, #000a 0%, #0009 50%, #000a 100%), linear-gradient(to bottom, #000a 0%, #0009 50%, #000a 100%), var(--shade, #333); */
+		/* background-blend-mode: hard-light; */
+		background-attachment: fixed;
+		background-origin: border-box;
 	}
 }
 
@@ -137,16 +171,6 @@ hr {
 	clear: right;
 }
 
-:root {
-	--section-shadow: #0003;
-	--section-band: #0002;
-	--section-overlay: #fffa;
-	--section-background: #ffffffee;
-	--section-padding: 2ex 4ex;
-	--section-spacing: 12px;
-	--section-spacing-collapsed: 4px;
-}
-
 /** INHERIT **/ /* @import '/pholio/styles/inherit.css'; */
 @media only screen {
 	html {
@@ -210,19 +234,6 @@ hr {
 	}
 }
 
-html {
-	background: var(--shade, #eee);
-	-webkit-text-size-adjust: 100%;
-}
-
-/* SEE: https://jeffclayton.wordpress.com/2014/07/14/separating-chrome-vs-safari-using-css-styles/ */
-@media screen and (-webkit-min-device-pixel-ratio: 0) and (min-color-index: 0) {
-	:root {
-		--section-shadow: #0006;
-		--section-band: #0004;
-	}
-}
-
 body {
 	margin: 0;
 	overflow-x: hidden;
@@ -282,6 +293,7 @@ body > main > * {
 	body > main.column-layout > *,
 	body > main > *.column-layout > * {
 		width: -webkit-fill-available;
+		width: -moz-available;
 		width: fill-available;
 		/* width: -webkit-fill-available; */
 		/* width: fill-available; */

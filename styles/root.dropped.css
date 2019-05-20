@@ -1,0 +1,22 @@
+﻿
+/* SEE: https://jeffclayton.wordpress.com/2014/07/14/separating-chrome-vs-safari-using-css-styles/ */
+/* @media screen and (-webkit-min-device-pixel-ratio: 0) and (min-color-index: 0) { */
+@media only screen and (min-resolution: 192dpi), only screen and (min-resolution: 2dppx)  {
+	:root {
+		--markout--color: 0dppx / min-color-index 0;
+		--markout--section-shadow: #0006;
+		--markout--section-band: #0004;
+	}
+}
+
+
+
+@media only screen and (min-resolution: 192dpi), only screen and (min-resolution: 2dppx) {
+	:root {
+		--markout--resolution: --hi-dpi--;
+		--markout--microline: 0.05rem;
+		--markout--hairline: 1.25px;
+		--markout--thinline: 1.5px;
+		--markout--thickline: 2.5px;
+	}
+}

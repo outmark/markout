@@ -1,0 +1,142 @@
+﻿@import url('/fonts/iosevka.css');
+
+@font-face {
+	font-family: markout-sans-serif;
+	/* --apple-system, BlinkMacSystemFont */
+	/* 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', */
+	/* 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif; */
+	src: local('.SF NS Text'), local('.HelveticaNeueDeskInterface'), local('.LucidaGrandeUI'), local('Segoe UI'),
+		local('Ubuntu'), local('Roboto'), local('DroidSans'), local('Tahoma');
+}
+
+@font-face {
+	font-family: markout-monospace;
+	/* src: local('Iosevka Web'), local('Iosevka'), local('Fira Code'), local('Input'), local('Source Code Pro'); */
+	src: local(Iosevka);
+}
+
+:root {
+	color-scheme: light dark;
+
+	--markout--cell-padding: 1em;
+	--markout--code-tab-size: 2;
+	--markout--code-line-height: 1.5em;
+
+	--markout--system-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif,
+		'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+	--markout--sans-serif: system-ui, markout-sans-serif, sans-serif;
+	--markout--monospace: Iosevka, markout-monospace, monospace;
+
+	--markout--body-font-family: var(--markout--sans-serif, cursive);
+	--markout--code-font-family: var(--markout--monospace, cursive);
+
+	--markout--section-padding: 2ex 4ex;
+	--markout--section-spacing: 12px;
+	--markout--section-spacing-collapsed: 4px;
+}
+
+:root {
+	--markout\resolution: normal;
+	--markout--microline: 0.5px;
+	--markout--hairline: 1px;
+	--markout--thinline: 1px;
+	--markout--thickline: 2px;
+}
+
+:root {
+	--markout\color: light;
+	--markout--section-shadow: #0003;
+	--markout--section-band: #0002;
+	--markout--section-overlay: #fffa;
+	--markout--section-background: #ffffffee;
+	--markout--band-line: #9993;
+	--markout--band-stroke: #ccc;
+	--markout--band-fill: #c6c6c636;
+	--markout--band-fill\-: #d6d6d636;
+	--markout--band-fill\-\-: #e6e6e636;
+	--markout--band-fade: #fff3;
+	--markout--band-fade\-: #fff2;
+	--markout--band-fade\-\-: #fff1;
+	--markout--band-text: #000e;
+	--markout--band-text\-: #000b;
+	--markout--band-text\-\-: #0009;
+	--markout--field-fill: #ffffff66;
+	--markout--field-stroke: #666666cc;
+	--markout--field-line: #66666666;
+	--markout--field-line\-: #66666633;
+	--markout--field-text: var(--markout--band-text);
+}
+
+:host {
+	color-scheme: light;
+	color: black;
+}
+
+@media screen and (prefers-color-scheme: dark) {
+	:root {
+		--markout\color: dark;
+
+		--markout--section-shadow: #0006;
+		--markout--section-band: #fff2;
+
+		--markout--section-overlay: #000a;
+		--markout--section-background: #1f1f1fee;
+		--markout--band-line: #9993;
+		/* --markout--band-line: var(--shade, #eee); */
+		/* --markout--band-stroke: #666; */
+		--markout--band-stroke: var(--shade, #eee);
+		--markout--band-fill: #6c6c6c36;
+		--markout--band-fill\-: #5c5c5c36;
+		--markout--band-fill\-\-: #2c2c2c36;
+		--markout--band-fade: #0003;
+		--markout--band-fade\-: #0002;
+		--markout--band-fade\-\-: #0001;
+
+		--markout--band-text: #fffe;
+		--markout--band-text\-: #fffb;
+		--markout--band-text\-\-: #fff9;
+
+		/* --markout--field-fill: #99999966; */
+		--markout--field-fill: var(--shade, #eee);
+		--markout--field-stroke: #666666cc;
+		/* --markout--field-line: #99999966; */
+		--markout--field-line: #99999966;
+		--markout--field-line\-: #99999933;
+		--markout--field-text: var(--markout--band-text);
+	}
+
+	:host {
+		color-scheme: dark;
+		color: white;
+	}
+}
+
+@supports (color: -webkit-text) or (-moz-box-flex: initial) {
+	:root {
+		--markout\color: light linear;
+		--markout--section-shadow: #0006;
+		--markout--section-band: #0004;
+		--markout--band-fill: #c3c3c336;
+		--markout--band-fill\-: #d3d3d336;
+		--markout--band-fill\-\-: #e3e3e336;
+		--markout--field-stroke: #636363cc;
+		--markout--field-line: #63636366;
+		--markout--field-line\-: #63636333;
+	}
+
+	@media screen and (prefers-color-scheme: dark) {
+		:root {
+			--markout\color: dark linear;
+			/* --markout--section-shadow: #0006; */
+			--markout--section-band: #fff4;
+			--markout--band-fill: #6e6e6e36;
+			--markout--band-fill\-: #5e5e5e36;
+			--markout--band-fill\-\-: #2e2e2e36;
+			--markout--field-stroke: #636363cc;
+			--markout--field-line: #96969666;
+			--markout--field-line\-: #96969633;
+
+			/* -apple-color-filter: */
+		}
+	}
+}

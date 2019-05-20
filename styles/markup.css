@@ -1,6 +1,50 @@
-﻿@import '/markup/styles/markup.css';
+﻿@import './root.css';
+@import '/markup/styles/markup.css';
+/* @import '/markup/styles/markup-debug.css'; */
 
-:host {
+@media screen and (prefers-color-scheme: dark) {
+	pre {
+		background-color: #0009;
+
+		--markup-background: var(--markup-dark-background, var(--markup-light-background));
+		--markup-faults-background: var(--markup-dark-faults-background, var(--markup-light-faults-background));
+		--markup-faults-highlight: var(--markup-dark-faults-highlight, var(--markup-light-faults-highlight));
+		--markup-color: var(--markup-dark-color, var(--markup-light-color));
+		--markup-contrast: var(--markup-dark-contrast, var(--markup-light-contrast));
+		--markup-contrast-inverse: var(--markup-light-contrast);
+		--markup-shadow: var(--markup-dark-shadow, var(--markup-light-shadow));
+
+		--markup-faults: var(--markup-dark-faults, var(--markup-light-faults));
+		--markup-identifiers: var(--markup-dark-identifiers, var(--markup-light-identifiers));
+		--markup-keywords: var(--markup-dark-keywords, var(--markup-light-keywords));
+		--markup-punctuators: var(--markup-dark-punctuators, var(--markup-light-punctuators));
+		--markup-sequences: var(--markup-dark-sequences, var(--markup-light-sequences));
+		--markup-operators: var(--markup-dark-operators, var(--markup-light-operators));
+		--markup-combinators: var(--markup-dark-combinators, var(--markup-light-combinators));
+		--markup-breakers: var(--markup-dark-breakers, var(--markup-light-breakers));
+		--markup-quotes: var(--markup-dark-quotes, var(--markup-light-quotes));
+		--markup-closures: var(--markup-dark-closures, var(--markup-light-closures));
+		--markup-spans: var(--markup-dark-spans, var(--markup-light-spans));
+		--markup-literals: var(--markup-dark-literals, var(--markup-light-literals));
+		--markup-patterns: var(--markup-dark-patterns, var(--markup-light-patterns));
+
+		--markup-comments: var(--markup-dark-comments, var(--markup-light-comments));
+		--markup-whitespace: var(--markup-dark-whitespace, var(--markup-light-whitespace));
+
+		/* text-rendering: optimizeLegibility; */
+	}
+}
+
+pre,
+code,
+samp,
+kbd,
+tt {
+	font-family: var(--markout--code-font-family);
+	font-variant-ligatures: common-ligatures discretionary-ligatures contextual historical-ligatures;
+	-webkit-tab-size: var(--markup-tab-size, 2);
+	-moz-tab-size: var(--markup-tab-size, 2);
+	tab-size: var(--markup-tab-size, 2);
 }
 
 pre.markup[line-wrap] > .markup-line,
@@ -27,22 +71,32 @@ pre.markup[line-wrap] {
 	overflow-wrap: break-word;
 }
 
-[small-block] {
-	max-height: calc(5vmax + 10vmin);
-	overflow: scroll;
+@media only screen {
+	[small-block] {
+		max-height: calc(5vmax + 10vmin);
+		overflow: scroll;
+	}
+
+	[medium-block] {
+		max-height: calc(15vmax + 20vmin);
+		overflow: scroll;
+	}
+
+	[large-block] {
+		max-height: calc(25vmax + 30vmin);
+		overflow: scroll;
+	}
+
+	[huge-block] {
+		max-height: calc(35vmax + 40vmin);
+		overflow: scroll;
+	}
 }
 
-[medium-block] {
-	max-height: calc(15vmax + 20vmin);
-	overflow: scroll;
-}
-
-[large-block] {
-	max-height: calc(25vmax + 30vmin);
-	overflow: scroll;
-}
-
-[huge-block] {
-	max-height: calc(35vmax + 40vmin);
-	overflow: scroll;
+@media print {
+	pre {
+		/* height: max-content !important; */
+		overflow-x: hidden !important;
+		overflow-wrap: break-word !important;
+	}
 }

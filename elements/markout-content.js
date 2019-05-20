@@ -18,9 +18,9 @@ const {
 	'markout-content-source-text-rendering': SOURCE_TEXT_RENDERING = true,
 } = import.meta;
 
-const assets = new Assets({base: new URL('../', import.meta.url)}, 'style:styles/markout.css');
+const assets = new Assets({base: new URL('../../', import.meta.url)}, 'style:markout/styles/markout.css');
 
-const stylesheet = assets['style:styles/markout.css'];
+const stylesheet = assets['style:markout/styles/markout.css'];
 
 const styles = css`
 	@import "${stylesheet}";
@@ -300,9 +300,10 @@ export class MarkoutContent extends Component {
 		/** @type {HTMLAnchorElement} */
 		let target;
 		const {'::content': content} = this;
-		anchor && (target = content.querySelector(`a[id="${anchor}"]`))
-			? target.scrollIntoView({behavior: 'smooth', block: 'start', inline: 'nearest'})
-			: console.warn('scrollIntoView: %o', {anchor, target});
+		if (anchor)
+			(target = content.querySelector(`a[id="${anchor}"]`))
+				? target.scrollIntoView({behavior: 'smooth', block: 'start', inline: 'nearest'})
+				: console.warn('scrollIntoView: %o', {anchor, target});
 	}
 
 	/// Properties
