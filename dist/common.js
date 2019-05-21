@@ -7,39 +7,46 @@ import { encodeEntities, tokenize as tokenize$1 } from '/markup/dist/tokenizer.b
 // export const MarkupSyntaxAttribute = 'markup-syntax';
 
 class ComposableList extends Array {
-	toString(inset = this.inset || '', type = this.type || 'ul', style = this.style, start = this.start) {
+	toString(
+		listInset = this.listInset || '',
+		listType = this.listType || 'ul',
+		listStyle = this.listStyle,
+		listStart = this.listStart,
+	) {
 		const attributes = `${
 			// TODO: Explore using type attribute instead
-			(style && `style="list-style: ${style}"`) || ''
+			(listStyle && `style="list-style: ${listStyle}"`) || ''
 		} ${
 			// TODO: Check if guard against invalid start is needed
-			(start && `start="${start}"`) || ''
+			(listStart && `start="${listStart}"`) || ''
 		}`.trim();
 
-		const rows = [`${inset}<${type}${(attributes && ` ${attributes}`) || ''}>`];
+		const listRows = [`${listInset}<${listType}${(attributes && ` ${attributes}`) || ''}>`];
 		for (const item of this) {
 			if (item && typeof item === 'object') {
 				if (item instanceof ComposableList) {
-					const last = rows.length - 1;
-					const row = rows[last];
+					const last = listRows.length - 1;
+					const row = listRows[last];
 					last > 0
-						? (rows[rows.length - 1] = `${row.slice(0, -5)}\n${item.toString(`${inset}\t\t`)}\n${inset}\t</li>`)
-						: rows.push(`${inset}\t<li>\n${item.toString(`${inset}\t\t`)}\n${inset}\t</li>`);
+						? (listRows[listRows.length - 1] = `${row.slice(0, -5)}\n${item.toString(
+								`${listInset}\t\t`,
+						  )}\n${listInset}\t</li>`)
+						: listRows.push(`${listInset}\t<li>\n${item.toString(`${listInset}\t\t`)}\n${listInset}\t</li>`);
 				} else {
 					const insetText = `${item}`;
 					let text = insetText;
-					for (const character of inset) {
+					for (const character of listInset) {
 						if (!text.startsWith(character)) break;
 						text = text.slice(1);
 					}
-					rows.push(text);
+					listRows.push(text);
 				}
 			} else {
 				const [, checkbox, content] = /^\s*(?:\[([xX]| )\] |)(.+?)\s*$/.exec(item);
 
 				content &&
-					rows.push(
-						`${inset}\t<li>${
+					listRows.push(
+						`${listInset}\t<li>${
 							checkbox
 								? `<label><input type=checkbox ${checkbox === ' ' ? '' : ' checked'}>${content}</label>`
 								: content
@@ -47,8 +54,8 @@ class ComposableList extends Array {
 					);
 			}
 		}
-		rows.push(`${inset}</${type}>`);
-		return `\n${rows.join('\n')}\n`;
+		listRows.push(`${listInset}</${listType}>`);
+		return `\n${listRows.join('\n')}\n`;
 	}
 }
 
@@ -238,23 +245,23 @@ class MarkoutBlockNormalizer {
 			const lists = [top];
 			NormalizableListItem.lastIndex = 0;
 			while ((match = NormalizableListItem.exec(m))) {
-				let [, inset, marker, line] = match;
+				let [, matchedInset, matchedMarker, matchedLine] = match;
 				let like;
-				if (!line.trim()) continue;
+				if (!matchedLine.trim()) continue;
 
-				if (marker) {
-					let depth = inset.length;
-					if (depth > list.depth) {
+				if (matchedMarker) {
+					let depth = matchedInset.length;
+					if (depth > list.listDepth) {
 						const parent = list;
 						list.push((list = new ComposableList()));
 						list.parent = parent;
-					} else if (depth < list.depth) {
-						while ((list = list.parent) && depth < list.depth);
+					} else if (depth < list.listDepth) {
+						while ((list = list.parent) && depth < list.listDepth);
 					} else if (
-						'style' in list &&
-						!(like = ComposableList.markerIsLike(marker, list.style))
-						// ((like = ComposableList.markerIsLike(marker, list.style)) === undefined
-						// 	? (like = ComposableList.markerIsLike(marker, list.type))
+						'listStyle' in list &&
+						!(like = ComposableList.markerIsLike(matchedMarker, list.listStyle))
+						// ((like = ComposableList.markerIsLike(marker, list.listStyle)) === undefined
+						// 	? (like = ComposableList.markerIsLike(marker, list.listType))
 						// 	: like)
 					) {
 						const parent = list.parent;
@@ -263,23 +270,23 @@ class MarkoutBlockNormalizer {
 
 					if (!list) break;
 
-					'inset' in list ||
-						((list.inset = inset),
-						(list.depth = depth),
-						(list.type = marker === '* ' || marker === '- ' ? 'ul' : 'ol') === 'ol' &&
-							(list.start = marker.replace(/\W/g, '')));
+					'listInset' in list ||
+						((list.listInset = matchedInset),
+						(list.listDepth = depth),
+						(list.listType = matchedMarker === '* ' || matchedMarker === '- ' ? 'ul' : 'ol') === 'ol' &&
+							(list.listStart = matchedMarker.replace(/\W/g, '')));
 
-					'style' in list ||
-						(list.style =
-							(list.type === 'ul' && ((marker === '* ' && 'disc') || 'square')) ||
-							ComposableList.orderedStyleOf(marker));
+					'listStyle' in list ||
+						(list.listStyle =
+							(list.listType === 'ul' && ((matchedMarker === '* ' && 'disc') || 'square')) ||
+							ComposableList.orderedStyleOf(matchedMarker));
 
-					line = line.replace(/[ \t]*\n[> \t]*/g, ' ');
-					list.push(line);
+					matchedLine = matchedLine.replace(/[ \t]*\n[> \t]*/g, ' ');
+					list.push(matchedLine);
 				} else {
 					if (list.length) {
 						const index = list.length - 1;
-						list[index] += `<p>${line}</p>`;
+						list[index] += `<p>${matchedLine}</p>`;
 					} else {
 						list.push(new String(m));
 					}
@@ -323,9 +330,9 @@ class MarkoutBlockNormalizer {
 	}
 }
 
-// 'style' in list ||
-// 	(list.style =
-// 		(list.type === 'ul' && ((marker[0] === '*' && 'disc') || 'square')) ||
+// 'listStyle' in list ||
+// 	(list.listStyle =
+// 		(list.listType === 'ul' && ((marker[0] === '*' && 'disc') || 'square')) ||
 // 		(marker[0] === '0' && 'decimal-leading-zero') ||
 // 		(marker[0] > 0 && 'decimal') ||
 // 		`${marker === marker.toLowerCase() ? 'lower' : 'upper'}-${
@@ -588,21 +595,22 @@ class MarkoutRenderer {
 		this.punctuators = punctuators;
 	}
 	renderTokens(tokens, context = new MarkoutRenderingContext(this)) {
+		let text, type, punctuator, lineBreaks, hint, previous, body, tag, classes, before, after, details;
 		context.tokens = tokens;
 
 		const {punctuators} = context;
 		const {renderClasses} = this;
 
 		for (const token of context.tokens) {
-			if (!token || !token.text) continue;
-			let {text, type = 'text', punctuator, breaks, hint = 'text', previous} = token;
-			let body = text;
+			if (!token || !(body = token.text)) continue;
+			({text, type = 'text', punctuator, lineBreaks, hint = 'text', previous} = token);
+			tag = classes = before = after = details = undefined;
 
 			if (context.passthru || context.fenced) {
 				if (context.fenced) {
 					if (context.fenced === context.passthru) {
 						context.header += text;
-						breaks && ((context.header = context.header.trimRight()), (context.passthru = ''));
+						lineBreaks && ((context.header = context.header.trimRight()), (context.passthru = ''));
 					} else if (punctuator === 'closer' && text === '```') {
 						let sourceType, sourceAttributes;
 						if (context.header) {
@@ -641,12 +649,11 @@ class MarkoutRenderer {
 				continue;
 			}
 
-			let tag = 'span';
-			const classes = hint.split(/\s+/);
-			let before, after;
+			tag = 'span';
+			classes = hint.split(/\s+/);
 
 			if (hint === 'markdown' || hint.startsWith('markdown ') || hint.includes('in-markdown')) {
-				(type === 'text' && breaks) ||
+				(type === 'text' && lineBreaks) ||
 					(!text.trim() && (type = 'whitespace')) ||
 					(text in punctuators.entities && (body = punctuators.entities[text]));
 
@@ -692,7 +699,7 @@ class MarkoutRenderer {
 					(before || after) && (tag = 'tt');
 					classes.push(`${punctuator}-token`);
 				} else {
-					if (breaks) {
+					if (lineBreaks) {
 						(!context.block && (tag = 'br')) || ((after = `</${context.block}>`) && (context.block = body = ''));
 					} else if (type === 'sequence') {
 						if (text[0] === '`') {
@@ -709,7 +716,7 @@ class MarkoutRenderer {
 							let previous = token;
 							let inset = '';
 							while ((previous = previous.previous)) {
-								if (previous.breaks) break;
+								if (previous.lineBreaks) break;
 								inset = `${previous.text}${inset}`;
 							}
 							if (!/[^> \t]/.test(inset)) {
@@ -734,13 +741,13 @@ class MarkoutRenderer {
 				}
 			}
 
-			const details =
+			details =
 				tag &&
 				[
 					punctuator && `punctuator="${punctuator}"`,
 					type && `token-type="${type}"`,
-					breaks && `token-breaks="${breaks}"`,
 					hint && `token-hint="${hint}"`,
+					lineBreaks && `line-breaks="${lineBreaks}"`,
 				].join(' ');
 
 			before && (context.renderedText += before);
