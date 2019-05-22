@@ -95,6 +95,7 @@ li > :not(ol):not(ul) {
 	page-break-inside: avoid;
 }
 
+/*
 li > label:first-child:not([for]) {
 	pointer-events: none;
 }
@@ -102,6 +103,31 @@ li > label:first-child:not([for]) {
 label > input[type='checkbox']:first-child {
 	margin-inline-end: 0.5em;
 	vertical-align: 0.25ex;
+}
+
+*/
+
+ul > label,
+ol > label {
+	pointer-events: none;
+	display: list-item;
+	list-style-type: none;
+	list-style-position: outside;
+}
+
+ul > label > input[type='checkbox']:first-child,
+ol > label > input[type='checkbox']:first-child {
+	margin-inline-start: -1.675em;
+	margin-inline-end: 0.5em;
+	position: relative;
+	display: inline-block;
+	width: 1.125em;
+	height: 1.125em;
+	/* float: left; */
+	/* clear: left; */
+	/* box-sizing: content-box; */
+	/* text-align: right; */
+	/* transform: translateX(-100%); */
 }
 
 h1 + :not(:empty),

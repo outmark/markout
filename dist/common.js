@@ -46,11 +46,9 @@ class ComposableList extends Array {
 
 				content &&
 					listRows.push(
-						`${listInset}\t<li>${
-							checkbox
-								? `<label><input type=checkbox ${checkbox === ' ' ? '' : ' checked'}>${content}</label>`
-								: content
-						}</li>`,
+						checkbox
+							? `${listInset}\t<label><input type=checkbox ${checkbox === ' ' ? '' : ' checked'}/>${content}</label>`
+							: `${listInset}\t<li>${content}</li>`,
 					);
 			}
 		}
