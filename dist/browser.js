@@ -119,10 +119,11 @@ const entities = /*#__PURE__*/Object.freeze({
 });
 
 const {
-	'markout-content-normalization': CONTENT_NORMALIZATION = undefined,
+	'markout-content-dom-mutations': DOM_MUTATIONS = undefined,
 	'markout-content-breaks-normalization': BREAKS_NORMALIZATION = undefined,
 	'markout-content-headings-normalization': HEADINGS_NORMALIZATION = true,
-	'markout-content-paragraph_normalization': PARAGRAPHS_NORMALIZATION = true,
+	'markout-content-paragraph-normalization': PARAGRAPHS_NORMALIZATION = true,
+	'markout-content-declarative-styling': DECLARATIVE_STYLING = true,
 	'markout-content-source-text-rendering': SOURCE_TEXT_RENDERING = true,
 } = import.meta;
 
@@ -178,6 +179,9 @@ const styles = css`
 class MarkoutContent extends Component {
 	constructor() {
 		super();
+
+		/** @type {(typeof MarkoutContent)['declarativeStyling']} */
+		this.declarativeStyling = new.target.declarativeStyling;
 
 		this.name = `${this.tagName}-${++new.target.instance}`.toLocaleLowerCase();
 
@@ -284,10 +288,11 @@ class MarkoutContent extends Component {
 
 		slot.innerHTML = '';
 
-		CONTENT_NORMALIZATION !== false &&
-			((BREAKS_NORMALIZATION || CONTENT_NORMALIZATION === true) && this.normalizeBreaksInFragment(fragment),
-			(HEADINGS_NORMALIZATION || CONTENT_NORMALIZATION === true) && this.normalizeHeadingsInFragment(fragment),
-			(PARAGRAPHS_NORMALIZATION || CONTENT_NORMALIZATION === true) && this.normalizeParagraphsInFragment(fragment));
+		DOM_MUTATIONS !== false &&
+			((BREAKS_NORMALIZATION === true || DOM_MUTATIONS === true) && this.normalizeBreaksInFragment(fragment),
+			(HEADINGS_NORMALIZATION === true || DOM_MUTATIONS === true) && this.normalizeHeadingsInFragment(fragment),
+			(PARAGRAPHS_NORMALIZATION === true || DOM_MUTATIONS === true) && this.normalizeParagraphsInFragment(fragment),
+			(DECLARATIVE_STYLING === true || DOM_MUTATIONS === true) && this.applyDeclarativeStylingInFragment(fragment));
 
 		SOURCE_TEXT_RENDERING && (await this.renderSourceTextsInFragment(fragment));
 
@@ -348,10 +353,15 @@ class MarkoutContent extends Component {
 		}
 	}
 
+	applyDeclarativeStylingInFragment(fragment) {
+		const {declarativeStyling: {apply, selector} = {}} = this;
+		if (typeof apply !== 'function' || typeof selector !== 'string' || selector === '') return;
+		for (const element of fragment.querySelectorAll(selector)) apply(element);
+	}
+
 	renderSourceTextsInFragment(fragment) {
 		const promises = [];
 
-		// :not([${MarkupSyntaxAttribute}])
 		for (const element of fragment.querySelectorAll(`[${SourceTypeAttribute}]:not(:empty)`))
 			promises.push(
 				this.renderSourceText({
@@ -447,10 +457,59 @@ try {
 		</div>
 	`;
 
+	MarkoutContent.declarativeStyling = (() => {
+		const declarativeStyling = {
+			/** @type {{[name: string] : string}} */
+			lookup: {},
+			selector: '',
+			apply: element => {
+				const style = element.style;
+				const lookup = declarativeStyling.lookup;
+				for (const attribute of element.getAttributeNames())
+					attribute in lookup &&
+						((style[lookup[attribute]] = element.getAttribute(attribute)), element.removeAttribute(attribute));
+			},
+		};
+
+		Initialization: {
+			const {getOwnPropertyNames, setPrototypeOf, getPrototypeOf, freeze} = Object;
+			const {lookup} = declarativeStyling;
+			const Filter = /^(?!webkit[A-Z])(?!moz[A-Z])[a-zA-Z]{2,}$/;
+			const Boundary = /[a-z](?=[A-Z])/g;
+			const selectors = [];
+			const style = (MarkoutContent.template.firstElementChild || document.createElement('span')).style;
+
+			for (const property of new Set(
+				[
+					// Webkit/Blink
+					...getOwnPropertyNames(style),
+					// Firefox
+					...getOwnPropertyNames(getPrototypeOf(style)),
+				].filter(property => style[property] === '' && Filter.test(property)),
+			)) {
+				const attribute = `${property.replace(Boundary, '$&-').toLowerCase()}:`;
+				lookup[attribute] = property;
+				selectors.push(`[${CSS.escape(attribute)}]`);
+			}
+
+			declarativeStyling.selector = selectors.join(',');
+			freeze(setPrototypeOf(declarativeStyling.lookup, null));
+			freeze(declarativeStyling);
+			freeze(declarativeStyling.apply);
+		}
+
+		return declarativeStyling;
+	})();
+
+	// console.log({...MarkoutContent});
+
 	customElements.define('markout-content', MarkoutContent);
 } catch (exception) {
 	console.warn(exception);
 }
+// const CARRIAGE_RETURN = '\x0D';
+// const LINE_FEED = '\x0A';
+// const START_OF_CONTENT = START_OF_TEXT;
 
 const RewritableURL = /^(\.*(?=\/)[^?#\n]*\/)(?:([^/?#\n]+?)(?:(\.[a-z]+)|)|)(\?[^#]+|)(#.*|)$|/i;
 
