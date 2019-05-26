@@ -67,8 +67,11 @@ blockquote,
 dd,
 caption {
 	--block-margin: calc(1em * var(--body-spacing-size, 1));
+	--inline-margin: 0;
 	margin-block-start: var(--block-margin);
 	margin-block-end: var(--block-margin);
+	margin-inline-start: var(--inline-margin);
+	margin-inline-end: var(--inline-margin);
 	widows: 2;
 	orphans: 2;
 }
@@ -161,7 +164,7 @@ figcaption + * {
 	margin-block-start: 0;
 }
 
-blockquote,
+/* blockquote, */
 ol,
 ul {
 	--inline-margin: 0;
@@ -243,13 +246,12 @@ aside {
 }
 
 blockquote {
-	--inline-margin: 0;
 	--inline-start-border-width: 0.25em;
 
 	border: 0 var(--band-line) solid;
 	border-inline-start-width: var(--inline-start-border-width);
-	margin-inline-start: var(--inline-margin);
-	margin-inline-end: var(--inline-margin);
+	padding-inline-start: 1em;
+	padding-inline-end: 1em;
 
 	color: var(--band-text\-\-);
 	opacity: 0.9;
