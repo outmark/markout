@@ -343,8 +343,25 @@ th {
 	padding: calc(0.25 * var(--cell-padding, 1em)) calc(0.75 * var(--cell-padding, 1em));
 }
 
-tbody > tr > * {
+table {
 	vertical-align: baseline;
+}
+
+thead {
+	vertical-align: middle;
+}
+
+tbody,
+tfoot,
+tr,
+th,
+td {
+	vertical-align: inherit;
+	text-align: inherit;
+}
+
+table table {
+	font-size: 90%;
 }
 
 td > :first-child:last-child,
