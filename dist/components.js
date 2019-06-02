@@ -1,68 +1,4 @@
 // @ts-check
-/// <reference path="./types/global.d.ts" />
-/// <reference types="node" />
-
-const globals = {};
-
-const currentGlobal = (globals.global =
-  typeof global === 'object' && global && global.global === global && global);
-
-const currentProcess = (globals.process =
-  currentGlobal && typeof currentGlobal.process === 'object' && currentGlobal.process);
-
-const currentSelf = (globals.self = typeof self === 'object' && self && self.self === self && self);
-
-const currentWindow = (globals.window =
-  typeof window === 'object' && window.window === window && window);
-
-const currentDocument = (globals.document = typeof document === 'object' && document);
-
-/** @type {FunctionConstructor} */
-// @ts-ignore
-globals.Function = function() {}.constructor;
-/** @type {ObjectConstructor} */
-// @ts-ignore
-globals.Object = {}.constructor;
-
-/// Functions
-
-const bind = globals.Function.bind.bind(globals.Function.call);
-const call = globals.Function.call.bind(globals.Function.call);
-
-/// Objects
-/** @type {ObjectConstructor} */
-// @ts-ignore
-const {
-  assign,
-  defineProperty,
-  defineProperties,
-  create,
-  freeze,
-  seal,
-  preventExtensions,
-  getOwnPropertyDescriptor,
-  getOwnPropertyDescriptors,
-  getOwnPropertyNames,
-  getOwnPropertySymbols,
-  getPrototypeOf,
-  setPrototypeOf,
-  entries,
-  keys,
-  values,
-  // prototype: {isPrototypeOf: ObjectIsPrototypeOf, hasOwnProperty: ObjectHasOwnProperty},
-} = globals.Object.constructor;
-
-/**
- * @type {<T>(prototype: T, object) => object is T}
- */
-const isPrototypeOf = globals.Function.call.bind(globals.Object.prototype.isPrototypeOf);
-
-/**
- * @type {<U extends string|symbol|number>(object: {}, property: U) => boolean}
- */
-const hasOwn = globals.Function.call.bind(globals.Object.prototype.hasOwnProperty);
-
-// @ts-check
 
 /** @type {TaggedTemplate<string, any>} */
 const css = (options => {
@@ -570,6 +506,70 @@ const {Toggle, Attributes} = (() => {
  * @template T
  * @typedef {T extends attribute.true ? true : T extends attribute.false ? false : T extends attribute.empty ? '' : undefined} attribute.toggle
  */
+
+// @ts-check
+/// <reference path="./types/global.d.ts" />
+/// <reference types="node" />
+
+const globals = {};
+
+const currentGlobal = (globals.global =
+  typeof global === 'object' && global && global.global === global && global);
+
+const currentProcess = (globals.process =
+  currentGlobal && typeof currentGlobal.process === 'object' && currentGlobal.process);
+
+const currentSelf = (globals.self = typeof self === 'object' && self && self.self === self && self);
+
+const currentWindow = (globals.window =
+  typeof window === 'object' && window.window === window && window);
+
+const currentDocument = (globals.document = typeof document === 'object' && document);
+
+/** @type {FunctionConstructor} */
+// @ts-ignore
+globals.Function = function() {}.constructor;
+/** @type {ObjectConstructor} */
+// @ts-ignore
+globals.Object = {}.constructor;
+
+/// Functions
+
+const bind = globals.Function.bind.bind(globals.Function.call);
+const call = globals.Function.call.bind(globals.Function.call);
+
+/// Objects
+/** @type {ObjectConstructor} */
+// @ts-ignore
+const {
+  assign,
+  defineProperty,
+  defineProperties,
+  create,
+  freeze,
+  seal,
+  preventExtensions,
+  getOwnPropertyDescriptor,
+  getOwnPropertyDescriptors,
+  getOwnPropertyNames,
+  getOwnPropertySymbols,
+  getPrototypeOf,
+  setPrototypeOf,
+  entries,
+  keys,
+  values,
+  // prototype: {isPrototypeOf: ObjectIsPrototypeOf, hasOwnProperty: ObjectHasOwnProperty},
+} = globals.Object.constructor;
+
+/**
+ * @type {<T>(prototype: T, object) => object is T}
+ */
+const isPrototypeOf = globals.Function.call.bind(globals.Object.prototype.isPrototypeOf);
+
+/**
+ * @type {<U extends string|symbol|number>(object: {}, property: U) => boolean}
+ */
+const hasOwn = globals.Function.call.bind(globals.Object.prototype.hasOwnProperty);
 
 //@ts-check
 const awaitAll = async (...values) => void (await Promise.all(values.flat()));
