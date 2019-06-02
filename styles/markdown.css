@@ -354,7 +354,7 @@ thead {
 tbody,
 tfoot,
 tr,
-th,
+/* th, */
 td {
 	vertical-align: inherit;
 	text-align: inherit;
