@@ -428,7 +428,7 @@ const {INSET, UNKNOWN, LOOKAHEAD} = Object.defineProperties(Segmenter, {
 	LOOKAHEAD: {value: Symbol.for('LOOKAHEAD'), enumerable: true},
 });
 
-// import dynamicImport from '/browser/dynamicImport.js';
+// import dynamicImport from '/browser/dynamic-import.js';
 
 // console.log(import.meta.url);
 
