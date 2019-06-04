@@ -1,5 +1,6 @@
 ﻿// import {dynamicImport} from '../pholio/lib/import.js';
-import dynamicImport from '/browser/dynamicImport.js';
+import dynamicImport from '/browser/dynamic-import.js';
+import {darkMode} from '/browser/dark-mode.js';
 // import {darkMode} from '/browser/dark-mode.js#autoOnly';
 
 // console.log({darkMode});

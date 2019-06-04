@@ -1,4 +1,4 @@
-﻿import dynamicImport from '/browser/dynamicImport.js';
+﻿import dynamicImport from '/browser/dynamic-import.js';
 import {html, css, Component, Assets} from '../lib/components.js';
 import * as renderer from '../lib/renderer.js';
 import * as entities from '../lib/entities.js';
