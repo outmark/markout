@@ -82,7 +82,7 @@ The same would apply to `<script type=module>` because as far as the specs are c
 
 Having `<style src>` is nice in a sense that any document can decide to have its own personality. But it really awkward to go that route if you have a lot of inline styles that you'd be litering your content with all those `<… class=…>` attributes and working on strategies to keep it all straight naming wise (okay for web things, but not here).
 
-So, at least for now, inline styling is for HTML tags, but since those tags are not actual HTML elements until they are rendered, it made sense to find a more elegant way to minimize on the noise of having `<… style="">` getting in the way of your source text.
+At least for now, inline styling is for HTML tags where a `<… style="">` is already a concept we can all work with. But since those tags are not actual HTML elements until they are rendered, it made sense to find a more elegant way minimize the boilerplate noise when directly looking at the source text.
 
 My goal was to make life a little easier with valid HTML things that could go a long way with as little magic as possible. Ultimately, what was annoying me about the proforma styling is that it has quotes to wrap a completely different syntax, and that gets in the way of both legibility and linting of the original `.md` files.
 
