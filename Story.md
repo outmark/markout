@@ -4,73 +4,94 @@ As some point during the summer of 2018, while trying to come up with an idea fo
 
 Thanks to technology, most of us today walk around without any attention span to worry about, which is good, because from personal experience those are harder to attain from some people anyway.
 
-## _I never got there, and that was by design… maybe?_
+## _I haven't found the right design…_
 
-That's true, I just figured out everything along the way to get there, and to do that I had to come up with a system to keep my ideas and experiments sorted out, and that was just better to do against a normal project repo.
+To date, technically, my project remains outsanding and I never really finished the course.
 
-We'll get to that in a moment here, for me that's months, and you get to suffer some of those highlights.
+And while all that's true, if you set out to solve a problem, you have to be more than just willing to pivot away from ideas. This is equally true for ones that you feel attached to for any reason, which can be hard, but critical to the problem-solving process.
 
-### _Back to the story… aka highlights_
+But this realization only become evident after exploring the existing solutions in more depth in order to figure why they failed in meeting my specific expectations. Here are some of highlights which may be of use to folks designing in those spaces.
 
-So now when we have an idea, it really helps to keep it together, or at least that is what anyone working on the next console or gists offering should keep in mind when they are considering if they are covering all the use cases, aside from the edge cases (you got those covered apparently).
+### _Console Snippets_
 
-### _Console, please…_
+Snippets, avoided by most, and that's because they are nothing more than a glorified console `eval` that gets saved somewhere that is intuitive to maybe the people who designed it but hardly anyone else, why so?
 
-Yes, but, snippets are not ideas, just evals saved where? exactly, right, see I know you know this, we all do btw, but don't worry, no one cares anymore!
+### _Playgrounds_
 
-You really need to stop thinking small steps, people will not notice anything less than something big there, and you are not ready for that.
+Let's skip to when you save your pen/bin to a gist… If you `html`, `css` and `js` does not work exactly as it did without the playground doing its magic, you are really better off without it.
 
-### _Playground, please…_
+This is increasingly true today because all those playgrounds work from the assumption that bundlers and transforms are how the web works… but there is a difference between what people prefer and what is fact, and a good fact is that your preferences are not fact, they are opinions. And since playgrounds are afterall meant for learning (et al), forcing opinions here is at the very least bad form.
 
-Yes, but, when you save you pen/bin to a gist, you will discover that we as developers are suffering from a discontinuity problem, aka opinionated transpilers and bundlers, or I just call that mojo shit.
-
-You see, if you work out everything back to its `html`, `css` and `js` elements from any such exported gist, you will find that it behaves different in the browser.
-
-No no no, thank you, they are more consistent about it than your pen/bin, you should try it, I know you will do just fine, come on, take a leap of faith!
+But the bigger issue I am having with all this is because while you are using all this mojo shit to cater to a browser that no longer exists, I am no longer able to write code that is actually supported by the browser in your playground, and yet writing the same code in the console works — And that is what I would actually call the bleeding edge, where you are putting all this work only to go retro, and a year later, with a paid subscripton, you are still working on the issue.
 
 ### _It eventually hit me…_
 
 How does one ever come up with ideas, if all everyone is really offering in lieu of sandbox is more like quicksand?
 
-The answer is simple, back to basics, start from scratch, don't use anything that you cannot find exactly where you left it, how you left it, and most importantly, without needing anyone's special sauce to do that.
+This is when I realized, sure, I can do a little better in terms of a playground, but won't I really be hurting more than helping if I end up create more gaps?!
 
-This is a road less travelled, and is full of many learning opportunities, and so you do.
+So instead, I decided to go back to basics, start from scratch, and a repo on GitHub was the way to go, that is experimental repos, and to focus instead on a GitHub pages engine that can deliver on the things I really needed along the way.
 
-This is when I realized, sure, I can develop this non-elusive console gist thing, but won't I really be hurting more than helping if I end up create more gaps?!
+This is a road less travelled, and is full of many learning opportunities, and so it goes.
 
-## _So, it was by design…_
+## _So, by design…_
 
-Obviously, I never finished my project, but what I did instead is find my own way to overcome gaps of my own, and continued working on this ever since:
+What I did instead is find my own way to overcome gaps of my own, and continued working on this ever since.
 
-1. I realized is that Markdown is such a fluid thing in that there are too many self-claimed specs for it, aka flavours, that it is just ridiculous to think you will please everyone if you offer that.
+I did not really want to work on yet another flavour or self-claimed spec of Markdown, it was just ridiculous to even consider that path.
 
-   And this is when Markout first evolved into being a Markdown-inspired markup language of its own.
+Instead, Markout would become its own thing and includes some popular and clean syntax from Markdown, but is different on many levels from any Markdown implementation.
 
-2. I found that one common demoninator in popular many markdown places, like GitHub, discouse... etc. is that they really puke when you introduce HTML things. And not because they don't use HTML rendering because that is plain stupid. But, because they need to make certain assumptions about their pipeline in that they cannot guarantee either the safety or to properly retain the semantics of you HTML.
+### _It translates to HTML_
 
-   And so, Markout just got a little more interesting, because it technically does not have pipelines, just a simple `markout => <document-fragment›` and that technically puts almost all HTML things back on the table (but not quite).
+I found that one common demoninator in popular many markdown places, like GitHub, discouse... etc. is that they really puke when you introduce HTML things.
 
-3. In fact, I quickly realized that since Markout is not HTML, you don't want to ever have to operate on a so called Markout DOM and decided to do away with this notion completely.
+This felt very counter-intuitive when you are ultimately always rendering HTML, which is almost true today for all Markdown, only they carry the legacy burdens of times where pipelines and backends were necessary and would lead to safety and semantics concerns that are no longer relevant in my view.
 
-   The only DOM you ever work on is the `document-fragment` of generated content, which is inert and ready to be bootstrapped before inserting into the actual `document`.
+And so, Markout just got a little more interesting, because it technically does not have pipelines, just a simple `markout => <document-fragment›` and that technically puts almost all HTML things back on the table (but not quite).
 
-   In this frame, it is straightforward to reason about relative links of any kind being relative to the absolute location of the markout file itself (which is still `.md` all the same).
+### _It uses the DOM_
 
-4. And while HTML was on the table, I still needed to minimize the cost of risky things with a reasonable degree of retaining the semantics.
+Since Markout is not HTML, you don't want to ever have to operate on a so called Markout DOM and decided to do away with this notion completely.
 
-   That said, I quickly found that `<script>` and `<style>` tags come with what I refer to as immediacy gaps, since they are really not inside HTML until they actually are.
+The only DOM you ever work on is the `document-fragment` of generated content, which is inert and ready to be bootstrapped and inserted directly into your `document`.
 
-   Instead, with `<script src>` or a `<style src>`, you add automatically add some distance cognitively, because you end up writing those in separate file. This was very different from my initial project's goal, but that's a more tenable starting point anyhow.
+With this kind of framing, it is straightforward to reason about relative links of any kind being relative to the absolute location of the markout file itself (which is still `.md` all the same).
 
-5. After some iterations, I decided that `<script type=module>` was simply `import(…)` and that had no concept of your actual document at this point.
+### _It only has Do's_
 
-   But if you really wanted to let your code to operate directly on the document, you would instead want to encapsulate it in an `<output>` so that your script can only ever see that container.
+If it works for you, go with it. If you push it, either the browser will let you know, you will know when it doesn't show up, we will find a way to close the gap to make it more intuitive.
 
-   So you if you use a web component, you'd `<script type=module>` but if you want to live demo, you'd `<output><script>` and that was as straightforward as it gets.
+The only "don't" here is introducing things that will break syntax or semantics of the rendered HTML or make the source file painful to author or read directly.
+
+So while I found that `<script>…</script>` and `<style>…</style>` tags come what I refer to as an immediacy gap, ie their semantics in the rendered HTML are not directly relatable to exactly one intent in the source text, I decided to simply discourage myself from relying on them for now until a clean path becomes more clear.
+
+Instead, with `<script src=…>` or a `<style src=…>`, you add automatically add some distance cognitively, because you end up writing those in separate file. This was very different from my initial project's goal, but that's a more tenable starting point anyhow.
+
+### _It scripts nicely when…_
+
+Since you might want your code to operate directly on the document, which is kind of the point of all of this. I found that in special cases where you tag encapsulated (specifically for not `<output><script src=…>`) you can close the immediacy gap, ie relating the script to an immediate parent.
+
+The same would apply to `<script type=module>` because as far as the specs are concerned, those tags have no relationship to the immediate parent element. So they are simply like doing an `import(…)` in the global scope, and this is exactly how it is handled by the renderer now except I did not yet work out some of the details to make this work for inline code.
+
+
+### _It styles and inline-styles too…_
+
+Having `<style src>` is nice in a sense that any document can decide to have its own personality, it was not really suited for small inline styles, which are a non-concept for Markdown, ie only HTML.
+
+So, at least for now, inline styling is for HTML tags, but since those tags are not actual HTML elements until they are rendered, it made sense to find a more elegant way to minimize on the noise of having `<… style="">` getting in the way of your source text.
+
+My goal was to make life a little easier with valid HTML things that could go a long way with as little magic as possible. Ultimately, what was annoying me about the proforma styling is that it has quotes to wrap a completely different syntax, and that gets in the way of both legibility and linting of the original `.md` files.
+
+Instead, I came up with a subtle notation to inline styles directly along with your HTML attributes because for all I care, this content-layout-style division goes out of the window when you are inline-styling, and more so if you are not writing actual HTML in an actual HTML document!
+
+So instead of `<… style="font-size:smaller" …>` in HTML documents, you simply go with `<… font-size:=smaller …>` in Markout and that `:=` actually has [a lot of thought behind it](/meta/logs/2019/2019-05/2019-05-24-Weekly.md#markout-styles) that makes it absolutely valid syntax-wise in HTML so that it parses as expected in any browser.
+
+Just keep in mind that styling in HTML attributes carries with it all the implied syntax expectations, and that makes it less intuitive for edge cases like  `content:="'nonyaefenbiz is why!'"` which is one edge I personally don't fancy, but if that's your `biz`, I say `biz`-away…
 
 ## _Now What?!_
 
-I started working on this because I was struggling to stay on track with my development efforts, a lot of which is experimental, which is my calling. What I ended up with is my own GitHub pages engine, built from scratch, literally. In fact, unless you are in GitHub, chances are you are seeing this in Markout.
+I started working on this because I was struggling to stay on track with my development efforts, a lot of which is experimental, which is my calling. What I ended up with is my own GitHub pages engine, built from scratch, literally. In fact, unless you are reading this directly from my GitHub repo or on some other website, what you are seeing is Markout.
 
 Now I rely on Markout for all my work, and I am involved in a lot of research venues, like the Secure ECMAScript (SES) Strategy group and the Node.js Modules group.
 
