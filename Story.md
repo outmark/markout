@@ -38,11 +38,9 @@ This is a road less travelled, and is full of many learning opportunities, and s
 
 ## _So, by design…_
 
-What I did instead is find my own way to overcome gaps of my own, and continued working on this ever since.
+From the start, I wanted Markout to become its own thing which borrows some cleaner aspects from Markdown but is different on many levels from any Markdown implementation. It is not just another flavour or self-claimed spec of Markdown, it was ridiculous to think of it in such a narrow view.
 
-I did not really want to work on yet another flavour or self-claimed spec of Markdown, it was just ridiculous to even consider that path.
-
-Instead, Markout would become its own thing and includes some popular and clean syntax from Markdown, but is different on many levels from any Markdown implementation.
+I am still prototyping away on the engine (highlights below), and aside from links, ATX headings, lists, fenced code/blocks, and inline font styling aspects, everything uses HTML (for now at least).
 
 ### _It translates to HTML_
 
