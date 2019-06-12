@@ -44,7 +44,7 @@ Since then, I've been slowly prototyping away on this engine with a few highligh
 
 I found that one common demoninator in popular many markdown places, like GitHub, discouse... etc. is that they really puke when you introduce HTML things.
 
-This felt very counter-intuitive when you are ultimately always rendering HTML, which is almost true today for all Markdown, only they carry the legacy burdens of times where pipelines and backends were necessary and would lead to safety and semantics concerns that are no longer relevant in my view.
+This felt very counter-intuitive when you are ultimately always rendering HTML, which is almost true today for all Markdown, only they carry some very outdated burdens of times where backends were in fashion for rendering stuff, and so they dance around safety and semantics concerns that are no longer relevant (at least in my view).
 
 And so, Markout just got a little more interesting, because it technically does not have pipelines, just a simple `markout => <document-fragment›` and that technically puts almost all HTML things back on the table (but not quite).
 
