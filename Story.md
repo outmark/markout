@@ -4,7 +4,7 @@ As some point during the summer of 2018, while trying to come up with an idea fo
 
 To date, technically, my project remains outsanding and I never really finished the course. And while all that's true, if you set out to solve a problem, you have to be more than just willing to pivot away from ideas. This is equally true for ones that you feel attached to for any reason, which can be hard, but critical to the problem-solving process.
 
-But this realization only become evident after exploring the existing solutions in more depth in order to figure why they failed in meeting my specific expectations. Here are some of highlights which may be of use to folks designing in those spaces.
+But this realization that my initial idea was not the right one only become evident after exploring the existing solutions in more depth in order to figure why they failed in meeting my specific expectations. So let's start with some of those highlights which may be of use to folks designing in those spaces, and see where things went from there.
 
 **_Console Snippets_**
 
@@ -20,7 +20,7 @@ This is increasingly true today because all those playgrounds work from the assu
 
 But the bigger issue I am having with all this is because while you are using all this mojo shit to cater to a browser that no longer exists, I am no longer able to write code that is actually supported by the browser in your playground, and yet writing the same code in the console works — And that is what I would actually call the bleeding edge, where you are putting all this work only to go retro, and a year later, with a paid subscripton, you are still working on the issue.
 
-### _It eventually hit me…_
+**_It eventually hit me…_**
 
 How does one ever come up with ideas, if all everyone is really offering in lieu of sandbox is more like quicksand?
 
