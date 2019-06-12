@@ -2,23 +2,17 @@
 
 As some point during the summer of 2018, while trying to come up with an idea for my project for the HackerYou's Full-Stack course, I was really getting pissed at how my gists feel too dull compared to my browser's console and how that feels to elusive compared to my gists — I was left wondering, why the hell don't the two just make the effort!
 
-Thanks to technology, most of us today walk around without any attention span to worry about, which is good, because from personal experience those are harder to attain from some people anyway.
-
-## _I haven't found the right design…_
-
-To date, technically, my project remains outsanding and I never really finished the course.
-
-And while all that's true, if you set out to solve a problem, you have to be more than just willing to pivot away from ideas. This is equally true for ones that you feel attached to for any reason, which can be hard, but critical to the problem-solving process.
+To date, technically, my project remains outsanding and I never really finished the course. And while all that's true, if you set out to solve a problem, you have to be more than just willing to pivot away from ideas. This is equally true for ones that you feel attached to for any reason, which can be hard, but critical to the problem-solving process.
 
 But this realization only become evident after exploring the existing solutions in more depth in order to figure why they failed in meeting my specific expectations. Here are some of highlights which may be of use to folks designing in those spaces.
 
-### _Console Snippets_
+**_Console Snippets_**
 
 Snippets, avoided by most, and that's because they are nothing more than a glorified console `eval` that gets saved somewhere that is intuitive to maybe the people who designed it but hardly anyone else… what now folks?!
 
 This had so much potential once, but aside from those few who use it because it made sense, imho it is deadweight we all carry as endusers and it being there makes me wonder if developers are not keeping their priorities straight here!
 
-### _Playgrounds_
+**_Playgrounds_**
 
 Let's skip to when you save your pen/bin to a gist… If you `html`, `css` and `js` does not work exactly as it did without the playground doing its magic, you are really better off without it.
 
