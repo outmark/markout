@@ -60,13 +60,17 @@ With this kind of framing, it is straightforward to reason about relative links 
 
 ### _It only has Do's_
 
-If it works for you, go with it. If you push it, either the browser will let you know, you will know when it doesn't show up, we will find a way to close the gap to make it more intuitive.
+If it works for you, go with it. If you push it, either the browser will let you know, you will know when it doesn't show up… that's really the starting point though.
 
-The only "don't" here is introducing things that will break syntax or semantics of the rendered HTML or make the source file painful to author or read directly.
+As it the story goes, you will always discover gaps, and some of those gaps will be too convoluted to worry about. Other cases will be straightforward and intuitive enough to expect them to work exactly a certain way. Those are the places where it makes sense for Markout to make assumptions, or at the very least offer a good workable solution of minimal inference. So you could say that the only "don't" in Markout has to do with introducing things that are not break syntax or semantics elsewhere.
 
-So while I found that `<script>…</script>` and `<style>…</style>` tags come what I refer to as an immediacy gap, ie their semantics in the rendered HTML are not directly relatable to exactly one intent in the source text, I decided to simply discourage myself from relying on them for now until a clean path becomes more clear.
+For instance, while `<script>…</script>` and `<style>…</style>` tags — and yes they are allowed — behave exactly as they would, they are hard to reason about intuitively due to what I refer to as the immediacy gap. That is, because you are authoring in `.md` file, which is not yet HTML, you will likely find it challenging to relate to their semantics in the rendered output.
 
-Instead, with `<script src=…>` or a `<style src=…>`, you add automatically add some distance cognitively, because you end up writing those in separate file. This was very different from my initial project's goal, but that's a more tenable starting point anyhow.
+I personally decided to simply discourage myself from relying on them for now until a clean path becomes more clear.
+
+Compare this with a `<script src=…>` or a `<style src=…>`, where you are automatically offseting the immediacy gap in that you when you are authoring those files, you are consider them as things that will be loaded, and chances are you will have less contextual relevance for things like `document.currentScript`.
+
+Ultimately, you need a little more than just a different cognitive frame for things to feel right.
 
 ### _It scripts nicely when…_
 
