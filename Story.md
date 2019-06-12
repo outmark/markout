@@ -14,7 +14,9 @@ But this realization only become evident after exploring the existing solutions 
 
 ### _Console Snippets_
 
-Snippets, avoided by most, and that's because they are nothing more than a glorified console `eval` that gets saved somewhere that is intuitive to maybe the people who designed it but hardly anyone else, why so?
+Snippets, avoided by most, and that's because they are nothing more than a glorified console `eval` that gets saved somewhere that is intuitive to maybe the people who designed it but hardly anyone else… what now folks?!
+
+This had so much potential once, but aside from those few who use it because it made sense, imho it is deadweight we all carry as endusers and it being there makes me wonder if developers are not keeping their priorities straight here!
 
 ### _Playgrounds_
 
@@ -50,6 +52,8 @@ This felt very counter-intuitive when you are ultimately always rendering HTML, 
 
 And so, Markout just got a little more interesting, because it technically does not have pipelines, just a simple `markout => <document-fragment›` and that technically puts almost all HTML things back on the table (but not quite).
 
+To get there, I needed to really get intimate with all things [markup](/markup/Story.md) and be comfortable enough generating and parsing `html`, `css`, `es` and `md` all in the main thread and fast enough that it would work on somewhat decent phones.
+
 ### _It uses the DOM_
 
 Since Markout is not HTML, you don't want to ever have to operate on a so called Markout DOM and decided to do away with this notion completely.
@@ -74,7 +78,6 @@ Since you might want your code to operate directly on the document, which is kin
 
 The same would apply to `<script type=module>` because as far as the specs are concerned, those tags have no relationship to the immediate parent element. So they are simply like doing an `import(…)` in the global scope, and this is exactly how it is handled by the renderer now except I did not yet work out some of the details to make this work for inline code.
 
-
 ### _It styles and inline-styles too…_
 
 Having `<style src>` is nice in a sense that any document can decide to have its own personality, it was not really suited for small inline styles, which are a non-concept for Markdown, ie only HTML.
@@ -85,9 +88,11 @@ My goal was to make life a little easier with valid HTML things that could go a 
 
 Instead, I came up with a subtle notation to inline styles directly along with your HTML attributes because for all I care, this content-layout-style division goes out of the window when you are inline-styling, and more so if you are not writing actual HTML in an actual HTML document!
 
-So instead of `<… style="font-size:smaller" …>` in HTML documents, you simply go with `<… font-size:=smaller …>` in Markout and that `:=` actually has [a lot of thought behind it](/meta/logs/2019/2019-05/2019-05-24-Weekly.md#markout-styles) that makes it absolutely valid syntax-wise in HTML so that it parses as expected in any browser.
+So instead of `<… style="font-size:smaller" …>` in HTML documents, you simply go with `<… font-size:=smaller …>` in Markout and that `:=` actually has [a lot of thought behind it][markout-styles] that makes it absolutely valid syntax-wise in HTML so that it parses as expected in any browser.
 
-Just keep in mind that styling in HTML attributes carries with it all the implied syntax expectations, and that makes it less intuitive for edge cases like  `content:="'nonyaefenbiz is why!'"` which is one edge I personally don't fancy, but if that's your `biz`, I say `biz`-away…
+Just keep in mind that styling in HTML attributes carries with it all the implied syntax expectations, and that makes it less intuitive for edge cases like `content:="'nonyaefenbiz is why!'"` which is one edge I personally don't fancy, but if that's your `biz`, I say `biz`-away…
+
+[markout-styles]: https://smotaal.io/#/meta/logs/2019/2019-05/2019-05-24-Weekly.md#markout-styles
 
 ## _Now What?!_
 
