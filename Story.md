@@ -2,6 +2,8 @@
 
 As some point during the summer of 2018, while trying to come up with an idea for my project for the HackerYou's Full-Stack course, I was really getting pissed at how my gists feel too dull compared to my browser's console and how that feels to elusive compared to my gists — I was left wondering, why the hell don't the two just make the effort!
 
+This goes to the root problem I was really looking to solve for myself and certainly others (in due time) and that was to find a good balance between playgrounds and markdown, not very different from what you see in many notebook platforms which are mostly driven by backends, and as someone pointed out to me, something that would be like [Literate CoffeeScript](https://coffeescript.org/#literate) only entirely based on HTML, CSS, and JavaScript (frameworkless).
+
 To date, technically, my project remains outsanding and I never really finished the course. And while all that's true, if you set out to solve a problem, you have to be more than just willing to pivot away from ideas. This is equally true for ones that you feel attached to for any reason, which can be hard, but critical to the problem-solving process.
 
 But this realization that my initial idea was not the right one only become evident after exploring the existing solutions in more depth in order to figure why they failed in meeting my specific expectations. So let's start with some of those highlights which may be of use to folks designing in those spaces, and see where things went from there.
@@ -24,7 +26,7 @@ But the bigger issue I am having with all this is because while you are using al
 
 How does one ever come up with ideas, if all everyone is really offering in lieu of sandbox is more like quicksand?
 
-This is when I realized, sure, I can do a little better in terms of a playground, but won't I really be hurting more than helping if I end up create more gaps?!
+This is when I realized, sure, I can do a little better in terms of a playground, but won't I really be hurting more than helping if I just end up creating new gaps along the way?!
 
 So instead, I decided to go back to basics, start from scratch, and a repo on GitHub was the way to go, that is experimental repos, and to focus instead on a GitHub pages engine that can deliver on the things I really needed along the way.
 
