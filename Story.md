@@ -30,7 +30,7 @@ How does one ever come up with ideas, if all everyone is really offering in lieu
 
 This is when I realized, sure, I can do a little better in terms of a playground, but won't I really be hurting more than helping if I just end up creating new gaps along the way?!
 
-So instead, I decided to go back to basics, start from scratch, and a repo on GitHub was the way to go, that is experimental repos, and to focus instead on a GitHub pages engine that can deliver on the things I really needed along the way.
+So instead, I decided to go back to basics. Start from scratch. And a repo on GitHub was the way to go, that is experimental repos. And I turned my focus instead to developing a GitHub pages engine (but for any static server really) that can deliver on the things I really needed along the way.
 
 This is a road less travelled, and is full of many learning opportunities, and so it goes.
 
