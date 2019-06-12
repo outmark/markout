@@ -24,9 +24,9 @@ This is increasingly true today because all those playgrounds work from the assu
 
 But the bigger issue I am having with all this is because while you are using all this mojo shit to cater to a browser that no longer exists, I am no longer able to write code that is actually supported by the browser in your playground, and yet writing the same code in the console works — And that is what I would actually call the bleeding edge, where you are putting all this work only to go retro, and a year later, with a paid subscripton, you are still working on the issue.
 
-**_It eventually hit me…_**
-
 How does one ever come up with ideas, if all everyone is really offering in lieu of sandbox is more like quicksand?
+
+**_It eventually hit me…_**
 
 This is when I realized, sure, I can do a little better in terms of a playground, but won't I really be hurting more than helping if I just end up creating new gaps along the way?!
 
