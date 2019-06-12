@@ -80,7 +80,7 @@ The same would apply to `<script type=module>` because as far as the specs are c
 
 ### _It styles and inline-styles too…_
 
-Having `<style src>` is nice in a sense that any document can decide to have its own personality, it was not really suited for small inline styles, which are a non-concept for Markdown, ie only HTML.
+Having `<style src>` is nice in a sense that any document can decide to have its own personality. But it really awkward to go that route if you have a lot of inline styles that you'd be litering your content with all those `<… class=…>` attributes and working on strategies to keep it all straight naming wise (okay for web things, but not here).
 
 So, at least for now, inline styling is for HTML tags, but since those tags are not actual HTML elements until they are rendered, it made sense to find a more elegant way to minimize on the noise of having `<… style="">` getting in the way of your source text.
 
