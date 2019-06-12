@@ -84,13 +84,13 @@ Having `<style src>` is nice in a sense that any document can decide to have its
 
 At least for now, inline styling is for HTML tags where a `<… style="">` is already a concept we can all work with. But since those tags are not actual HTML elements until they are rendered, it made sense to find a more elegant way minimize the boilerplate noise when directly looking at the source text.
 
-My goal was to make life a little easier with valid HTML things that could go a long way with as little magic as possible. Ultimately, what was annoying me about the proforma styling is that it has quotes to wrap a completely different syntax, and that gets in the way of both legibility and linting of the original `.md` files.
+My goal was to make life a little easier with valid HTML things that could go a long way and with as little magic as possible. And, most annoying (to me at least) about all this proforma styling aside from legibility, was that all those quotes were not always yielding good results with linting.
 
-Instead, I came up with a subtle notation to inline styles directly along with your HTML attributes because for all I care, this content-layout-style division goes out of the window when you are inline-styling, and more so if you are not writing actual HTML in an actual HTML document!
-
-So instead of `<… style="font-size:smaller" …>` in HTML documents, you simply go with `<… font-size:=smaller …>` in Markout and that `:=` actually has [a lot of thought behind it][markout-styles] that makes it absolutely valid syntax-wise in HTML so that it parses as expected in any browser.
+So, I came up with a subtle notation to inline styles directly along with your HTML attributes because for all I care, this content-layout-style division goes out of the window when you are inline-styling, and more so if you are not writing actual HTML in an actual HTML document. Now instead of `<… style="font-size:smaller" …>` you can simply go with `<… font-size:=smaller …>` — noting that while `:=` is odd, it comes with [a lot of thought][markout-styles] in ensuring that it absolutely valid syntax-wise from a HTML parsing standpoint across all browsers.
 
 Just keep in mind that styling in HTML attributes carries with it all the implied syntax expectations, and that makes it less intuitive for edge cases like `content:="'nonyaefenbiz is why!'"` which is one edge I personally don't fancy, but if that's your `biz`, I say `biz`-away…
+
+What I take out of making this exception for inline-styling is that my initial inclination to avoid bridging all gaps on whim is probably the right frame to continue to work from as I move forward.
 
 [markout-styles]: https://smotaal.io/#/meta/logs/2019/2019-05/2019-05-24-Weekly.md#markout-styles
 
