@@ -48,7 +48,7 @@ This felt very counter-intuitive when you are ultimately always rendering HTML, 
 
 And so, Markout just got a little more interesting, because it technically does not have pipelines, just a simple `markout => <document-fragment›` and that technically puts almost all HTML things back on the table (but not quite).
 
-To get there, I needed to really get intimate with all things [markup](/markup/Story.md) and be comfortable enough generating and parsing `html`, `css`, `es` and `md` all in the main thread and fast enough that it would work on somewhat decent phones.
+To get there, I needed to really get intimate with all things [markup](/markup/Story.md) and be comfortable enough generating and parsing `html`, `css`, `es` and `md` — all main thread and efficient enough for most decent phones out there.
 
 ### _It uses the DOM_
 
