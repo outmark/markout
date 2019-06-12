@@ -72,7 +72,7 @@ Instead, with `<script src=…>` or a `<style src=…>`, you add automatically a
 
 ### _It scripts nicely when…_
 
-Since you might want your code to operate directly on the document, which is kind of the point of all of this. I found that in special cases where you tag encapsulated (specifically for not `<output><script src=…>`) you can close the immediacy gap, ie relating the script to an immediate parent.
+Since you might want your code to operate directly on the document, which is kind of the point of all of this. I found that in special cases where you use an encapsulating parent tag (specifically for not `<output><script src=…>`), you can close this immediacy gap by relating the script to a specific parent.
 
 The same would apply to `<script type=module>` because as far as the specs are concerned, those tags have no relationship to the immediate parent element. So they are simply like doing an `import(…)` in the global scope, and this is exactly how it is handled by the renderer now except I did not yet work out some of the details to make this work for inline code.
 
