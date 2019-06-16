@@ -722,10 +722,26 @@ const STYLES = '[[styles]]';
 const PRELOAD = '[[preload]]';
 
 class Asset extends URL {
-  constructor(href, type) {
-    super(href);
+  constructor(href, type, id) {
+    let link, selector;
+    if (id) {
+      // console.log({href, type, id});
+      if (type === 'style') {
+        selector = `link#${CSS.escape(id)}`;
+        link = currentDocument.querySelector(
+          `${selector}[rel=stylesheet][href], ${selector}[rel=preload][as=style][href]`,
+        );
+      }
+    }
+    if (link && link.href) {
+      super(link.href);
+      Object.defineProperty(this, PRELOAD, {value: resolvedPromise});
+    } else {
+      super(href);
+    }
+    this.id = id;
     this.type = type;
-    Object.defineProperties(this, Object.getOwnPropertyDescriptors(Object.freeze({...this})));
+    // Object.defineProperties(this, Object.getOwnPropertyDescriptors(Object.freeze({...this})));
   }
 
   get [PRELOAD]() {
@@ -803,7 +819,7 @@ class Assets {
       Object.defineProperty(
         assets[type],
         href,
-        (descriptors[id] = {value: new Asset(url, type), enumerable: true}),
+        (descriptors[id] = {value: new Asset(url, type, id), enumerable: true}),
       );
 
       id !== specifier && (descriptors[specifier] = {get: () => this[id]});

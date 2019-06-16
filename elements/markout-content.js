@@ -19,9 +19,9 @@ const {
 	'markout-content-source-text-rendering': SOURCE_TEXT_RENDERING = true,
 } = import.meta;
 
-const assets = new Assets({base: new URL('../../', import.meta.url)}, 'style:markout/styles/markout.css');
+const assets = new Assets({base: new URL('../', import.meta.url)}, 'style:styles/markout.css');
 
-const stylesheet = assets['style:markout/styles/markout.css'];
+const stylesheet = assets['style:styles/markout.css'];
 
 const styles = css`
 	@import "${stylesheet}";
@@ -122,7 +122,7 @@ export class MarkoutContent extends Component {
 			const stylesheets = [];
 			const baseURL = sourceURL || this.baseURI;
 
-			for (const link of content.querySelectorAll(`script[src],style[src]`)) {
+			for (const link of content.querySelectorAll(`script[src],style[src],img[src],source[src],video[src]`)) {
 				const {nodeName, rel, baseURI, slot, parentElement, previousElementSibling} = link;
 				if (slot && slot !== 'links') continue;
 				const type = `${link.type || ''}`.trim().toLowerCase();
@@ -130,6 +130,10 @@ export class MarkoutContent extends Component {
 				const href = link.getAttribute('href');
 				const base = link.hasAttribute('base') ? baseURI : baseURL;
 				const url = new URL(src || href, base);
+
+				link.setAttribute('link-src', src);
+				link.setAttribute('link-base', base);
+
 				switch (nodeName) {
 					case 'SCRIPT':
 						if (type === 'module') {
@@ -147,6 +151,11 @@ export class MarkoutContent extends Component {
 							link.remove();
 							break;
 						}
+					case 'IMG':
+					case 'VIDEO':
+					case 'SRC':
+						link.setAttribute('src', new URL(src, base));
+						break;
 					default:
 						// TODO: Ensure base attribute bahviour holds
 						// link.slot = 'links';
@@ -400,7 +409,7 @@ try {
 			Prefixes: {
 				const autoprefix = value => {
 					const prefixed = value.replace(autoprefix.matcher, autoprefix.replacer);
-					console.log(value, prefixed);
+					// console.log(value, prefixed);
 					return prefixed;
 				};
 				autoprefix.mappings = {};

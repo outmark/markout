@@ -1,5 +1,5 @@
-import { sequence, debugging, matchAll, normalizeString } from '/markout/lib/helpers.js';
-import { encodeEntities, tokenize as tokenize$1 } from '/markup/dist/tokenizer.browser.js';
+import { sequence as sequence$1, debugging, matchAll as matchAll$1, normalizeString } from '/markout/lib/helpers.js';
+import { encodeEntities, tokenize as tokenize$1, encodeEntity } from '/markup/dist/tokenizer.browser.js';
 
 // export const MarkupSourceTypeAttribute = 'source-type';
 // export const MarkupModeAttribute = 'markup-mode';
@@ -13,6 +13,22 @@ class ComposableList extends Array {
 		listStyle = this.listStyle,
 		listStart = this.listStart,
 	) {
+		listStart &&
+			typeof listStart !== 'number' &&
+			// console.log(
+			// 	listStart,
+			(listStart = `${
+				listStyle === 'lower-latin' || listStyle === 'upper-latin'
+					? ComposableList.parseLatin(listStart)
+					: listStyle === 'lower-roman' || listStyle === 'upper-roman'
+					? ComposableList.parseRoman(listStart)
+					: // listStyle === 'lower-latin'
+					  // 	? 'abcdefghijklmnopqrstuvwxyz'.indexOf(listStart) + 1
+					  // 	: listStyle === 'upper-latin'
+					  // 	? 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.indexOf(listStart) + 1
+					  parseInt(listStart) || ''
+			}`);
+		// );
 		const attributes = `${
 			// TODO: Explore using type attribute instead
 			(listStyle && `style="list-style: ${listStyle}"`) || ''
@@ -47,7 +63,9 @@ class ComposableList extends Array {
 				content &&
 					listRows.push(
 						checkbox
-							? `${listInset}\t<label><input type=checkbox ${checkbox === ' ' ? '' : ' checked'}/>${content}</label>`
+							? // ? `${listInset}\t<label><input type=checkbox ${checkbox === ' ' ? '' : ' checked'}/>${content}</label>`
+							  // ? `${listInset}\t<label><input type=checkbox ${checkbox === ' ' ? '' : ' checked'}/>${content}</label>`
+							  `${listInset}\t<li type=checkbox ${checkbox === ' ' ? '' : ' checked'}>${content}</li>`
 							: `${listInset}\t<li>${content}</li>`,
 					);
 			}
@@ -57,15 +75,51 @@ class ComposableList extends Array {
 	}
 }
 
-ComposableList.SQUARE = /^[-](?=\s|$)/;
+ComposableList.CHECKBOX = /^[-] \[[ xX]\](?=\s|$)/;
+ComposableList.SQUARE = /^[-](?! \[[ xX]\])(?=\s|$)/;
 ComposableList.DISC = /^[*](?=\s|$)/;
 ComposableList.DECIMAL = /^0*\d+\./;
-ComposableList.LATIN = /^[a-z]\./i;
-ComposableList.ROMAN = /^[ivx]+\./i;
-ComposableList.ORDERED = /^(?:0+[1-9]\d*|\d+|[ivx]+|[a-z])(?=\. |$)/i;
+
+LATIN: {
+	const parseLatin = latin => parseLatin.mappings[latin] || NaN;
+
+	parseLatin.mappings = {};
+
+	'abcdefghijklmnopqrstuvwxyz'.split('').forEach((latin, index) => {
+		parseLatin.mappings[(parseLatin.mappings[latin] = parseLatin.mappings[latin.toUpperCase] = index + 1)] = latin;
+	});
+
+	ComposableList.parseLatin = parseLatin;
+	ComposableList.LATIN = /^[a-z]+\./i;
+}
+
+ROMAN: {
+	const parseRoman = roman =>
+		/[^ivxlcdm]/i.test((roman = String(roman)))
+			? NaN
+			: roman
+					.toLowerCase()
+					.split('')
+					.reduce(parseRoman.reducer, 0);
+	// prettier-ignore
+	parseRoman.mappings = Object.freeze({i: 1, v: 5, x: 10, l: 50, c: 100, d: 500, m: 1000, 1: 'i', 5: 'v', 10: 'x', 50: 'l', 100: 'c', 500: 'd', 1000: 'm'});
+
+	parseRoman.reducer = (decimal, character, index, characters) =>
+		decimal +
+		(parseRoman.mappings[character] < parseRoman.mappings[characters[index + 1]]
+			? -parseRoman.mappings[character]
+			: parseRoman.mappings[character]);
+
+	ComposableList.parseRoman = parseRoman;
+	ComposableList.ROMAN = /^[ivxlcdm]+\./i;
+}
+
+// ComposableList.ORDERED = /^(?:0+[1-9]\d*|\d+|[ivx]+|[a-z])(?=\. |$)/i;
+ComposableList.ORDERED = /^(?:0+[1-9]\d*|\d+|[ivx]+|[a-z])(?=\. |$)|^[a-z](?=\) |$)/i;
 ComposableList.UNORDERED = /^[-*](?= |$)/i;
 
-ComposableList.ORDERED_STYLE = /^(?:(0+[1-9]\d*)|(\d+)|([ivx]+)|([a-z]))(?=\. )|/i;
+// ComposableList.ORDERED_STYLE = /^(?:(0+[1-9]\d*)|(\d+)|([ivx]+)|([a-z]))(?=\. )|/i;
+ComposableList.ORDERED_STYLE = /^(?:(0+[1-9]\d*)(?=\. )|(\d+)(?=\. )|([ivx]+)(?=\. )|([a-z])(?=[.)] ))|/i;
 ComposableList.ORDERED_STYLE.key = ['decimal-leading-zero', 'decimal', 'roman', 'latin'];
 
 ComposableList.orderedStyleOf = (marker, variant, fallback) => {
@@ -96,6 +150,7 @@ ComposableList.markerIsLike = (marker, expected) =>
 	expected in ComposableList.LIKE ? ComposableList.LIKE[expected].test(marker) : undefined;
 
 ComposableList.LIKE = {
+	['checkbox']: ComposableList.CHECKBOX,
 	['square']: ComposableList.SQUARE,
 	['disc']: ComposableList.DISC,
 	['decimal']: ComposableList.DECIMAL,
@@ -103,12 +158,317 @@ ComposableList.LIKE = {
 	['roman']: ComposableList.ROMAN,
 	['lower-roman']: ComposableList.ROMAN,
 	['upper-roman']: ComposableList.ROMAN,
-	['latic']: ComposableList.LATIN,
-	['lower-latic']: ComposableList.LATIN,
-	['upper-latic']: ComposableList.LATIN,
+	['latin']: ComposableList.LATIN,
+	['lower-latin']: ComposableList.LATIN,
+	['upper-latin']: ComposableList.LATIN,
 	['ul']: ComposableList.UNORDERED,
 	['ol']: ComposableList.ORDERED,
 };
+
+//@ts-check
+/// <reference path="./types.d.ts" />
+
+// const trace = /** @type {[function, any[]][]} */ [];
+
+class Matcher extends RegExp {
+	/**
+	 * @template T
+	 * @param {Matcher.Pattern} pattern
+	 * @param {Matcher.Flags} [flags]
+	 * @param {Matcher.Entities} [entities]
+	 * @param {T} [state]
+	 */
+	constructor(pattern, flags, entities, state) {
+		// trace.push([new.target, [...arguments]]);
+		//@ts-ignore
+		super(pattern, flags);
+		// Object.assign(this, RegExp.prototype, new.target.prototype);
+		(pattern &&
+			pattern.entities &&
+			Symbol.iterator in pattern.entities &&
+			((!entities && (entities = pattern.entities)) || entities === pattern.entities)) ||
+			Object.freeze((entities = (entities && Symbol.iterator in entities && [...entities]) || []));
+		/** @type {MatcherEntities} */
+		this.entities = entities;
+		/** @type {T} */
+		this.state = state;
+		this.capture = this.capture;
+		this.exec = this.exec;
+		// this.test = this.test;
+		({
+			// LOOKAHEAD: this.LOOKAHEAD = Matcher.LOOKAHEAD,
+			// INSET: this.INSET = Matcher.INSET,
+			// OUTSET: this.OUTSET = Matcher.OUTSET,
+			DELIMITER: this.DELIMITER = Matcher.DELIMITER,
+			UNKNOWN: this.UNKNOWN = Matcher.UNKNOWN,
+		} = new.target);
+	}
+
+	/**
+	 * @template {MatcherMatchResult} T
+	 * @param {string} text
+	 * @param {number} capture
+	 * @param {T} match
+	 * @returns {T}
+	 */
+	capture(text, capture, match) {
+		if (capture === 0) return void (match.capture = {});
+		if (text === undefined) return;
+		const index = capture - 1;
+		const {
+			entities: {[index]: entity},
+			state,
+		} = this;
+		typeof entity === 'function'
+			? ((match.entity = index), entity(text, capture, match, state))
+			: entity == null || //entity === INSET ||
+			  // entity === OUTSET ||
+			  // entity === DELIMITER ||
+			  // entity === LOOKAHEAD ||
+			  // entity === UNKNOWN ||
+			  (match.entity !== undefined || ((match.identity = entity), (match.entity = index)),
+			  (match.capture[entity] = text));
+	}
+
+	/**
+	 * @param {string} source
+	 * @returns {MatcherMatchResult}
+	 */
+	exec(source) {
+		// const tracing = trace.length;
+		// trace.push([this.exec, [...arguments]]);
+		/** @type {MatcherMatchArray} */
+		const match = super.exec(source);
+		// console.log(trace.slice(tracing, trace.length));
+		match &&
+			(match.forEach(this.capture || Matcher.prototype.capture, (match.matcher = this)),
+			match.identity || (match.capture[this.UNKNOWN || Matcher.UNKNOWN] = match[0]));
+
+		// @ts-ignore
+		return match;
+	}
+
+	/**
+	 * @param {Matcher.PatternFactory} factory
+	 * @param {Matcher.Flags} [flags]
+	 * @param {PropertyDescriptorMap} [properties]
+	 */
+	static define(factory, flags, properties) {
+		/** @type {MatcherEntities} */
+		const entities = [];
+		entities.flags = '';
+		// const pattern = factory(entity => void entities.push(((entity != null || undefined) && entity) || undefined));
+		const pattern = factory(entity => {
+			if (entity !== null && entity instanceof Matcher) {
+				entities.push(...entity.entities);
+
+				!entity.flags || (entities.flags = entities.flags ? Matcher.flags(entities.flags, entity.flags) : entity.flags);
+
+				return entity.source;
+			} else {
+				entities.push(((entity != null || undefined) && entity) || undefined);
+			}
+		});
+		flags = Matcher.flags('g', flags == null ? pattern.flags : flags, entities.flags);
+		const matcher = new ((this && (this.prototype === Matcher.prototype || this.prototype instanceof RegExp) && this) ||
+			Matcher)(pattern, flags, entities);
+
+		properties && Object.defineProperties(matcher, properties);
+
+		return matcher;
+	}
+
+	static flags(...sources) {
+		let flags = '',
+			iterative;
+		for (const source of sources) {
+			if (!source || (typeof source !== 'string' && typeof source.flags !== 'string')) continue;
+			for (const flag of source.flags || source)
+				(flag === 'g' || flag === 'y' ? iterative || !(iterative = true) : flags.includes(flag)) || (flags += flag);
+		}
+		// console.log('%o: ', flags, ...sources);
+		return flags;
+	}
+
+	static get sequence() {
+		const {raw} = String;
+		const {replace} = Symbol;
+		/**
+		 * @param {TemplateStringsArray} template
+		 * @param  {...any} spans
+		 * @returns {string}
+		 */
+		const sequence = (template, ...spans) =>
+			sequence.WHITESPACE[replace](raw(template, ...spans.map(sequence.span)), '');
+		/**
+		 * @param {any} value
+		 * @returns {string}
+		 */
+		sequence.span = value =>
+			(value &&
+				// TODO: Don't coerce to string here?
+				(typeof value !== 'symbol' && `${value}`)) ||
+			'';
+
+		sequence.WHITESPACE = /^\s+|\s*\n\s*|\s+$/g;
+
+		Object.defineProperty(Matcher, 'sequence', {value: Object.freeze(sequence), enumerable: true, writable: false});
+		return sequence;
+	}
+
+	static get join() {
+		const {sequence} = this;
+
+		const join = (...values) =>
+			values
+				.map(sequence.span)
+				.filter(Boolean)
+				.join('|');
+
+		Object.defineProperty(Matcher, 'join', {value: Object.freeze(join), enumerable: true, writable: false});
+
+		return join;
+	}
+}
+
+const {
+	// INSET = (Matcher.INSET = /* Symbol.for */ 'INSET'),
+	// OUTSET = (Matcher.OUTSET = /* Symbol.for */ 'OUTSET'),
+	DELIMITER = (Matcher.DELIMITER = /* Symbol.for */ 'DELIMITER'),
+	UNKNOWN = (Matcher.UNKNOWN = /* Symbol.for */ 'UNKNOWN'),
+	// LOOKAHEAD = (Matcher.LOOKAHEAD = /* Symbol.for */ 'LOOKAHEAD'),
+	escape = (Matcher.escape = /** @type {<T>(source: T) => string} */ ((() => {
+		const {replace} = Symbol;
+		return source => /[\\^$*+?.()|[\]{}]/g[replace](source, '\\$&');
+	})())),
+	sequence,
+	matchAll = (Matcher.matchAll =
+		/**
+		 * @template {RegExp} T
+		 * @type {(string: Matcher.Text, matcher: T) => Matcher.Iterator<T> }
+		 */
+		//@ts-ignore
+		(() =>
+			Function.call.bind(
+				// String.prototype.matchAll || // TODO: Uncomment eventually
+				{
+					/**
+					 * @this {string}
+					 * @param {RegExp | string} pattern
+					 */
+					*matchAll() {
+						const matcher =
+							arguments[0] &&
+							(arguments[0] instanceof RegExp
+								? Object.setPrototypeOf(RegExp(arguments[0].source, arguments[0].flags || 'g'), arguments[0])
+								: RegExp(arguments[0], 'g'));
+						const string = String(this);
+
+						if (!(matcher.flags.includes('g') || matcher.flags.includes('y'))) return void (yield matcher.exec(string));
+
+						for (
+							let match, lastIndex = -1;
+							lastIndex <
+							((match = matcher.exec(string)) ? (lastIndex = matcher.lastIndex + (match[0].length === 0)) : lastIndex);
+							yield match, matcher.lastIndex = lastIndex
+						);
+					},
+				}.matchAll,
+			))()),
+} = Matcher;
+
+const sequences = {};
+const matchers = {};
+
+{
+	const {sequence, escape, join} = Matcher;
+
+	const FENCE = sequence`${'`'.repeat(3)}|${escape('~').repeat(3)}`;
+	const INSET = sequence`[> \t]*`;
+	// const LIST = sequence`- ${escape('[')}[ xX]${escape(']')}(?: |$)|[-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. `;
+	// const LIST = sequence`[-*] (?=${escape('[')}[ xX]${escape(']')} |)|[1-9]+\d*\. |[a-z]\. |[ivx]+\. `;
+	const LIST = sequence`[-*](?: |$)|[1-9]+\d*\.(?: |$)|[a-z][.)](?: |$)|[ivx]+\.(?: |$)`;
+
+	sequences.NormalizableBlocks = sequence/* fsharp */ `
+    (?:^|\n)(${INSET}(?:${FENCE}))[^]+?(?:(?:\n\1[ \t]*)+\n?|$)
+    |([^]+?(?:(?=\n${INSET}(?:${FENCE}))|$))
+  `;
+	matchers.NormalizableBlocks = new RegExp(sequences.NormalizableBlocks, 'g');
+
+	sequences.NormalizableParagraphs = sequence/* fsharp */ `
+    ^
+    ((?:[ \t]*\n(${INSET}))+)
+    ($|(?:
+      (?!(?:${LIST}))
+      [^\-#>|~\n].*
+      (?:\n${INSET}$)+
+    )+)
+  `;
+	matchers.NormalizableParagraphs = new RegExp(sequences.NormalizableParagraphs, 'gm');
+
+	sequences.RewritableParagraphs = sequence/* fsharp */ `
+    ^
+    ([ \t]*[^\-\*#>\n].*?)
+    (\b.*[^:\n\s>]+|\b)
+    [ \t]*\n[ \t>]*
+    (?=(
+      \b
+      |${escape('[')}.*?${escape(']')}[^:\n]?
+      |[^#${'`'}${escape('[')}\n]
+    ))
+  `;
+
+	matchers.RewritableParagraphs = new RegExp(sequences.RewritableParagraphs, 'gm');
+
+	sequences.NormalizableLists = sequence/* fsharp */ `
+    (?=(\n${INSET})(?:${LIST}))
+    ((?:\1
+      (?:${LIST}|   ?)+
+      [^\n]+
+      (?:\n${INSET})*
+      (?=\1|$)
+    )+)
+  `;
+	matchers.NormalizableLists = new RegExp(sequences.NormalizableLists, 'g');
+
+	sequences.NormalizableListItem = sequence/* fsharp */ `
+    ^
+    (${INSET})
+    (${LIST}|)
+    ([^\n]+(?:\n\1(?:   ?|\t ?)(?![ \t]|${LIST}).*)*)$
+  `;
+	matchers.NormalizableListItem = new RegExp(sequences.NormalizableListItem, 'gm');
+
+	sequences.NormalizableReferences = sequence/* fsharp */ `
+    \!?
+    ${escape('[')}(\S.+?\S)${escape(']')}
+    (?:
+      ${escape('(')}(\S[^\n${escape('()[]')}]*?\S)${escape(')')}
+      |${escape('[')}(\S[^\n${escape('()[]')}]*\S)${escape(']')}
+    )
+  `;
+	matchers.NormalizableReferences = new RegExp(sequences.NormalizableReferences, 'gm');
+
+	sequences.RewritableAliases = sequence/* fsharp */ `
+    ^
+    (${INSET})
+    ${escape('[')}(\S.+?\S)${escape(']')}:\s+
+    (\S+)(?:
+      \s+${'"'}([^\n]*)${'"'}
+      |\s+${"'"}([^\n]*)${"'"}
+      |
+    )(?=\s*$)
+  `;
+	matchers.RewritableAliases = new RegExp(sequences.RewritableAliases);
+
+	sequences.NormalizableLink = sequence/* fsharp */ `
+    \s*(
+      (?:\s?[^${`'"`}${escape('()[]')}}\s\n]+)*
+    )
+    (?:\s+[${`'"`}]([^\n]*)[${`'"`}]|)
+  `;
+	matchers.NormalizableLink = new RegExp(sequences.NormalizableLink);
+}
 
 const {
 	/** Attempts to overcome **__** */
@@ -120,14 +480,16 @@ const MATCHES = Symbol('matches');
 const ALIASES = 'aliases';
 const BLOCKS = 'blocks';
 
-const NormalizableBlocks = /(?:^|\n)([> \t]*(?:\`\`\`|\~\~\~))[^]+?(?:(?:\n\1[ \t]*)+\n?|$)|([^]+?(?:(?=\n[> \t]*(?:\`\`\`|\~\~\~))|$))/g;
-const NormalizableParagraphs = /^((?:[ \t]*\n([> \t]*))+)((?:(?!(?:\d+\. |[a-z]\. |[ivx]+\. |[-*] ))[^\-#>|~\n].*(?:\n[> \t]*$)+|$)+)/gm;
-const RewritableParagraphs = /^([ \t]*[^\-\*#>\n].*?)(\b.*[^:\n\s>]+|\b)[ \t]*\n[ \t>]*(?=(\b|\[.*?\][^:\n]?|[^#`\[\n]))/gm;
-const NormalizableLists = /(?=(\n[> \t]*)(?:[-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. ))((?:\1(?:[-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. |   ?)+[^\n]+(?:\n[> \t]*)*(?=\1|$))+)/g;
-const NormalizableListItem = /^([> \t]*)([-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. |)([^\n]+(?:\n\1(?:   ?|\t ?)(?![ \t]|[-*] |\d+\. |[a-z]\. |[ivx]+\. ).*)*)$/gm;
-const NormalizableReferences = /\!?\[(\S.+?\S)\](?:\((\S[^\n()\[\]]*?\S)\)|\[(\S[^\n()\[\]]*\S)\])/g;
-const RewritableAliases = /^([> \t]*)\[(\S.+?\S)\]:\s+(\S+)(?:\s+"([^\n]*)"|\s+'([^\n]*)'|)(?=\s*$)/gm;
-const NormalizableLink = /\s*((?:\s?[^'"\(\)\]\[\s\n]+)*)(?:\s+["']([^\n]*)["']|)/;
+const {
+	NormalizableBlocks,
+	NormalizableParagraphs,
+	RewritableParagraphs,
+	NormalizableLists,
+	NormalizableListItem,
+	NormalizableReferences,
+	RewritableAliases,
+	NormalizableLink,
+} = matchers;
 
 class MarkoutBlockNormalizer {
 	/**
@@ -200,7 +562,6 @@ class MarkoutBlockNormalizer {
 	 * @param {{ aliases?: { [name: string]: alias } }} [state]
 	 */
 	normalizeReferences(sourceText, state = {}) {
-		const debugging = import.meta['debug:markout:anchor-normalization'];
 		const {aliases = (state.aliases = {})} = state;
 
 		return sourceText.replace(NormalizableReferences, (m, text, link, alias, index) => {
@@ -214,7 +575,7 @@ class MarkoutBlockNormalizer {
 				} else if (alias && alias in aliases) {
 					({href = '#', title} = aliases[alias]);
 				}
-				debugging && console.log(m, {href, title, text, link, alias, reference, index});
+				// debugging && console.log(m, {href, title, text, link, alias, reference, index});
 				if (m[0] === '!') {
 					return ` <img src="${href}"${text || title ? ` title="${text || title}"` : ''} /> `;
 				} else {
@@ -243,9 +604,11 @@ class MarkoutBlockNormalizer {
 			const lists = [top];
 			NormalizableListItem.lastIndex = 0;
 			while ((match = NormalizableListItem.exec(m))) {
-				let [, matchedInset, matchedMarker, matchedLine] = match;
+				let [text, matchedInset, matchedMarker, matchedLine] = match;
 				let like;
 				if (!matchedLine.trim()) continue;
+
+				// console.log(text, {matchedInset, matchedMarker, matchedLine});
 
 				if (matchedMarker) {
 					let depth = matchedInset.length;
@@ -266,21 +629,25 @@ class MarkoutBlockNormalizer {
 						((list = new ComposableList()).parent = parent) ? parent.push(list) : lists.push((top = list));
 					}
 
+					// console.log(text, [matchedMarker, list.listStyle, like]);
+
 					if (!list) break;
 
 					'listInset' in list ||
 						((list.listInset = matchedInset),
 						(list.listDepth = depth),
-						(list.listType = matchedMarker === '* ' || matchedMarker === '- ' ? 'ul' : 'ol') === 'ol' &&
-							(list.listStart = matchedMarker.replace(/\W/g, '')));
+						(list.listType =
+							matchedMarker[0] === '* ' || matchedMarker[0] === '-'
+								? 'ul'
+								: ((list.listStart = matchedMarker.replace(/\W/g, '')), 'ol')));
 
 					'listStyle' in list ||
 						(list.listStyle =
-							(list.listType === 'ul' && ((matchedMarker === '* ' && 'disc') || 'square')) ||
+							(list.listType === 'ul' && ((matchedMarker[0] === '* ' && 'disc') || 'square')) ||
 							ComposableList.orderedStyleOf(matchedMarker));
 
 					matchedLine = matchedLine.replace(/[ \t]*\n[> \t]*/g, ' ');
-					list.push(matchedLine);
+					list.push(matchedMarker[2] === '[' ? `${matchedMarker.slice(2)}${matchedLine}` : matchedLine);
 				} else {
 					if (list.length) {
 						const index = list.length - 1;
@@ -337,6 +704,26 @@ class MarkoutBlockNormalizer {
 // 			/^[ivx]+\. $/i.test(marker) ? 'roman' : 'latin'
 // 		}`);
 
+// const {
+// 	NormalizableBlocks = /(?:^|\n)([> \t]*(?:\`\`\`|\~\~\~))[^]+?(?:(?:\n\1[ \t]*)+\n?|$)|([^]+?(?:(?=\n[> \t]*(?:\`\`\`|\~\~\~))|$))/g,
+// 	NormalizableParagraphs = /^((?:[ \t]*\n([> \t]*))+)((?:(?!(?:\d+\. |[a-z]\. |[ivx]+\. |[-*] ))[^\-#>|~\n].*(?:\n[> \t]*$)+|$)+)/gm,
+// 	RewritableParagraphs = /^([ \t]*[^\-\*#>\n].*?)(\b.*[^:\n\s>]+|\b)[ \t]*\n[ \t>]*(?=(\b|\[.*?\][^:\n]?|[^#`\[\n]))/gm,
+// 	NormalizableLists = /(?=(\n[> \t]*)(?:[-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. ))((?:\1(?:[-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. |   ?)+[^\n]+(?:\n[> \t]*)*(?=\1|$))+)/g,
+// 	NormalizableListItem = /^([> \t]*)([-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. |)([^\n]+(?:\n\1(?:   ?|\t ?)(?![ \t]|[-*] |\d+\. |[a-z]\. |[ivx]+\. ).*)*)$/gm,
+// 	NormalizableReferences = /\!?\[(\S.+?\S)\](?:\((\S[^\n()\[\]]*?\S)\)|\[(\S[^\n()\[\]]*\S)\])/g,
+// 	RewritableAliases = /^([> \t]*)\[(\S.+?\S)\]:\s+(\S+)(?:\s+"([^\n]*)"|\s+'([^\n]*)'|)(?=\s*$)/gm,
+// 	NormalizableLink = /\s*((?:\s?[^'"\(\)\]\[\s\n]+)*)(?:\s+["']([^\n]*)["']|)/,
+// } = matchers;
+
+// const NormalizableBlocks = /(?:^|\n)([> \t]*(?:\`\`\`|\~\~\~))[^]+?(?:(?:\n\1[ \t]*)+\n?|$)|([^]+?(?:(?=\n[> \t]*(?:\`\`\`|\~\~\~))|$))/g;
+// const NormalizableParagraphs = /^((?:[ \t]*\n([> \t]*))+)((?:(?!(?:\d+\. |[a-z]\. |[ivx]+\. |[-*] ))[^\-#>|~\n].*(?:\n[> \t]*$)+|$)+)/gm;
+// const RewritableParagraphs = /^([ \t]*[^\-\*#>\n].*?)(\b.*[^:\n\s>]+|\b)[ \t]*\n[ \t>]*(?=(\b|\[.*?\][^:\n]?|[^#`\[\n]))/gm;
+// const NormalizableLists = /(?=(\n[> \t]*)(?:[-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. ))((?:\1(?:[-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. |   ?)+[^\n]+(?:\n[> \t]*)*(?=\1|$))+)/g;
+// const NormalizableListItem = /^([> \t]*)([-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. |)([^\n]+(?:\n\1(?:   ?|\t ?)(?![ \t]|[-*] |\d+\. |[a-z]\. |[ivx]+\. ).*)*)$/gm;
+// const NormalizableReferences = /\!?\[(\S.+?\S)\](?:\((\S[^\n()\[\]]*?\S)\)|\[(\S[^\n()\[\]]*\S)\])/g;
+// const RewritableAliases = /^([> \t]*)\[(\S.+?\S)\]:\s+(\S+)(?:\s+"([^\n]*)"|\s+'([^\n]*)'|)(?=\s*$)/gm;
+// const NormalizableLink = /\s*((?:\s?[^'"\(\)\]\[\s\n]+)*)(?:\s+["']([^\n]*)["']|)/;
+
 class Segmenter extends RegExp {
 	/**
 	 * @param {string | RegExp} pattern
@@ -380,7 +767,7 @@ class Segmenter extends RegExp {
 		} else if (type === LOOKAHEAD) {
 			match.lookahead = text;
 			return;
-		} else if (type !== UNKNOWN) {
+		} else if (type !== UNKNOWN$1) {
 			switch (typeof type) {
 				case 'string':
 					if (match.typeIndex > -1) return;
@@ -422,7 +809,7 @@ class Segmenter extends RegExp {
 	}
 }
 
-const {INSET, UNKNOWN, LOOKAHEAD} = Object.defineProperties(Segmenter, {
+const {INSET, UNKNOWN: UNKNOWN$1, LOOKAHEAD} = Object.defineProperties(Segmenter, {
 	INSET: {value: Symbol.for('INSET'), enumerable: true},
 	UNKNOWN: {value: Symbol.for('UNKNOWN'), enumerable: true},
 	LOOKAHEAD: {value: Symbol.for('LOOKAHEAD'), enumerable: true},
@@ -445,21 +832,21 @@ globalThis.$mo = async function debug(specifier = '/markout/examples/markdown-te
 };
 
 const MarkoutSegments = (() => {
-	const MarkoutLists = sequence`[-*]|[1-9]+\d*\.|[ivx]+\.|[a-z]\.`;
-	const MarkoutMatter = sequence`---(?=\n.+)(?:\n.*)+?\n---`;
-	const MarkoutStub = sequence`<!--[^]*?-->|<!.*?>|<\?.*?\?>|<%.*?%>|<(?:\b|\/).*(?:\b|\/)>.*`;
-	const MarkoutStart = sequence`(?!(?:${MarkoutLists}) )(?:[^#${'`'}~<>|\n\s]|${'`'}{1,2}(?!${'`'})|~{1, 2}(?!~))`;
-	const MarkoutLine = sequence`(?:${MarkoutStart})(?:${MarkoutStub}|.*)*$`;
+	const MarkoutLists = sequence$1`[-*]|[1-9]+\d*\.|[ivx]+\.|[a-z]\.`;
+	const MarkoutMatter = sequence$1`---(?=\n.+)(?:\n.*)+?\n---`;
+	const MarkoutStub = sequence$1`<!--[^]*?-->|<!.*?>|<\?.*?\?>|<%.*?%>|<(?:\b|\/).*(?:\b|\/)>.*`;
+	const MarkoutStart = sequence$1`(?!(?:${MarkoutLists}) )(?:[^#${'`'}~<>|\n\s]|${'`'}{1,2}(?!${'`'})|~{1, 2}(?!~))`;
+	const MarkoutLine = sequence$1`(?:${MarkoutStart})(?:${MarkoutStub}|.*)*$`;
 	// const MarkoutDivider = sequence`-(?:[ \t]*-)+|=(?:=[ \t]*)+`;
-	const MarkoutDivider = sequence`-{2,}|={2,}|\*{2,}|(?:- ){2,}-|(?:= ){2,}=|(?:\* ){2,}\*`;
-	const MarkoutATXHeading = sequence`#{1,6}(?= +${MarkoutLine})`;
-	const MarkoutTextHeading = sequence`${MarkoutStart}.*\n(?=\2\={3,}\n|\2\-{3,}\n)`;
+	const MarkoutDivider = sequence$1`-{2,}|={2,}|\*{2,}|(?:- ){2,}-|(?:= ){2,}=|(?:\* ){2,}\*`;
+	const MarkoutATXHeading = sequence$1`#{1,6}(?= +${MarkoutLine})`;
+	const MarkoutTextHeading = sequence$1`${MarkoutStart}.*\n(?=\2\={3,}\n|\2\-{3,}\n)`;
 
 	const MarkoutSegments = Segmenter.define(
 		type =>
-			sequence`^
+			sequence$1`^
 		  (?:
-		    ${type(UNKNOWN)}(${MarkoutMatter}$|[ \t]*(?:${MarkoutStub})[ \t]*$)|
+		    ${type(UNKNOWN$1)}(${MarkoutMatter}$|[ \t]*(?:${MarkoutStub})[ \t]*$)|
 		    (?:
 		      ${type(INSET)}((?:  |\t)*?(?:> ?)*?(?:> ?| *))
 		      (?:
@@ -472,7 +859,7 @@ const MarkoutSegments = (() => {
 		        ${type('feed')}(?:([ \t]*(?:\n\2[ \t])*)$)|
 		        ${type('paragraph')}(?:(${MarkoutLine}(?:\n\2 {0,2}${MarkoutLine})*)$)
 		      )|
-		      ${type(UNKNOWN)}(.+?$)
+		      ${type(UNKNOWN$1)}(.+?$)
 		    )
 		  )(?=${type(LOOKAHEAD)}(\n?^.*$)?)
 		`,
@@ -494,7 +881,7 @@ class MarkoutSegmentNormalizer extends MarkoutBlockNormalizer {
 		// for (const segment of matchAll(sourceText, MarkoutSegments)) {}
 
 		try {
-			state.segments = [...matchAll(sourceText, MarkoutSegments)];
+			state.segments = [...matchAll$1(sourceText, MarkoutSegments)];
 
 			return this.normalizeBlocks(sourceText, state);
 		} finally {
@@ -567,6 +954,11 @@ const render = tokens => {
 };
 
 const tokenize = sourceText => tokenize$1(`${sourceText.trim()}\n}`, {sourceType: 'markdown'});
+
+const encodeEscapedEntities = ((Escapes, replace) => text => text.replace(Escapes, replace))(
+	/\\([*^-`])/g,
+	(m, e) => encodeEntity(e),
+);
 
 const FencedBlockHeader = /^(?:(\w+)(?:\s+(.*?)\s*|)$|)/m;
 
@@ -748,6 +1140,8 @@ class MarkoutRenderer {
 					lineBreaks && `line-breaks="${lineBreaks}"`,
 				].join(' ');
 
+			tag === 'span' && (body = encodeEscapedEntities(body));
+
 			before && (context.renderedText += before);
 			tag === 'br' || (context.newlines = 0)
 				? (!NEWLINE_CONSOLIDATION && (context.renderedText += '\n')) ||
@@ -805,6 +1199,12 @@ const createPunctuators = (
 	}
 	for (let h = 1, c = 2080, n = 6; n--; entities['#'.repeat(h)] = `#<sup>&#x${c + h++};</sup>`);
 
+	const escapes = {};
+
+	for (const symbol of '* _ ~ `'.split(' ')) {
+		escapes[`\\${symbol}`] = `&#x${symbol.charAt(0).toString(16)};`;
+	}
+
 	return {entities, blocks, spans, tags: new Set(tags)};
 };
 
@@ -856,5 +1256,5 @@ debugging('markout', import.meta, [
 	'fenced-block-header-rendering',
 ]);
 
-export { render as a, tokenize as b, normalize as c, SourceTypeAttribute as d, MarkupModeAttribute as e, MarkupSyntaxAttribute as f };
+export { MarkupModeAttribute as M, SourceTypeAttribute as S, MarkupSyntaxAttribute as a, normalize as n, render as r, tokenize as t };
 //# sourceMappingURL=common.js.map

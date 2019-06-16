@@ -1,20 +1,65 @@
-﻿# smotaal.io/markout <code tag>Draft</code>
+﻿<title>smotaal.io/markout</title>
 
-Renders markout from any URL by appending it as a hash.
+<pre align=center text-align:=center display:=flex place-self:=center>
 
-## Concepts
 
-Markout shares a lot of similarities with many markdown renderers, but uses a very different syntax with completely different processing mechanics.
+<img width=50% min-width:=75% max-width:=50em title="smotaal.io/markout" src="./assets/markout-banner.png"/>
 
-### Markout borrows a lot of nice features from Markdown
+
+The HTML-flavoured markdown-inspired client renderer.
+
+</pre>
+
+## Features
+
+Markout borrows a lot of nice features from Markdown, but uses a completely different rendering architecture that makes it easy to also leverage builtin features of the actual HTML renderer.
 
 <details open><summary>
-#### Lists
+
+### Inline Styles
+
+</summary>
+
+<!-- prettier-ignore-start -->
+<div>
+
+- Italics
+
+  - [x] `one *two* three` — <samp>"two"</samp><figure>one *two* three</figure>
+  - [x] `one*two*three` — <samp>"two"</samp><figure>one*two*three</figure>
+  - [ ] `_one_*two*_three_` — <samp>all</samp><figure>_one_*two*_three_</figure>
+  - [x] `one\*two\*three` — <samp>escape</samp><figure>one\*two\*three</figure>
+  - [x] `one_two_three` — <samp>sic</samp><figure>one_two_three</figure>
+
+- Bold
+
+  - [x] `one **two** three` — <samp>"two"</samp><figure>one **two** three</figure>
+  - [x] `one**two**three` — <samp>"two"</samp><figure>one**two**three</figure>
+  - [ ] `**one****two****three**` — <samp>all</samp><figure>**one****two****three**</figure>
+  - [x] `one\**two\**three` — <samp>escape</samp><figure>one\**two\**three</figure>
+  - [x] `one\*\*two\*\*three` — <samp>escape</samp><figure>one\*\*two\*\*three</figure>
+
+- Strikethrough
+  - [x] `one ~~two~~ three` — <samp>"two"</samp><figure>one ~~two~~ three</figure>
+  - [ ] `one~~two~~three` — <samp>"two"</samp><figure>one~~two~~three</figure>
+  - [ ] `~~one~~~~two~~~~three~~` — <samp>all</samp><figure>~~one~~~~two~~~~three~~</figure>
+  - [x] `one\~~two\~~three` — <samp>sic</samp><figure>one\~~two\~~three</figure>
+
+</div>
+<!-- prettier-ignore-end -->
+</details>
+
+<details open><summary>
+
+### Lists
+
 </summary>
 
 - [x] Unordered Lists
 - [x] Ordered Lists
 - [x] Checklists
+  - Nested Lists
+  - [x] Nested Checklist
 - [x] Complex Lists
 - [ ] Dynamic Checklists
 
@@ -35,11 +80,13 @@ a. 123
 </div>
 
 <figure>
+
 2. abc
 
 a. 123
 
 3. efg
+
 </figure>
 
 <!-- prettier-ignore-end -->
@@ -50,7 +97,9 @@ a. 123
 ### Markout is an expressive way to author HTML
 
 <details><summary>
-#### Titles
+
+### Titles
+
 </summary>
 
 - [ ] Title are implicitly defined from leading heading(s)
@@ -75,7 +124,9 @@ a. 123
 </details>
 
 <details><summary>
-#### Headings
+
+### Headings
+
 </summary>
 
 - [ ] Headings are created per conventional `#` prefix
@@ -200,7 +251,8 @@ a. 123
 </details>
 
 <details><summary>
-#### Heading Groups
+
+### Heading Groups
 </summary>
 
 - [ ] Heading groups are created from well-chained heading blocks
@@ -240,7 +292,8 @@ a. 123
 </details>
 
 <details><summary>
-#### Titles
+
+### Titles
 </summary>
 
 - [ ] Heading groups are created from well-chained heading blocks

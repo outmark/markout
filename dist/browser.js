@@ -1,6 +1,6 @@
 import { debugging } from '/markout/lib/helpers.js';
 import { entities as entities$1, render as render$1 } from '/markup/dist/tokenizer.browser.js';
-import { a as render, b as tokenize, c as normalize, d as SourceTypeAttribute, e as MarkupModeAttribute, f as MarkupSyntaxAttribute } from './common.js';
+import { r as render, t as tokenize, n as normalize, S as SourceTypeAttribute, M as MarkupModeAttribute, a as MarkupSyntaxAttribute } from './common.js';
 import { Assets, css, html, Component } from './components.js';
 
 async function dynamicImport(specifier, referrer) {
@@ -10,7 +10,7 @@ async function dynamicImport(specifier, referrer) {
 		const resolve = freeze((specifier, referrer) => `${new URL(specifier, referrer || base || location)}`);
 		const properties = {resolve};
 		try {
-			properties.import = freeze((0, eval)(`url => import(url)`));
+			properties.import = freeze((1, eval)(`url => import(url)`));
 			properties.export = freeze(() => {
 				throw Error(`Invalid invokation of dynamicImport.exports()`);
 			});
@@ -127,9 +127,9 @@ const {
 	'markout-content-source-text-rendering': SOURCE_TEXT_RENDERING = true,
 } = import.meta;
 
-const assets = new Assets({base: new URL('../../', import.meta.url)}, 'style:markout/styles/markout.css');
+const assets = new Assets({base: new URL('../', import.meta.url)}, 'style:styles/markout.css');
 
-const stylesheet = assets['style:markout/styles/markout.css'];
+const stylesheet = assets['style:styles/markout.css'];
 
 const styles = css`
 	@import "${stylesheet}";
@@ -230,7 +230,7 @@ class MarkoutContent extends Component {
 			const stylesheets = [];
 			const baseURL = sourceURL || this.baseURI;
 
-			for (const link of content.querySelectorAll(`script[src],style[src]`)) {
+			for (const link of content.querySelectorAll(`script[src],style[src],img[src],source[src],video[src]`)) {
 				const {nodeName, rel, baseURI, slot, parentElement, previousElementSibling} = link;
 				if (slot && slot !== 'links') continue;
 				const type = `${link.type || ''}`.trim().toLowerCase();
@@ -238,6 +238,10 @@ class MarkoutContent extends Component {
 				const href = link.getAttribute('href');
 				const base = link.hasAttribute('base') ? baseURI : baseURL;
 				const url = new URL(src || href, base);
+
+				link.setAttribute('link-src', src);
+				link.setAttribute('link-base', base);
+
 				switch (nodeName) {
 					case 'SCRIPT':
 						if (type === 'module') {
@@ -255,6 +259,11 @@ class MarkoutContent extends Component {
 							link.remove();
 							break;
 						}
+					case 'IMG':
+					case 'VIDEO':
+					case 'SRC':
+						link.setAttribute('src', new URL(src, base));
+						break;
 					default:
 						// TODO: Ensure base attribute bahviour holds
 						// link.slot = 'links';
@@ -508,7 +517,7 @@ try {
 			Prefixes: {
 				const autoprefix = value => {
 					const prefixed = value.replace(autoprefix.matcher, autoprefix.replacer);
-					console.log(value, prefixed);
+					// console.log(value, prefixed);
 					return prefixed;
 				};
 				autoprefix.mappings = {};
@@ -557,7 +566,8 @@ try {
 // const LINE_FEED = '\x0A';
 // const START_OF_CONTENT = START_OF_TEXT;
 
-const RewritableURL = /^(\.*(?=\/)[^?#\n]*\/)(?:([^/?#\n]+?)(?:(\.[a-z]+)|)|)(\?[^#]+|)(#.*|)$|/i;
+// const RewritableURL = /^(\.*(?=\/)[^?#\n]*\/)(?:([^/?#\n]+?)(?:(\.[a-z]+)|)|)(\?[^#]+|)(#.*|)$|/i;
+const RewritableURL = /^(\.*(?=\/)[^?#\n]*\/|)(?:(?:([^/?#\n]+?)(?:(\.[a-z]+)|)|)|)(\?[^#]+|)(#.*|)$|/i;
 
 const {dir, dirxml, group, groupCollapsed, groupEnd, log} = console;
 
@@ -582,6 +592,8 @@ const rewriteAnchors = (
 					? `${baseURL}${search}#${new URL(pathname, sourceURL).pathname}`
 					: new URL(`${pathname}${query || ((!hash && search) || '')}${hash}`, sourceURL);
 			anchor.href = href;
+		} else if (hash) {
+			anchor.href = `${location}${matched}`;
 		} else {
 			anchor.target || (anchor.target = '_blank');
 		}
@@ -612,25 +624,11 @@ debugging('hashout', import.meta, [
 			arguments.length || (src = this.getAttribute('src'));
 			if (!src) return;
 			const url = new URL(src, this.baseURI);
-			// const previous = this.sourceURL;
-			// try {
-			// const loading = loadTextFrom(url);
 			const response = await fetch(url);
 			if (!response.ok) throw Error(`Failed to fetch ${url}`);
 			const text = await response.text();
 			this.sourceURL = url;
 			this.sourceText = text || '';
-			// return;
-			// (error = loading.error) || ((this.sourceURL = url), (this.sourceText = text));
-			// }
-			// catch (exception) {
-			// 	error = (exception.stack, exception);
-			// }
-			// if (error) {
-			// 	// if (previous) this.sourceURL = previous;
-			// 	throw error;
-			// }
-			// return;
 		}
 
 		/**
