@@ -340,7 +340,7 @@ const Component = (() => {
     const {defineProperty, defineProperties, getOwnPropertyDescriptor} = Object;
 
     /**
-     * @template {string|symbol} K
+     * @template {PropertyKey} K
      * @template V
      * @param {{}} target
      * @param {K} property
@@ -360,6 +360,16 @@ const Component = (() => {
     );
 
     const descriptor = {get: () => undefined, enumerable: true, configurable: true};
+
+    Object.defineProperty(Component, 'set', {
+      value: {
+        /** @template T @param {PropertyKey} property @param {T} value */
+        ['set'](property, value) {
+          updateProperty(this, property, value);
+          return value;
+        },
+      }['set'],
+    });
 
     defineProperties(Component, {
       attributes: {

@@ -83,6 +83,10 @@ hr {
 [column-grid] {
 	display: grid;
 	grid-auto-flow: column;
+	place-content: stretch;
+	/* justify-content: stretch; */
+	/* align-items: center; */
+	grid-gap: 1em;
 }
 
 [table-row] {
@@ -133,6 +137,7 @@ hr {
 	max-width: 33.3%;
 	/* font-size: 90%; */
 	z-index: 1;
+	margin-left: 1em;
 }
 
 [float='left' i],
@@ -141,6 +146,7 @@ hr {
 	max-width: 33.3%;
 	/* font-size: 90%; */
 	z-index: 1;
+	margin-right: 1em;
 }
 
 [float='right' i] + :not([float]),

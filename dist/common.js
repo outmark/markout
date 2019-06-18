@@ -1,5 +1,5 @@
-import { sequence as sequence$1, debugging, matchAll as matchAll$1, normalizeString } from '/markout/lib/helpers.js';
-import { encodeEntities, tokenize as tokenize$1, encodeEntity } from '/markup/dist/tokenizer.browser.js';
+import { sequence as sequence$1, debugging, normalizeString } from '/markout/lib/helpers.js';
+import { encodeEntities, entities as entities$1, render as render$1, tokenize as tokenize$1, encodeEntity } from '/markup/dist/tokenizer.browser.js';
 
 // export const MarkupSourceTypeAttribute = 'source-type';
 // export const MarkupModeAttribute = 'markup-mode';
@@ -15,20 +15,14 @@ class ComposableList extends Array {
 	) {
 		listStart &&
 			typeof listStart !== 'number' &&
-			// console.log(
-			// 	listStart,
 			(listStart = `${
 				listStyle === 'lower-latin' || listStyle === 'upper-latin'
 					? ComposableList.parseLatin(listStart)
 					: listStyle === 'lower-roman' || listStyle === 'upper-roman'
 					? ComposableList.parseRoman(listStart)
-					: // listStyle === 'lower-latin'
-					  // 	? 'abcdefghijklmnopqrstuvwxyz'.indexOf(listStart) + 1
-					  // 	: listStyle === 'upper-latin'
-					  // 	? 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.indexOf(listStart) + 1
-					  parseInt(listStart) || ''
+					: parseInt(listStart) || ''
 			}`);
-		// );
+
 		const attributes = `${
 			// TODO: Explore using type attribute instead
 			(listStyle && `style="list-style: ${listStyle}"`) || ''
@@ -58,14 +52,14 @@ class ComposableList extends Array {
 					listRows.push(text);
 				}
 			} else {
-				const [, checkbox, content] = /^\s*(?:\[([xX]| )\] |)(.+?)\s*$/.exec(item);
+				const [, checked, content] = /^\s*(?:\[([-xX]| )\] |)(.+?)\s*$/.exec(item);
 
 				content &&
 					listRows.push(
-						checkbox
-							? // ? `${listInset}\t<label><input type=checkbox ${checkbox === ' ' ? '' : ' checked'}/>${content}</label>`
-							  // ? `${listInset}\t<label><input type=checkbox ${checkbox === ' ' ? '' : ' checked'}/>${content}</label>`
-							  `${listInset}\t<li type=checkbox ${checkbox === ' ' ? '' : ' checked'}>${content}</li>`
+						checked
+							? `${listInset}\t<li type=checkbox ${
+									checked === ' ' ? '' : checked === '-' ? 'indeterminate' : ' checked'
+							  }>${content}</li>`
 							: `${listInset}\t<li>${content}</li>`,
 					);
 			}
@@ -114,11 +108,8 @@ ROMAN: {
 	ComposableList.ROMAN = /^[ivxlcdm]+\./i;
 }
 
-// ComposableList.ORDERED = /^(?:0+[1-9]\d*|\d+|[ivx]+|[a-z])(?=\. |$)/i;
-ComposableList.ORDERED = /^(?:0+[1-9]\d*|\d+|[ivx]+|[a-z])(?=\. |$)|^[a-z](?=\) |$)/i;
 ComposableList.UNORDERED = /^[-*](?= |$)/i;
-
-// ComposableList.ORDERED_STYLE = /^(?:(0+[1-9]\d*)|(\d+)|([ivx]+)|([a-z]))(?=\. )|/i;
+ComposableList.ORDERED = /^(?:0+[1-9]\d*|\d+|[ivx]+|[a-z])(?=\. |$)|^[a-z](?=\) |$)/i;
 ComposableList.ORDERED_STYLE = /^(?:(0+[1-9]\d*)(?=\. )|(\d+)(?=\. )|([ivx]+)(?=\. )|([a-z])(?=[.)] ))|/i;
 ComposableList.ORDERED_STYLE.key = ['decimal-leading-zero', 'decimal', 'roman', 'latin'];
 
@@ -441,7 +432,7 @@ const matchers = {};
 
 	sequences.NormalizableReferences = sequence/* fsharp */ `
     \!?
-    ${escape('[')}(\S.+?\S)${escape(']')}
+    ${escape('[')}(\S.*?\S)${escape(']')}
     (?:
       ${escape('(')}(\S[^\n${escape('()[]')}]*?\S)${escape(')')}
       |${escape('[')}(\S[^\n${escape('()[]')}]*\S)${escape(']')}
@@ -452,14 +443,14 @@ const matchers = {};
 	sequences.RewritableAliases = sequence/* fsharp */ `
     ^
     (${INSET})
-    ${escape('[')}(\S.+?\S)${escape(']')}:\s+
+    ${escape('[')}(\S.*?\S)${escape(']')}:\s+
     (\S+)(?:
       \s+${'"'}([^\n]*)${'"'}
       |\s+${"'"}([^\n]*)${"'"}
       |
     )(?=\s*$)
   `;
-	matchers.RewritableAliases = new RegExp(sequences.RewritableAliases);
+	matchers.RewritableAliases = new RegExp(sequences.RewritableAliases, 'gm');
 
 	sequences.NormalizableLink = sequence/* fsharp */ `
     \s*(
@@ -877,33 +868,15 @@ class MarkoutSegmentNormalizer extends MarkoutBlockNormalizer {
 	 */
 	normalizeSegments(sourceText, state = {}) {
 		const {sources = (state.sources = []), [ALIASES$1]: aliases = (state[ALIASES$1] = {})} = state;
-
-		// for (const segment of matchAll(sourceText, MarkoutSegments)) {}
-
 		try {
-			state.segments = [...matchAll$1(sourceText, MarkoutSegments)];
+			// TODO: Implement Markout's Matcher-based segment normalization
+			// for (const segment of matchAll(sourceText, MarkoutSegments)) {}
+			// state.segments = [...matchAll(sourceText, MarkoutSegments)];
 
 			return this.normalizeBlocks(sourceText, state);
 		} finally {
 			import.meta['debug:markout:segment-normalization'] && console.log('normalizeSegments:', state);
 		}
-
-		Normalization: {
-			// const {[BLOCKS]: sourceBlocks} = source;
-			// for (const {text, fence, unfenced} of sourceBlocks[MATCHES]) {
-			// 	sourceBlocks.push(
-			// 		fence
-			// 			? text
-			// 			: this.normalizeParagraphs(
-			// 					this.normalizeBreaks(this.normalizeLists(this.normalizeReferences(text, state))),
-			// 			  ),
-			// 	);
-			// }
-			// source.normalizedText = sourceBlocks.join('\n');
-			import.meta['debug:markout:block-normalization'] && console.log('normalizeSourceText:', state);
-		}
-
-		// return source.normalizedText;
 	}
 }
 
@@ -930,9 +903,340 @@ class MarkoutNormalizer extends MarkoutSegmentNormalizer {
 	}
 }
 
+const {
+	UnicodeIdentifier,
+	MarkdownIdentityPrefixer,
+	MarkdownIdentityJoiner,
+	MarkdownIdentityWord,
+	MarkdownIdentity,
+} = (({
+	raw = String.raw,
+	IdentifierStart,
+	IdentifierPart,
+	UnicodeIdentifierStart = IdentifierStart.slice(2),
+	UnicodeIdentifierPart = IdentifierPart.slice(2),
+	UnicodeIdentifier = raw`[${UnicodeIdentifierStart}][${UnicodeIdentifierPart}]*`,
+	MarkdownWordPrefixes = raw`$@`,
+	MarkdownWordPrefix = raw`[${MarkdownWordPrefixes}]?`,
+	MarkdownWord = raw`${MarkdownWordPrefix}${UnicodeIdentifier}`,
+	MarkdownWordJoiners = raw` \\\/:_\-\xA0\u2000-\u200B\u202F\u2060`,
+	MarkdownWordJoiner = raw`[${MarkdownWordJoiners}]+`,
+	// MarkdownIdentity = raw`(?:\s|\n|^)(${MarkdownWord}(?:${MarkdownWordJoiner}${MarkdownWord})*(?=\b[\s\n]|$))`,
+	MarkdownIdentity = raw`(?:\s|\n|^)(${MarkdownWord}(?:${MarkdownWordJoiner}${MarkdownWord})*)`,
+}) => ({
+	UnicodeIdentifier: new RegExp(UnicodeIdentifier, 'u'),
+	MarkdownIdentityPrefixer: new RegExp(raw`^[${MarkdownWordPrefixes}]?`, 'u'),
+	MarkdownIdentityJoiner: new RegExp(raw`[${MarkdownWordJoiners}]+`, 'ug'),
+	MarkdownIdentityWord: new RegExp(MarkdownWord, 'u'),
+	MarkdownIdentity: new RegExp(MarkdownIdentity, 'u'),
+	// MarkdownIdentitySeparators: new RegExp(raw`[${MarkdownWordPrefixes}${MarkdownWordJoiners}]+`, 'ug')
+}))(entities$1.es);
+
+const entities = /*#__PURE__*/Object.freeze({
+	UnicodeIdentifier: UnicodeIdentifier,
+	MarkdownIdentityPrefixer: MarkdownIdentityPrefixer,
+	MarkdownIdentityJoiner: MarkdownIdentityJoiner,
+	MarkdownIdentityWord: MarkdownIdentityWord,
+	MarkdownIdentity: MarkdownIdentity
+});
+
+const declarativeStyling = (declarativeStyling => {
+	const {getOwnPropertyNames, setPrototypeOf, getPrototypeOf, freeze, keys} = Object;
+	const {lookup} = declarativeStyling;
+	const Filter = /^(?!webkit[A-Z])(?!moz[A-Z])[a-zA-Z]{2,}$/;
+	const Boundary = /[a-z](?=[A-Z])/g;
+	const selectors = [];
+	const style = document.createElement('span').style;
+
+	for (const property of new Set(
+		[
+			// Webkit/Blink
+			...getOwnPropertyNames(style),
+			// Firefox
+			...getOwnPropertyNames(getPrototypeOf(style)),
+		].filter(property => style[property] === '' && Filter.test(property)),
+	)) {
+		const attribute = `${property.replace(Boundary, '$&-').toLowerCase()}:`;
+		lookup[attribute] = property;
+		selectors.push(`[${CSS.escape(attribute)}]`);
+	}
+
+	declarativeStyling.selector = selectors.join(',');
+	freeze(setPrototypeOf(declarativeStyling.lookup, null));
+	freeze(declarativeStyling.apply);
+
+	Prefixes: {
+		const autoprefix = value => {
+			const prefixed = value.replace(autoprefix.matcher, autoprefix.replacer);
+			// console.log(value, prefixed);
+			return prefixed;
+		};
+		autoprefix.mappings = {};
+		autoprefix.prefix = CSS.supports('-moz-appearance', 'initial')
+			? '-moz-'
+			: CSS.supports('-webkit-appearance', 'initial')
+			? '-webkit-'
+			: '';
+
+		if (autoprefix.prefix) {
+			const {mappings, prefix} = autoprefix;
+			const map = (property, value, mapping = `${prefix}${value}`) =>
+				CSS.supports(property, value) || (mappings[value] = mapping);
+
+			if (prefix === '-webkit-') {
+				map('width', 'fill-available');
+			} else if (prefix === '-moz-') {
+				map('width', 'fill-available', '-moz-available');
+			}
+
+			const mapped = keys(mappings);
+
+			if (mapped.length > 0) {
+				autoprefix.matcher = new RegExp(String.raw`\b-?(?:${mapped.join('|')})\b`, 'gi');
+				freeze((autoprefix.replacer = value => mappings[value] || value));
+				freeze(autoprefix.mappings);
+				freeze((declarativeStyling.autoprefix = autoprefix));
+			}
+			// console.log(autoprefix, {...autoprefix});
+		}
+	}
+
+	freeze(declarativeStyling);
+	return declarativeStyling;
+})({
+	/** @type {{[name: string] : string}} */
+	lookup: {},
+	selector: '',
+	apply: element => {
+		const style = element.style;
+		const {lookup, autoprefix} = declarativeStyling;
+		if (autoprefix) {
+			for (const attribute of element.getAttributeNames())
+				attribute in lookup &&
+					((style[lookup[attribute]] = autoprefix(element.getAttribute(attribute))),
+					element.removeAttribute(attribute));
+		} else {
+			for (const attribute of element.getAttributeNames())
+				attribute in lookup &&
+					((style[lookup[attribute]] = element.getAttribute(attribute)), element.removeAttribute(attribute));
+		}
+	},
+	/** @type {(value: string) => string} */
+	autoprefix: undefined,
+});
+
+const {
+	createRenderedFragment,
+	populateAssetsInFragment,
+	normalizeBreaksInFragment,
+	normalizeHeadingsInFragment,
+	normalizeChecklistsInFragment,
+	normalizeParagraphsInFragment,
+	applyDeclarativeStylingInFragment,
+	renderSourceTextsInFragment,
+} = (() => {
+	/** @type {HTMLTemplateElement} */
+	let template;
+
+	/** @param {string} sourceText @returns {DocumentFragment}*/
+	const createRenderedFragment = sourceText => {
+		let fragment, normalizedText, tokens;
+		template || (template = document.createElement('template'));
+
+		template.innerHTML = render(
+			(tokens = tokenize((normalizedText = normalize(sourceText)))),
+		);
+
+		fragment = template.content.cloneNode(true);
+		fragment.fragment = fragment;
+		fragment.sourceText = sourceText;
+		fragment.normalizedText = normalizedText;
+		fragment.tokens = tokens;
+
+		return fragment;
+	};
+
+	/** Populate remappable elements  */
+	const populateAssetsInFragment = fragment => {
+		if (!fragment || fragment.assets) return;
+		fragment.assets = [];
+
+		for (const link of fragment.querySelectorAll(AssetSelector)) {
+			if (link.nodeName === 'SCRIPT') {
+				if (link.type === 'module') {
+					(fragment.assets.modules || (fragment.assets.modules = [])).push(link);
+				} else if (!link.type || link.type.trim().toLowerCase() === 'text/javascript') {
+					(fragment.assets.scripts || (fragment.assets.scripts = [])).push(link);
+				}
+			} else if (link.nodeName === 'STYLE') {
+				if (!link.type || link.type.trim().toLowerCase() === 'text/css') {
+					(fragment.assets.stylesheets || (fragment.assets.stylesheets = [])).push(link);
+				}
+			} else {
+				(fragment.assets[AssetTypeMap[link.nodeName]] || (fragment.assets[AssetTypeMap[link.nodeName]] = [])).push(
+					link,
+				);
+			}
+			fragment.assets.push(link);
+		}
+
+		return fragment;
+	};
+
+	const normalizeBreaksInFragment = fragment => {
+		for (const br of fragment.querySelectorAll('br')) {
+			const {previousSibling, nextSibling, parentElement} = br;
+			(!previousSibling ||
+				previousSibling.nodeName !== 'SPAN' ||
+				!nextSibling ||
+				nextSibling.nodeName !== 'SPAN' ||
+				(parentElement && !/^(?:CODE|PRE|LI)$/.test(parentElement.nodeName))) &&
+				br.remove();
+		}
+	};
+
+	const normalizeHeadingsInFragment = fragment => {
+		const {MarkdownIdentity: Identity, MarkdownIdentityPrefixer: Prefixer, MarkdownIdentityJoiner: Joiner} = entities;
+		const {headings = (fragment.headings = {})} = fragment;
+
+		for (const subheading of fragment.querySelectorAll(`h1+h2, h2+h3, h3+h4, h4+h5, h5+h6`)) {
+			const previousElementSibling = subheading.previousElementSibling;
+			const previousSibling = subheading.previousSibling;
+			if (!previousElementSibling || previousSibling !== previousElementSibling) continue;
+			// console.log({subheading, previousElementSibling, previousSibling});
+			if (previousElementSibling && previousElementSibling.nodeName === 'HGROUP') {
+				previousElementSibling.appendChild(subheading);
+			} else if (previousElementSibling) {
+				const hgroup = document.createElement('hgroup');
+				previousElementSibling.before(hgroup);
+				hgroup.appendChild(previousElementSibling);
+				hgroup.appendChild(subheading);
+			}
+		}
+
+		for (const heading of fragment.querySelectorAll(
+			`h1:not([id]):not(:empty),h2:not([id]):not(:empty),h3:not([id]):not(:empty)`,
+		)) {
+			const [, identity] = Identity.exec(heading.textContent) || '';
+			if (!identity) continue;
+			const anchor = document.createElement('a');
+			anchor.id = identity
+				.replace(Prefixer, '')
+				.replace(Joiner, '-')
+				.toLowerCase();
+			heading.before(anchor);
+			anchor.append(heading);
+			headings[anchor.id] = {anchor, identity, heading};
+		}
+	};
+
+	const normalizeChecklistsInFragment = fragment => {
+		for (const checklist of fragment.querySelectorAll(
+			'li[type=checkbox]:not([checked]):not([indeterminate]) li[type=checkbox]:not([checked])',
+		)) {
+			let parentChecklist = checklist;
+			// console.log({checklist, parentChecklist});
+			while ((parentChecklist = parentChecklist.parentElement.closest('li[type=checkbox]'))) {
+				if (parentChecklist.hasAttribute('checked') || parentChecklist.hasAttribute('indeterminate')) break;
+				parentChecklist.setAttribute('indeterminate', '');
+			}
+		}
+	};
+
+	const normalizeParagraphsInFragment = fragment => {
+		let empty, span;
+		if ((empty = fragment.querySelectorAll('p:empty')).length) {
+			(span = document.createElement('span')).append(...empty);
+			// console.log({empty, content: span.innerHTML});
+		}
+	};
+
+	const applyDeclarativeStylingInFragment = fragment => {
+		if (
+			typeof declarativeStyling.apply === 'function' &&
+			typeof declarativeStyling.selector === 'string' &&
+			declarativeStyling.selector !== ''
+		)
+			for (const element of fragment.querySelectorAll(declarativeStyling.selector)) declarativeStyling.apply(element);
+	};
+
+	const renderSourceTextsInFragment = fragment => {
+		const promises = [];
+
+		for (const element of fragment.querySelectorAll(`[${SourceTypeAttribute}]:not(:empty)`))
+			promises.push(
+				renderSourceText({
+					element,
+					sourceType: element.getAttribute(MarkupModeAttribute) || element.getAttribute(SourceTypeAttribute),
+					sourceText: element.textContent,
+				}),
+			);
+
+		return promises.length ? Promise.all(promises) : Promise.resolve();
+	};
+
+	/**
+	 * @param {Partial<{element: HTMLElement, sourceType: string, sourceText: String}>} options
+	 * @returns {Promise<HTMLElement>}
+	 */
+	const renderSourceText = async options => {
+		let element, fragment, sourceType, sourceText;
+
+		if (
+			!options ||
+			typeof options !== 'object' ||
+			(({element, sourceType, sourceText, ...options} = options),
+			!(element
+				? !element.hasAttribute(MarkupSyntaxAttribute) &&
+				  (sourceType ||
+						(sourceType = element.getAttribute(MarkupModeAttribute) || element.getAttribute(SourceTypeAttribute)),
+				  sourceText || (sourceText = element.textContent || ''))
+				: sourceText))
+		)
+			return void console.warn('Aborted: renderSourceText(%o => %o)', arguments[0], {element, sourceType, sourceText});
+
+		element || ((element = document.createElement('pre')).className = 'markup code');
+		element.removeAttribute(SourceTypeAttribute);
+		element.setAttribute(MarkupSyntaxAttribute, sourceType);
+		fragment = document.createDocumentFragment();
+		element.textContent = '';
+		element.sourceText = sourceText;
+		await render$1(sourceText, {sourceType, fragment});
+		element.appendChild(fragment);
+
+		return element;
+	};
+
+	return {
+		createRenderedFragment,
+		populateAssetsInFragment,
+		normalizeBreaksInFragment,
+		normalizeHeadingsInFragment,
+		normalizeChecklistsInFragment,
+		normalizeParagraphsInFragment,
+		applyDeclarativeStylingInFragment,
+		renderSourceTextsInFragment,
+	};
+})();
+
 const SourceTypeAttribute = 'source-type';
 const MarkupModeAttribute = 'markup-mode';
 const MarkupSyntaxAttribute = 'markup-syntax';
+
+const AssetTypeMap = Object.freeze(
+	Object.setPrototypeOf(
+		{
+			IMG: 'images',
+			VIDEO: 'videos',
+			SOURCE: 'sources',
+		},
+		null,
+	),
+);
+
+const AssetSelector = ['script', 'style', ...Object.keys(AssetTypeMap)]
+	.map(tag => `${tag.toUpperCase()}[src]:not([slot])`)
+	.join(',');
 
 const {
 	// Attempts to overcome **__**
@@ -1256,5 +1560,5 @@ debugging('markout', import.meta, [
 	'fenced-block-header-rendering',
 ]);
 
-export { MarkupModeAttribute as M, SourceTypeAttribute as S, MarkupSyntaxAttribute as a, normalize as n, render as r, tokenize as t };
+export { normalizeBreaksInFragment as a, normalizeHeadingsInFragment as b, createRenderedFragment as c, normalizeParagraphsInFragment as d, normalizeChecklistsInFragment as e, applyDeclarativeStylingInFragment as f, renderSourceTextsInFragment as g, normalize as n, populateAssetsInFragment as p, render as r, tokenize as t };
 //# sourceMappingURL=common.js.map
