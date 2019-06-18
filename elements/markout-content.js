@@ -4,9 +4,9 @@ import * as content from '../lib/content.js';
 
 const {
 	'markout-content-dom-mutations': DOM_MUTATIONS = undefined,
-	'markout-content-break-normalization': BREAK_NORMALIZATION = undefined,
+	'markout-content-break-normalization': BREAK_NORMALIZATION = false,
 	'markout-content-heading-normalization': HEADING_NORMALIZATION = true,
-	'markout-content-paragraph-normalization': PARAGRAPH_NORMALIZATION = true,
+	'markout-content-paragraph-normalization': PARAGRAPH_NORMALIZATION = false,
 	'markout-content-checklist-normalization': CHECKLIST_NORMALIZATION = true,
 	'markout-content-declarative-styling': DECLARATIVE_STYLING = true,
 	'markout-content-source-text-rendering': SOURCE_TEXT_RENDERING = true,

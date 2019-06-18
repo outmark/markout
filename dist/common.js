@@ -915,7 +915,7 @@ const {
 	IdentifierPart,
 	UnicodeIdentifierStart = IdentifierStart.slice(2),
 	UnicodeIdentifierPart = IdentifierPart.slice(2),
-	UnicodeIdentifier = raw`[${UnicodeIdentifierStart}][${UnicodeIdentifierPart}]*`,
+	UnicodeIdentifier = raw`[\d${UnicodeIdentifierStart}][\d${UnicodeIdentifierPart}]*`,
 	MarkdownWordPrefixes = raw`$@`,
 	MarkdownWordPrefix = raw`[${MarkdownWordPrefixes}]?`,
 	MarkdownWord = raw`${MarkdownWordPrefix}${UnicodeIdentifier}`,
@@ -1124,8 +1124,8 @@ const {
 				.replace(Prefixer, '')
 				.replace(Joiner, '-')
 				.toLowerCase();
-			heading.before(anchor);
-			anchor.append(heading);
+			anchor.append(...heading.childNodes);
+			heading.appendChild(anchor);
 			headings[anchor.id] = {anchor, identity, heading};
 		}
 	};
