@@ -38,7 +38,7 @@ Current experimental efforts divide the rendering into two phases, the first por
 - [x] Markout Attribute Styles <figure columns:=20em font-size:=90%>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center margin:=0 padding:=0>`<span color:=red>one</span>`</pre>
+        <pre text-align:=center source-type=html margin:=0 padding:=0>`<span color:=red>one</span>`</pre>
         <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><span color:=red>one</span></figure>
         </figure>
 
