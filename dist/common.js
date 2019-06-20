@@ -6,156 +6,6 @@ import { encodeEntities, entities as entities$1, render as render$1, tokenize as
 // export const MarkupOptionsAttribute = 'markup-options';
 // export const MarkupSyntaxAttribute = 'markup-syntax';
 
-class ComposableList extends Array {
-	toString(
-		listInset = this.listInset || '',
-		listType = this.listType || 'ul',
-		listStyle = this.listStyle,
-		listStart = this.listStart,
-	) {
-		listStart &&
-			typeof listStart !== 'number' &&
-			(listStart = `${
-				listStyle === 'lower-latin' || listStyle === 'upper-latin'
-					? ComposableList.parseLatin(listStart)
-					: listStyle === 'lower-roman' || listStyle === 'upper-roman'
-					? ComposableList.parseRoman(listStart)
-					: parseInt(listStart) || ''
-			}`);
-
-		const attributes = `${
-			// TODO: Explore using type attribute instead
-			(listStyle && `style="list-style: ${listStyle}"`) || ''
-		} ${
-			// TODO: Check if guard against invalid start is needed
-			(listStart && `start="${listStart}"`) || ''
-		}`.trim();
-
-		const listRows = [`${listInset}<${listType}${(attributes && ` ${attributes}`) || ''}>`];
-		for (const item of this) {
-			if (item && typeof item === 'object') {
-				if (item instanceof ComposableList) {
-					const last = listRows.length - 1;
-					const row = listRows[last];
-					last > 0
-						? (listRows[listRows.length - 1] = `${row.slice(0, -5)}\n${item.toString(
-								`${listInset}\t\t`,
-						  )}\n${listInset}\t</li>`)
-						: listRows.push(`${listInset}\t<li>\n${item.toString(`${listInset}\t\t`)}\n${listInset}\t</li>`);
-				} else {
-					const insetText = `${item}`;
-					let text = insetText;
-					for (const character of listInset) {
-						if (!text.startsWith(character)) break;
-						text = text.slice(1);
-					}
-					listRows.push(text);
-				}
-			} else {
-				const [, checked, content] = /^\s*(?:\[([-xX]| )\] |)(.+?)\s*$/.exec(item);
-
-				content &&
-					listRows.push(
-						checked
-							? `${listInset}\t<li type=checkbox ${
-									checked === ' ' ? '' : checked === '-' ? 'indeterminate' : ' checked'
-							  }>${content}</li>`
-							: `${listInset}\t<li>${content}</li>`,
-					);
-			}
-		}
-		listRows.push(`${listInset}</${listType}>`);
-		return `\n${listRows.join('\n')}\n`;
-	}
-}
-
-ComposableList.CHECKBOX = /^[-] \[[ xX]\](?=\s|$)/;
-ComposableList.SQUARE = /^[-](?! \[[ xX]\])(?=\s|$)/;
-ComposableList.DISC = /^[*](?=\s|$)/;
-ComposableList.DECIMAL = /^0*\d+\./;
-
-LATIN: {
-	const parseLatin = latin => parseLatin.mappings[latin] || NaN;
-
-	parseLatin.mappings = {};
-
-	'abcdefghijklmnopqrstuvwxyz'.split('').forEach((latin, index) => {
-		parseLatin.mappings[(parseLatin.mappings[latin] = parseLatin.mappings[latin.toUpperCase] = index + 1)] = latin;
-	});
-
-	ComposableList.parseLatin = parseLatin;
-	ComposableList.LATIN = /^[a-z]+\./i;
-}
-
-ROMAN: {
-	const parseRoman = roman =>
-		/[^ivxlcdm]/i.test((roman = String(roman)))
-			? NaN
-			: roman
-					.toLowerCase()
-					.split('')
-					.reduce(parseRoman.reducer, 0);
-	// prettier-ignore
-	parseRoman.mappings = Object.freeze({i: 1, v: 5, x: 10, l: 50, c: 100, d: 500, m: 1000, 1: 'i', 5: 'v', 10: 'x', 50: 'l', 100: 'c', 500: 'd', 1000: 'm'});
-
-	parseRoman.reducer = (decimal, character, index, characters) =>
-		decimal +
-		(parseRoman.mappings[character] < parseRoman.mappings[characters[index + 1]]
-			? -parseRoman.mappings[character]
-			: parseRoman.mappings[character]);
-
-	ComposableList.parseRoman = parseRoman;
-	ComposableList.ROMAN = /^[ivxlcdm]+\./i;
-}
-
-ComposableList.UNORDERED = /^[-*](?= |$)/i;
-ComposableList.ORDERED = /^(?:0+[1-9]\d*|\d+|[ivx]+|[a-z])(?=\. |$)|^[a-z](?=\) |$)/i;
-ComposableList.ORDERED_STYLE = /^(?:(0+[1-9]\d*)(?=\. )|(\d+)(?=\. )|([ivx]+)(?=\. )|([a-z])(?=[.)] ))|/i;
-ComposableList.ORDERED_STYLE.key = ['decimal-leading-zero', 'decimal', 'roman', 'latin'];
-
-ComposableList.orderedStyleOf = (marker, variant, fallback) => {
-	const category =
-		ComposableList.ORDERED_STYLE.key[
-			ComposableList.ORDERED_STYLE.exec(marker)
-				.slice(1)
-				.findIndex(Boolean)
-		];
-	return (
-		(category !== undefined &&
-			(category === 'latin' || category === 'roman'
-				? `${
-						variant === 'lower' || (variant !== 'upper' && marker === marker.toLowerCase()) ? 'lower' : 'upper'
-				  }-${category}`
-				: category === 'decimal'
-				? variant !== 'leading-zero'
-					? 'decimal'
-					: 'decimal-leading-zero'
-				: variant !== 'decimal'
-				? 'decimal-leading-zero'
-				: 'decimal')) ||
-		fallback
-	);
-};
-
-ComposableList.markerIsLike = (marker, expected) =>
-	expected in ComposableList.LIKE ? ComposableList.LIKE[expected].test(marker) : undefined;
-
-ComposableList.LIKE = {
-	['checkbox']: ComposableList.CHECKBOX,
-	['square']: ComposableList.SQUARE,
-	['disc']: ComposableList.DISC,
-	['decimal']: ComposableList.DECIMAL,
-	['decimal-leading-zero']: ComposableList.DECIMAL,
-	['roman']: ComposableList.ROMAN,
-	['lower-roman']: ComposableList.ROMAN,
-	['upper-roman']: ComposableList.ROMAN,
-	['latin']: ComposableList.LATIN,
-	['lower-latin']: ComposableList.LATIN,
-	['upper-latin']: ComposableList.LATIN,
-	['ul']: ComposableList.UNORDERED,
-	['ol']: ComposableList.ORDERED,
-};
-
 //@ts-check
 /// <reference path="./types.d.ts" />
 
@@ -368,96 +218,452 @@ const {
 			))()),
 } = Matcher;
 
+/** Arrays of isolated characters */
+const ranges = {};
+
+/** Strings forms of partial recursive expressions */
 const sequences = {};
+
+/** Recursive expressions intended to search for qualified substring */
 const matchers = {};
 
+/** Isolated expressions intended to test a qualified string */
+const patterns = {};
+
+/** Strings forms of partial isolated expressions */
+const partials = {};
+
 {
+	const {freeze} = Object;
 	const {sequence, escape, join} = Matcher;
 
-	const FENCE = sequence`${'`'.repeat(3)}|${escape('~').repeat(3)}`;
-	const INSET = sequence`[> \t]*`;
-	const LIST = sequence`[-*](?: |$)|[1-9]+\d*\.(?: |$)|[a-z][.)](?: |$)|[ivx]+\.(?: |$)`;
+	/** @param {string} string */
+	const upper = string => string.toUpperCase();
+	/** @param {string} string */
+	const lower = string => string.toLowerCase();
+	/** @param {string} string @param {string} [delimiter] */
+	const split = (string, delimiter = '') => string.split(delimiter);
+	/**
+	 * Splits a string into case-distinct subsets as applicable.
+	 *
+	 * NOTE: A non-case-senstive string yields the single
+	 *       subset instance for all its cases. A fully cased
+	 *       string yields separate upper and lower case subsets
+	 *       and a single subset for both initial and any cases.
+	 *
+	 * @param {string} string @param {string} [delimiter]
+	 */
+	split.cases = (string, delimiter = '') => {
+		/** Ordered array of every unique original cased atom in the original string */
+		const initialCase = freeze(union(...split(string, delimiter)));
 
-	sequences.NormalizableBlocks = sequence/* fsharp */ `
-    (?:^|\n)(${INSET}(?:${FENCE}))[^]+?(?:(?:\n\1[ \t]*)+\n?|$)
-    |([^]+?(?:(?=\n${INSET}(?:${FENCE}))|$))
-  `;
-	matchers.NormalizableBlocks = new RegExp(sequences.NormalizableBlocks, 'g');
+		const lowerCaseString = lower(string);
+		const upperCaseString = upper(string);
 
-	sequences.NormalizableParagraphs = sequence/* fsharp */ `
-    ^
-    ((?:[ \t]*\n(${INSET}))+)
-    ($|(?:
-      (?!(?:${LIST}))
-      [^\-#>|~\n].*
-      (?:\n${INSET}$)+
-    )+)
-  `;
-	matchers.NormalizableParagraphs = new RegExp(sequences.NormalizableParagraphs, 'gmu');
+		if (lowerCaseString === upperCaseString) return [initialCase, initialCase, initialCase, initialCase];
 
-	sequences.RewritableParagraphs = sequence/* fsharp */ `
-    ^
-    ([ \t]*[^\-\*#>\n].*?)
-    (\b.*[^:\n\s>]+|\b)
-    [ \t]*\n[ \t>]*
-    (?=(
-      \b
-      |${escape('[')}.*?${escape(']')}[^:\n]?
-      |[^#${'`'}${escape('[')}\n]
-    ))
-  `;
+		/** Ordered array of every unique original and transformed cased atom in the original string */
+		const everyCase = freeze(
+			union(...split(`${string}${delimiter}${lowerCaseString}${delimiter}${upperCaseString}`, delimiter)),
+		);
 
-	matchers.RewritableParagraphs = new RegExp(sequences.RewritableParagraphs, 'gmu');
+		/** Ordered array of every unique lower cased atom in the original string */
+		const lowerCase = freeze(union(...split(lowerCaseString, delimiter)));
 
-	sequences.NormalizableLists = sequence/* fsharp */ `
-    (?=(\n${INSET})(?:${LIST}))
-    ((?:\1
-      (?:${LIST}|   ?)+
-      [^\n]+
-      (?:\n${INSET})*
-      (?=\1|$)
-    )+)
-  `;
-	matchers.NormalizableLists = new RegExp(sequences.NormalizableLists, 'gu');
+		/** Ordered array of every unique upper cased atom in the original string */
+		const upperCase = freeze(union(...split(upperCaseString, delimiter)));
 
-	sequences.NormalizableListItem = sequence/* fsharp */ `
-    ^
-    (${INSET})
-    (${LIST}|)
-    ([^\n]+(?:\n\1(?:   ?|\t ?)(?![ \t]|${LIST}).*)*)$
-  `;
-	matchers.NormalizableListItem = new RegExp(sequences.NormalizableListItem, 'gmu');
+		return everyCase.length === initialCase.length
+			? [initialCase, lowerCase, upperCase, initialCase]
+			: [everyCase, lowerCase, upperCase, initialCase];
+	};
 
-	sequences.NormalizableReferences = sequence/* fsharp */ `
-    !?
-    ${escape('[')}(\S.*?\S)${escape(']')}
-    (?:
-      ${escape('(')}(\S[^\n${escape('()[]')}]*?\S)${escape(')')}
-      |${escape('[')}(\S[^\n${escape('()[]')}]*\S)${escape(']')}
-    )
-  `;
-	matchers.NormalizableReferences = new RegExp(sequences.NormalizableReferences, 'gmu');
+	/** @template T @param {...T} values @returns T[] */
+	const union = (...values) => [...new Set(values)];
 
-	sequences.RewritableAliases = sequence/* fsharp */ `
-    ^
-    (${INSET})
-    ${escape('[')}(\S.*?\S)${escape(']')}:\s+
-    (\S+)(?:
-      \s+${'"'}([^\n]*)${'"'}
-      |\s+${"'"}([^\n]*)${"'"}
-      |
-    )(?=\s*$)
-  `;
-	matchers.RewritableAliases = new RegExp(sequences.RewritableAliases, 'gmu');
+	const range = (...atoms) => `[${atoms.map(range.escape).join('')}]`;
+	range.escape = (atom, index) =>
+		atom === ']' ? '\\]' : atom === '\\' ? '\\\\' : atom === '-' && index !== 0 ? '\\-' : atom;
 
-	sequences.NormalizableLink = sequence/* fsharp */ `
-    \s*(
-      (?:\s?[^${`'"`}${escape('()[]')}}\s\n]+)*
-    )
-    (?:\s+[${`'"`}]([^\n]*)[${`'"`}]|)
-  `;
-	matchers.NormalizableLink = new RegExp(sequences.NormalizableLink, 'u');
+	Ranges: {
+		const FENCE_MARKS = '`~';
+		const LIST_MARKERS = '-*'; // 0=square 1=disc
+		const CHECK_MARKS = ' x-'; // 0=unchecked 1=checked 2=indeterminate
+		// NOTE: Ambiguities when testing if `i.` is roman or
+		//       latin require temporary restrictions in favor
+		//       of the more popular latin form.
+		//
+		//       Only the subset of ['i', 'v', 'x', 'l'] is
+		//       used which excludes ['c', 'd', 'm'].
+		const ARABIC_NUMBERS = '0123456789';
+		const LATIN_LETTERS = 'abcdefghijklmnopqrstuvwxyz';
+		const ROMAN_NUMERALS = 'ivxl';
+		const NUMBERING_SEPARATORS = '.)';
+
+		ranges.FenceMarks = freeze(split(FENCE_MARKS));
+
+		ranges.ListMarkers = freeze(split(LIST_MARKERS));
+		[ranges.CheckMarks, ranges.LowerCheckMarks, ranges.UpperCheckMarks] = split.cases(CHECK_MARKS);
+		ranges.ArabicNumbers = freeze(split(ARABIC_NUMBERS));
+		[ranges.LatinLetters, ranges.LowerLatinLetters, ranges.UpperLatinLetters] = split.cases(LATIN_LETTERS);
+		[ranges.RomanNumerals, ranges.LowerRomanNumerals, ranges.UpperRomanNumerals] = split.cases(ROMAN_NUMERALS);
+		ranges.NumberingSeparators = freeze(split(NUMBERING_SEPARATORS));
+	}
+
+	Sequences: {
+		// Unordered lists are broken into two distinct classes:
+		//
+		//   NOTE: Markout differs here in that markers are not semantically interchangeable
+		//
+		//   1. Matching Square character (ie `-` per popular notation):
+		partials.SquareMark = escape(ranges.ListMarkers[0]);
+		//
+		//   2. Matching Disc character (ie `*` per lesser popular notation):
+		partials.DiscMark = escape(ranges.ListMarkers[1]);
+		//
+		//   Unordered mark is the range of Square/Disc characters:
+		partials.UnorderedMark = range(...ranges.ListMarkers);
+
+		partials.NumberingSeparator = range(...ranges.NumberingSeparators);
+
+		// Ordered lists are broken into three distinct classes:
+		//
+		//   NOTE: Ordered markers include both the numbering and trailing sparator.
+		//
+		//   1. Matching Decimal characters (one or more with leading zeros)
+		//        NOTE: lookahead here is necessary to exclude matching just zero(s)
+		partials.ArabicNumbering = sequence`(?=${ranges.ArabicNumbers[0]}*${range(
+			...ranges.ArabicNumbers.slice(1),
+		)})${range(...ranges.ArabicNumbers)}+`;
+		//
+		//      Matching Zero-leading Decimal characters (two or more):
+		//        NOTE: lookahead here is necessary to exclude matching just zero(s)
+		partials.ZeroLeadingArabicNumbering = sequence`(?=${ranges.ArabicNumbers[0]}*${range(
+			...ranges.ArabicNumbers.slice(1),
+		)})${range(...ranges.ArabicNumbers)}{2,}`;
+		//
+		//      Matching Decimal marker (with any separator):
+		partials.ArabicMarker = sequence`${partials.ArabicNumbering}${partials.NumberingSeparator}`;
+		//
+		//      Matching Zero-leading Decimal marker (with any separator):
+		partials.ZeroLeadingArabicMarker = sequence`${partials.ZeroLeadingArabicNumbering}${partials.NumberingSeparator}`;
+		//
+		//   2. Matching Latin character (one only)
+		partials.LatinNumbering = range(...ranges.LatinLetters);
+		partials.LowerLatinNumbering = range(...ranges.LowerLatinLetters);
+		partials.UpperLatinNumbering = range(...ranges.UpperLatinLetters);
+		//
+		//      Matching Latin marker (with any separator):
+		partials.LatinMarker = sequence`${partials.LatinNumbering}${partials.NumberingSeparator}`;
+		partials.LowerLatinMarker = sequence`${partials.LowerLatinNumbering}${partials.NumberingSeparator}`;
+		partials.UpperLatinMarker = sequence`${partials.UpperLatinNumbering}${partials.NumberingSeparator}`;
+		//
+		//   3. Matching Roman characters (one or more of the premitted subset)
+		partials.RomanNumbering = sequence`${range(...ranges.RomanNumerals)}+`;
+		partials.LowerRomanNumbering = sequence`${range(...ranges.LowerRomanNumerals)}+`;
+		partials.UpperRomanNumbering = sequence`${range(...ranges.UpperRomanNumerals)}+`;
+		//
+		//      Matching Roman marker (also with trailing "period" separator)
+		partials.RomanMarker = sequence`${partials.RomanNumbering}\.`;
+		partials.LowerRomanMarker = sequence`${partials.LowerRomanNumbering}\.`;
+		partials.UpperRomanMarker = sequence`${partials.UpperRomanNumbering}\.`;
+		//
+		//   Ordered marker is the union of Decimal/Latin/Roman partials:
+		partials.OrderedMarker = sequence`${join(partials.ArabicMarker, partials.LatinMarker, partials.RomanMarker)}`;
+
+		// Checklists are extensions of unordered lists:
+		//
+		//   NOTE: Markout adds an additional `[-]` indeterminate state
+		//
+		//   a. Matching Enclosed character (without any brackets)
+		partials.CheckMark = range(...ranges.CheckMarks);
+		//
+		//   b. Matching Enclosure characters (with enclosing brackets)
+		partials.Checkbox = sequence`\[${partials.CheckMark}\]`;
+		//
+		//   Checklist marker is space-separated Unordered marker and Checkbox:
+		partials.ChecklistMarker = sequence`${partials.UnorderedMark} ${partials.Checkbox}`;
+
+		// Matching list markers is done in two ways:
+		//
+		//   1. Matching head portion (ie excluding the checkbox)
+		partials.ListMarkerHead = join(partials.UnorderedMark, partials.OrderedMarker);
+		//
+		//   2. Matching full marker (ie including the checkbox)
+		partials.ListMarker = sequence`${join(partials.ChecklistMarker, partials.UnorderedMarker, partials.OrderedMarker)}`;
+
+		patterns.DiscMarker = sequence`^${partials.DiscMark}(?= (?!${partials.Checkbox})|$)`;
+		sequences.DiscMarker = sequence`(?:${partials.DiscMark} )(?!${partials.Checkbox})`;
+
+		patterns.SquareMarker = sequence`^${partials.SquareMark}(?= (?!${partials.Checkbox})|$)`;
+		sequences.SquareMarker = sequence`(?:${partials.SquareMark} )(?!${partials.Checkbox})`;
+
+		patterns.UnorderedMarker = sequence`^${partials.UnorderedMark}(?= (?!${partials.Checkbox})|$)`;
+		sequences.UnorderedMarker = sequence`(?:${partials.UnorderedMark} )(?!${partials.Checkbox})`;
+
+		patterns.ArabicMarker = sequence`^${partials.ArabicMarker}(?= |$)`;
+		sequences.ArabicMarker = `(?:${partials.ArabicMarker} )`;
+
+		patterns.LatinMarker = sequence`^${partials.LatinMarker}(?= |$)`;
+		sequences.LatinMarker = sequence`(?:${partials.LatinMarker} )`;
+
+		patterns.RomanMarker = sequence`^${partials.RomanMarker}(?= |$)`;
+		sequences.RomanMarker = sequence`(?:${partials.RomanMarker} )`;
+
+		patterns.OrderedMarker = sequence`^${partials.OrderedMarker}(?= |$)`;
+		sequences.OrderedMarker = sequence`(?:${partials.OrderedMarker} )`;
+
+		patterns.ChecklistMarker = sequence`^${partials.ChecklistMarker}(?= |$)`;
+		sequences.ChecklistMarker = sequence`(?:${partials.ChecklistMarker} )`;
+
+		// There are two groups of list marker expressions:
+		sequences.ListMarkerHead = sequence`(?:${partials.ListMarkerHead})(?: )`;
+		sequences.ListMarker = sequence`(?:${join(
+			sequences.ChecklistMarker,
+			sequences.UnorderedMarker,
+			sequences.OrderedMarker,
+		)})`;
+
+		// console.log({sequences, ranges, partials});
+	}
+
+	Matchers: {
+		const FENCE = sequence`${escape('```')}|${escape('~~~')}`;
+		const INSET = sequence`[> \t]*`;
+		// const ListMarker = sequence`[-*](?: |$)|[1-9]+\d*[.)](?: |$)|[a-z][.)](?: |$)|[ivx]+\.(?: |$)`;
+
+		sequences.NormalizableBlocks = sequence/* fsharp */ `
+      (?:^|\n)(${INSET}(?:${FENCE}))[^]+?(?:(?:\n\1[ \t]*)+\n?|$)
+      |([^]+?(?:(?=\n${INSET}(?:${FENCE}))|$))
+    `;
+		matchers.NormalizableBlocks = new RegExp(sequences.NormalizableBlocks, 'g');
+
+		sequences.NormalizableParagraphs = sequence/* fsharp */ `
+      ^
+      ((?:[ \t]*\n(${INSET}))+)
+      ($|(?:
+        (?!(?:${sequences.ListMarker}))
+        [^-#>|~\n].*
+        (?:\n${INSET}$)+
+      )+)
+    `;
+		matchers.NormalizableParagraphs = new RegExp(sequences.NormalizableParagraphs, 'gmu');
+
+		sequences.RewritableParagraphs = sequence/* fsharp */ `
+      ^
+      ([ \t]*[^\-\*#>\n].*?)
+      (\b.*[^:\n\s>]+|\b)
+      [ \t]*\n[ \t>]*?
+      (?=(
+        \b
+        |${escape('[')}.*?${escape(']')}[^:\n]?
+        |[^#${'`'}${escape('[')}\n]
+      ))
+    `;
+
+		matchers.RewritableParagraphs = new RegExp(sequences.RewritableParagraphs, 'gmu');
+
+		sequences.NormalizableLists = sequence/* fsharp */ `
+      (?=(\n${INSET})(?:${sequences.ListMarker}))
+      ((?:\1
+        (?:${sequences.ListMarker}|   ?)+
+        [^\n]+
+        (?:\n${INSET})*
+        (?=\1|$)
+      )+)
+    `;
+		matchers.NormalizableLists = new RegExp(sequences.NormalizableLists, 'gmu');
+
+		sequences.NormalizableListItem = sequence/* fsharp */ `
+      ^
+      (${INSET})
+      ((?:${sequences.ListMarkerHead})|)
+      ([^\n]+(?:\n\1(?:   ?|\t ?)(?![ \t]|${sequences.ListMarker}).*)*)$
+    `;
+		matchers.NormalizableListItem = new RegExp(sequences.NormalizableListItem, 'gmu');
+
+		sequences.NormalizableReferences = sequence/* fsharp */ `
+      !?
+      ${escape('[')}(\S.*?\S)${escape(']')}
+      (?:
+        ${escape('(')}(\S[^\n${escape('()[]')}]*?\S)${escape(')')}
+        |${escape('[')}(\S[^\n${escape('()[]')}]*\S)${escape(']')}
+      )
+    `;
+		matchers.NormalizableReferences = new RegExp(sequences.NormalizableReferences, 'gmu');
+
+		sequences.RewritableAliases = sequence/* fsharp */ `
+      ^
+      (${INSET})
+      ${escape('[')}(\S.*?\S)${escape(']')}:\s+
+      (\S+)(?:
+        \s+${'"'}([^\n]*)${'"'}
+        |\s+${"'"}([^\n]*)${"'"}
+        |
+      )(?=\s*$)
+    `;
+		matchers.RewritableAliases = new RegExp(sequences.RewritableAliases, 'gmu');
+
+		sequences.NormalizableLink = sequence/* fsharp */ `
+      \s*((?:\s?[^${`'"`}${escape('()[]')}}\s\n]+)*)
+      (?:\s+[${`'"`}]([^\n]*)[${`'"`}]|)
+    `;
+		matchers.NormalizableLink = new RegExp(sequences.NormalizableLink, 'u');
+	}
 }
+
+class ComposableList extends Array {
+	toString(
+		listInset = this.listInset || '',
+		listType = this.listType || 'ul',
+		listStyle = this.listStyle,
+		listStart = this.listStart,
+	) {
+		listStart &&
+			typeof listStart !== 'number' &&
+			(listStart = `${
+				listStyle === 'lower-latin' || listStyle === 'upper-latin'
+					? ComposableList.parseLatin(listStart)
+					: listStyle === 'lower-roman' || listStyle === 'upper-roman'
+					? ComposableList.parseRoman(listStart)
+					: parseInt(listStart) || ''
+			}`);
+
+		const attributes = `${
+			// TODO: Explore using type attribute instead
+			(listStyle && `style="list-style: ${listStyle}"`) || ''
+		} ${
+			// TODO: Check if guard against invalid start is needed
+			(listStart && `start="${listStart}"`) || ''
+		}`.trim();
+
+		const listRows = [`${listInset}<${listType}${(attributes && ` ${attributes}`) || ''}>`];
+		for (const item of this) {
+			if (item && typeof item === 'object') {
+				if (item instanceof ComposableList) {
+					const last = listRows.length - 1;
+					const row = listRows[last];
+					last > 0
+						? (listRows[listRows.length - 1] = `${row.slice(0, -5)}\n${item.toString(
+								`${listInset}\t\t`,
+						  )}\n${listInset}\t</li>`)
+						: listRows.push(`${listInset}\t<li>\n${item.toString(`${listInset}\t\t`)}\n${listInset}\t</li>`);
+				} else {
+					const insetText = `${item}`;
+					let text = insetText;
+					for (const character of listInset) {
+						if (!text.startsWith(character)) break;
+						text = text.slice(1);
+					}
+					listRows.push(text);
+				}
+			} else {
+				const [, checked, content] = /^\s*(?:\[([-xX]| )\] |)(.+?)\s*$/.exec(item);
+
+				content &&
+					listRows.push(
+						checked
+							? `${listInset}\t<li type=checkbox ${
+									checked === ' ' ? '' : checked === '-' ? 'indeterminate' : ' checked'
+							  }>${content}</li>`
+							: `${listInset}\t<li>${content}</li>`,
+					);
+			}
+		}
+		listRows.push(`${listInset}</${listType}>`);
+		return `\n${listRows.join('\n')}\n`;
+	}
+}
+
+const ChecklistMarker = new RegExp(patterns.ChecklistMarker);
+const SquareMarker = new RegExp(patterns.SquareMarker);
+const DiscMarker = new RegExp(patterns.DiscMarker);
+const ArabicMarker = new RegExp(patterns.ArabicMarker);
+const ZeroLeadingArabicMarker = new RegExp(patterns.ZeroLeadingArabicMarker);
+const LatinMarker = new RegExp(patterns.LatinMarker);
+const RomanMarker = new RegExp(patterns.RomanMarker);
+const OrderedMarker = new RegExp(patterns.OrderedMarker);
+const UnorderedMarker = new RegExp(patterns.UnorderedMarker);
+
+LATIN: {
+	const parseLatin = latin => parseLatin.mappings[latin] || NaN;
+
+	parseLatin.mappings = {};
+
+	'abcdefghijklmnopqrstuvwxyz'.split('').forEach((latin, index) => {
+		parseLatin.mappings[(parseLatin.mappings[latin] = parseLatin.mappings[latin.toUpperCase] = index + 1)] = latin;
+	});
+
+	ComposableList.parseLatin = parseLatin;
+}
+
+ROMAN: {
+	const parseRoman = roman =>
+		/[^ivxlcdm]/i.test((roman = String(roman)))
+			? NaN
+			: roman
+					.toLowerCase()
+					.split('')
+					.reduce(parseRoman.reducer, 0);
+	// prettier-ignore
+	parseRoman.mappings = Object.freeze({i: 1, v: 5, x: 10, l: 50, c: 100, d: 500, m: 1000, 1: 'i', 5: 'v', 10: 'x', 50: 'l', 100: 'c', 500: 'd', 1000: 'm'});
+
+	parseRoman.reducer = (decimal, character, index, characters) =>
+		decimal +
+		(parseRoman.mappings[character] < parseRoman.mappings[characters[index + 1]]
+			? -parseRoman.mappings[character]
+			: parseRoman.mappings[character]);
+
+	ComposableList.parseRoman = parseRoman;
+}
+
+ComposableList.ORDERED_STYLE = /^(?:(0+[1-9]\d*)(?=\. )|(\d+)(?=\. )|([ivx]+)(?=\. )|([a-z])(?=[.)] ))|/i;
+ComposableList.ORDERED_STYLE.key = ['decimal-leading-zero', 'decimal', 'roman', 'latin'];
+
+ComposableList.orderedStyleOf = (marker, variant, fallback) => {
+	const category =
+		ComposableList.ORDERED_STYLE.key[
+			ComposableList.ORDERED_STYLE.exec(marker)
+				.slice(1)
+				.findIndex(Boolean)
+		];
+	return (
+		(category !== undefined &&
+			(category === 'latin' || category === 'roman'
+				? `${
+						variant === 'lower' || (variant !== 'upper' && marker === marker.toLowerCase()) ? 'lower' : 'upper'
+				  }-${category}`
+				: category === 'decimal'
+				? variant !== 'leading-zero'
+					? 'decimal'
+					: 'decimal-leading-zero'
+				: variant !== 'decimal'
+				? 'decimal-leading-zero'
+				: 'decimal')) ||
+		fallback
+	);
+};
+
+ComposableList.markerIsLike = (marker, expected) =>
+	expected in ComposableList.LIKE ? ComposableList.LIKE[expected].test(marker) : undefined;
+
+ComposableList.LIKE = {
+	['square']: SquareMarker,
+	['disc']: DiscMarker,
+	['decimal']: ArabicMarker,
+	['decimal-leading-zero']: ZeroLeadingArabicMarker,
+	['latin']: LatinMarker,
+	// NOTE: We allow cases insenstivity as a common convencience feature
+	['lower-latin']: LatinMarker,
+	['upper-latin']: LatinMarker,
+	['roman']: RomanMarker,
+	// NOTE: We allow cases insenstivity as a common convencience feature
+	['lower-roman']: RomanMarker,
+	['upper-roman']: RomanMarker,
+	['ol']: OrderedMarker,
+	['ul']: UnorderedMarker,
+	['checkbox']: ChecklistMarker,
+};
 
 const {
 	/** Attempts to overcome **__** */
@@ -658,6 +864,8 @@ class MarkoutBlockNormalizer {
 				.filter(Boolean);
 			import.meta['debug:markout:paragraph-normalization'] &&
 				console.log('normalizeParagraphs:', {m, feed, inset, body, paragraphs});
+
+				// console.log(paragraphs);
 
 			return `${feed}<p>${paragraphs.join(`</p>\n${inset}<p>`)}</p>\n`;
 		});
@@ -1265,10 +1473,12 @@ class MarkoutRenderer {
 	constructor({lookups = createLookups()} = {}) {
 		this.lookups = lookups;
 	}
-	renderBlockTokens(block, token, tokens, classes) {
-		let before, tag, body;
-		let previous = token;
-		let inset = '';
+
+	renderBlockTokens(token, context) {
+		let before, tag, body, previous, inset;
+		previous = token;
+		inset = '';
+		const {classes, block} = context;
 		while ((previous = previous.previous)) {
 			if (previous.lineBreaks) break;
 			inset = `${previous.text}${inset}`;
@@ -1282,6 +1492,9 @@ class MarkoutRenderer {
 		}
 		return {before, tag, body};
 	}
+
+	// renderCommentToken(token, context) {}
+
 	renderTokens(tokens, context = new MarkoutRenderingContext(this)) {
 		let text, type, punctuator, lineBreaks, hint, previous, body, tag, classes, before, after, meta;
 		context.tokens = tokens;
@@ -1355,6 +1568,7 @@ class MarkoutRenderer {
 							}
 						} else {
 							context.currentTag.construct = text;
+							// console.log(text, {...context});
 						}
 					}
 					if (punctuator === 'closer' || (context.comment && punctuator === 'comment')) {
@@ -1367,7 +1581,7 @@ class MarkoutRenderer {
 			}
 
 			tag = 'span';
-			classes = hint.split(/\s+/);
+			classes = context.classes = hint.split(/\s+/);
 
 			if (hint === 'markdown' || hint.startsWith('markdown ') || hint.includes('in-markdown')) {
 				type !== 'text' || lineBreaks || (text in lookups.entities && (body = lookups.entities[text]));
@@ -1404,13 +1618,12 @@ class MarkoutRenderer {
 							before || ((before = `<${lookups.spans[text]}${renderClasses(classes)}>`), classes.push('opener'));
 						} else if (text === '<!' || text === '<%') {
 							let next;
+							const closer = text === '<!' ? /-->$/ : /%>$/;
 							while (
 								(next = context.tokens.next().value) &&
 								(body += next.text) &&
-								!(
-									(next.punctuator === 'opener' && /^</.test(next.text)) ||
-									(next.punctuator === 'closer' && />$/.test(next.text))
-								)
+								(next.punctuator !== 'closer' && !closer.test(next.text))
+								// (next.punctuator === 'opener' && /^</.test(next.text)) ||
 							);
 							context.passthru = body;
 							continue;
@@ -1430,7 +1643,7 @@ class MarkoutRenderer {
 						)
 							continue;
 					} else if (!context.block && (context.block = lookups.blocks[text])) {
-						({before = before, tag = tag, body = body} = this.renderBlockTokens(context.block, token, tokens, classes));
+						({before = before, tag = tag, body = body} = this.renderBlockTokens(token, context));
 					}
 					(before || after) && (tag = 'tt');
 					classes.push(`${punctuator}-token`);
@@ -1449,12 +1662,7 @@ class MarkoutRenderer {
 						} else if (text.startsWith('---') && !/[^\-]/.test(text)) {
 							tag = 'hr';
 						} else if (!context.block && (context.block = lookups.blocks[text])) {
-							({before = before, tag = tag, body = body} = this.renderBlockTokens(
-								context.block,
-								token,
-								tokens,
-								classes,
-							));
+							({before = before, tag = tag, body = body} = this.renderBlockTokens(token, context));
 						} else {
 							// sequence
 							body = text;
