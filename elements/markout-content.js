@@ -4,9 +4,9 @@ import * as content from '../lib/content.js';
 
 const {
 	'markout-content-dom-mutations': DOM_MUTATIONS = undefined,
-	'markout-content-break-normalization': BREAK_NORMALIZATION = false,
+	'markout-content-break-normalization': BREAK_NORMALIZATION = undefined,
 	'markout-content-heading-normalization': HEADING_NORMALIZATION = true,
-	'markout-content-paragraph-normalization': PARAGRAPH_NORMALIZATION = false,
+	'markout-content-paragraph-normalization': PARAGRAPH_NORMALIZATION = true,
 	'markout-content-checklist-normalization': CHECKLIST_NORMALIZATION = true,
 	'markout-content-declarative-styling': DECLARATIVE_STYLING = true,
 	'markout-content-source-text-rendering': SOURCE_TEXT_RENDERING = true,
@@ -235,14 +235,14 @@ export class MarkoutContent extends Component {
 				baseAttribute && link.removeAttribute('base');
 				link.setAttribute('link-base', base);
 				link.setAttribute('link-src', src);
-				link.setAttribute('src', new URL(src, base));
+				link.setAttribute('src', (link.src = new URL(src, base)));
 			}
 
 			fragment.assets.stylesheets &&
 				fragment.assets.stylesheets.length &&
-				fragment.prependChild(
+				fragment.prepend(
 					Object.assign(document.createElement('style'), {
-						textContent: stylesheets
+						textContent: fragment.assets.stylesheets
 							.map(stylesheet => (stylesheet.remove(), `@import "${stylesheet.src}";`))
 							.join('\n'),
 					}),

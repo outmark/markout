@@ -1,91 +1,260 @@
-﻿<title>smotaal.io/markout</title>
+﻿<markout-details style:=fence><summary color:=transparent>
 
-<pre align=center text-align:=center white-space:=pre-wrap>
+<center color:="var(--markout--band-text, initial)">
 
 <img width=50% min-width:=75% max-width:=50em title="smotaal.io/markout" src="./assets/markout-banner.png"/>
 
-HTML-flavoured markdown-inspired client-side renderer
+HTML-flavoured markup-inspired client-side renderer
 
-</pre>
+<kbd>`Markdown` Previewed</kbd> <kbd>`Markout` Unleashed</kbd>
 
-## Features
-
-Markout borrows a lot of nice features from Markdown, but uses a completely different rendering architecture that makes it easy to also leverage builtin features of the actual HTML renderer.
-
-<blockquote align=center border:=none><details><summary>
-
-**Rendering**
+</center>
 
 </summary>
+
+<center><div width:=40em text-align:=left>
+
+Markout borrows a lot of nice features from Markdown, but uses a completely different rendering architecture that makes it easy to also leverage builtin features of the actual HTML renderer.
 
 While the engine caters primarily to the richer features of the DOM, it does so with clear intent to make it work in a shell-based environment longer-term.
 
 Current experimental efforts divide the rendering into two phases, the first portion uses a custom tokenizer that captures HTML and other notation, yielding the static content (HTML for now) output, the second portion uses a custom element and real-time DOM operations to yield the dynamic content (HTML for now) tailored to every aspect of the user experience.
 
-</details></blockquote>
+</div></center>
 
-<details open><summary><h3>
+</markout-details>
 
-- [-] Inline Styles
+## Features
 
-</summary><ul>
+<markout-details open><summary type=checkbox>
+
+### Styles
+
+</summary>
 
 <!-- prettier-ignore-start -->
 <div>
 
-- [x] Declarative
+- [x] Markout Attribute Styles <figure columns:=20em font-size:=90%>
 
-  - [x] `<span color:=red>one</span>`<figure><span color:=red>one</span></figure>
+  - [x] <figure display:=grid align-items:=center>
+        <figure text-align:=center margin:=0 padding:=0><span color:=red>one</span></figure>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><span color:=red>one</span></figure>
+        </figure>
 
-- [ ] Italics
+- [x] Markdown-Style Italics <figure columns:=20em font-size:=90%>
 
-  - [x] `one *two* three` — <samp>"two"</samp><figure>one _two_ three</figure>
-  - [ ] `one*two*three` — <samp>"two"</samp><figure>one*two*three</figure>
-  - [ ] `_one_*two*_three_` — <samp>all</samp><figure>_one**two**three_</figure>
-  - [x] `one\*two\*three` — <samp>escape</samp><figure>one\*two\*three</figure>
-  - [x] `one_two_three` — <samp>sic</samp><figure>one_two_three</figure>
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one _two_ three`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one _two_ three</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <i>two</i> three</pre>
+        </figure>
 
-- [ ] Bold
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`_one_two_three_`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>_one_two_three_</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><i>one_two_three</i></pre>
+        </figure>
 
-  - [x] `one **two** three` — <samp>"two"</samp><figure>one **two** three</figure>
-  - [ ] `one**two**three` — <samp>"two"</samp><figure>one**two**three</figure>
-  - [ ] `**one****two****three**` — <samp>all</samp><figure>**one\*\***two\***\*three**</figure>
-  - [x] `one\**two\**three` — <samp>escape</samp><figure>one\*\*two\*\*three</figure>
-  - [x] `one\*\*two\*\*three` — <samp>escape</samp><figure>one\*\*two\*\*three</figure>
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`_one__two__three_`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>_one__two__three_</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><i>one__two__three</i></pre>
+        </figure>
 
-- [ ] Bold + Italics
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one *two* three`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one *two* three</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <i>two</i> three</pre>
+        </figure>
 
-  - [x] `one **_two_ three**` — <samp>"two"</samp><figure>one **_two_ three**</figure>
-  - [ ] `**_one_****_two_****_three_**` — <samp>all</samp><figure>**_one_\*\***_two_\***\*_three_**</figure>
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one*two*three`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one*two*three</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one<i>two</i>three</pre>
+        </figure>
 
-- [ ] Strikethrough
-  - [x] `one ~~two~~ three` — <samp>"two"</samp><figure>one ~~two~~ three</figure>
-  - [ ] `one~~two~~three` — <samp>"two"</samp><figure>one~~two~~three</figure>
-  - [ ] `~~one~~~~two~~~~three~~` — <samp>all</samp><figure>~~one~~~~two~~~~three~~</figure>
-  - [x] `one\~~two\~~three` — <samp>sic</samp><figure>one\~~two\~~three</figure>
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`*one*_two_*three*`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>*one*_two_*three*</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><i>one</i><i>two</i><i>three</i></pre>
+        </figure>
 
+
+- [x] Markdown-Style Bold <figure columns:=20em font-size:=90%>
+
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one **two** three`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one **two** three</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <b>two</b> three</pre>
+        </figure>
+
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one**two**three`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one**two**three</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one<b>two</b>three</pre>
+        </figure>
+
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`**one****two****three**`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>**one****two****three**</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><b>one</b><b>two</b><b>three</b></pre>
+        </figure>
+
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one __two__ three`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one __two__ three</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <b>two</b> three</pre>
+        </figure>
+
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`_one__two__three_`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>__one__two__three__</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><b>one&#x5F;&#x5F;two&#x5F;&#x5F;three</b></pre>
+        </figure>
+
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`__one____two____three__`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>__one____two____three__</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><b>one&#x5F;&#x5F;&#x5F;&#x5F;two&#x5F;&#x5F;&#x5F;&#x5F;three</b></pre>
+        </figure>
+
+- [x] Markdown-Style Bold + Italics <figure columns:=20em font-size:=90%>
+
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one **_two_ three**`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one **_two_ three**</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <b><i>two</i> three</b></pre>
+        </figure>
+
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`__*one*two*three*__`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>__*one*two*three*__</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><b><i>one</i>two<i>three</i></b></pre>
+        </figure>
+
+- [x] Markdown-Style Strikethrough <figure columns:=20em font-size:=90%>
+
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one ~~two~~ three`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one ~~two~~ three</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <s>two</s> three</pre>
+        </figure>
+
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one~~two~~three`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one~~two~~three</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one<s>two</s>three</pre>
+        </figure>
+
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`~~one~~two~~three~~`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>~~one~~two~~three~~</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><s>one</s>two<s>three</s></pre>
+        </figure>
+
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`~~one~~~~two~~~~three~~`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>~~one~~~~two~~~~three~~</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><s>one</s><s>two</s><s>three</s></pre>
+        </figure>
+
+
+- [x] Markdown-Style Escapes (ie not styled) <figure columns:=20em font-size:=90%>
+
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one\*two\*three`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\*two\*three</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one&#x2A;two&#x2A;three</pre>
+        </figure>
+
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`\_one_two_three\_`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>\_one_two_three\_</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>&#x5F;one&#x5F;two&#x5F;three&#x5F;</pre>
+        </figure>
+
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one\**two\**three`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\**two\**three</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one&#x2A;two&#x2A;three</pre>
+        </figure>
+
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one\*\*two\*\*three`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\*\*two\*\*three</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one&#x2A;&#x2A;two&#x2A;&#x2A;three</pre>
+        </figure>
+
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one\~~two\~~three`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\~~two\~~three</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one&#x7E;&#x7E;two&#x7E;&#x7E;three</pre>
+        </figure>
+
+  - [x] <figure display:=grid align-items:=center>
+        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one\~\~two\~\~three`</pre>
+        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\~\~two\~\~three</figure>
+        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one&#x7E;&#x7E;two&#x7E;&#x7E;three</pre>
+        </figure>
 </div>
 <!-- prettier-ignore-end -->
 
-</details>
+</markout-details>
 
-<details open><summary><h3>
+<markout-details open><summary type=checkbox>
 
-- [-] Lists
+### Links
 
-</summary><ul>
+</summary>
 
-- [x] Unordered Lists
-- [x] Ordered Lists
-- [x] Checklists
-  - [x] Nested Checklist
-- [x] Hybrid Lists
-  - Unordered
-  1. Ordered
-  - [x] Checked
-  - [-] Indeterminate
-  - [ ] Unchecked
-- [ ] Dynamic Checklists
+- [x] Markdown-Style References
+
+<div column-grid font-size:=75%>
+
+```md
+[unreferenced]: ./README.md
+[referenced]: ./README.md
+```
+
+<figure>
+
+> **Note**: renders as hidden anchors
+[unreferenced]: ./README.md
+[referenced]: ./README.md
+</figure>
+
+</div>
+
+- [x] Markdown-Style Links
+
+<div column-grid font-size:=75%>
+
+```md
+- [Link](./README.md)
+- [Referenced Link][referenced]
+- [Not Referenced Link]
+- [Not Referenced Link][not-referenced]
+```
+
+<figure>
+
+- [Link](./README.md)
+- [Referenced Link][referenced]
+- [Not Referenced Link]
+- [Not Referenced Link][not-referenced]
+
+</figure>
+
+</div>
+</markout-details>
+
+<markout-details open><summary type=checkbox>
+
+### Lists
+
+</summary>
+
 
 <div column-grid font-size:=75%>
 
@@ -108,13 +277,35 @@ a. 123
 </figure>
 </div>
 
-</details>
+- [x] Hybrid Lists <aside columns:=20em>
 
-<details open><summary><h3>
+  - Unordered
+    - Nested
 
-- [x] Heading Groups
+  1. Ordered
 
-</summary><ul>
+    a. Typed
+    3. Forced
+
+  - [x] Checked
+  - [-] Indeterminate
+  - [ ] Unchecked
+
+- [ ] Dynamic Checklists <aside columns:=20em>
+  - [ ] Auto-fill by Recursion
+    - [x] Partial when unchecked
+    - [ ] Unchecked when all unchecked
+    - [ ] Checked when all checked
+  - [ ] Auto-append by Recursion
+    - [ ] After `::marker` of `<details><summary>`
+
+</markout-details>
+
+<markout-details open><summary type=checkbox>
+
+### Heading Groups
+
+</summary>
 
 - [x] Heading groups are created from well-chained heading blocks
 
@@ -155,13 +346,13 @@ a. 123
 </div></figure>
 </div>
 <!-- prettier-ignore-end -->
-</details>
+</markout-details>
 
-<details open><summary><h3>
+<markout-details open><summary type=checkbox>
 
-- [x] Headings
+### Headings
 
-</summary><ul>
+</summary>
 
 - [x] ATX headings
 
@@ -246,9 +437,9 @@ a. 123
 </div>
 <!-- prettier-ignore-end -->
 
-</details>
+</markout-details>
 
-<details hidden><summary>
+<markout-details hidden><summary type=checkbox>
 
 ### Titles
 
@@ -273,4 +464,8 @@ a. 123
 <title>Hello World!!</title>
 ```
 
-</details>
+</markout-details>
+
+<footer hidden>
+
+[-]: #

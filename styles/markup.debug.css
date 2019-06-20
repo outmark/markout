@@ -1,0 +1,7 @@
+﻿pre.markup.code .markup-line .markup:hover {
+	outline-width: 2px;
+	outline-color: var(--color, currentColor);
+	outline-style: solid;
+	outline-style: auto;
+	outline-offset: 1px;
+}

@@ -29,13 +29,24 @@ body > main {
 	scrollbar-width: thin;
 }
 
-details:focus-within > summary,
-summary:focus {
-	outline-width: 3px;
+details > summary:first-child {
+	outline-width: 2px;
 	outline-color: Highlight;
-	outline-style: solid;
-	outline-style: auto;
 	outline-offset: 1px;
+	margin-block-start: 0;
+	margin-inline-start: 0;
+	margin-inline-end: 0;
+}
+
+details:not([open]) > summary:first-child {
+	margin: 0;
+}
+
+details:not([open]):hover > summary:first-child,
+details[open] > summary:first-child:hover,
+details > summary:focus:first-child {
+	outline-style: auto;
+	outline-style: solid;
 }
 
 @media screen {

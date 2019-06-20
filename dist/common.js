@@ -328,7 +328,7 @@ const {
 	DELIMITER = (Matcher.DELIMITER = /* Symbol.for */ 'DELIMITER'),
 	UNKNOWN = (Matcher.UNKNOWN = /* Symbol.for */ 'UNKNOWN'),
 	// LOOKAHEAD = (Matcher.LOOKAHEAD = /* Symbol.for */ 'LOOKAHEAD'),
-	escape = (Matcher.escape = /** @type {<T>(source: T) => string} */ ((() => {
+	escape: escape$1 = (Matcher.escape = /** @type {<T>(source: T) => string} */ ((() => {
 		const {replace} = Symbol;
 		return source => /[\\^$*+?.()|[\]{}]/g[replace](source, '\\$&');
 	})())),
@@ -376,8 +376,6 @@ const matchers = {};
 
 	const FENCE = sequence`${'`'.repeat(3)}|${escape('~').repeat(3)}`;
 	const INSET = sequence`[> \t]*`;
-	// const LIST = sequence`- ${escape('[')}[ xX]${escape(']')}(?: |$)|[-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. `;
-	// const LIST = sequence`[-*] (?=${escape('[')}[ xX]${escape(']')} |)|[1-9]+\d*\. |[a-z]\. |[ivx]+\. `;
 	const LIST = sequence`[-*](?: |$)|[1-9]+\d*\.(?: |$)|[a-z][.)](?: |$)|[ivx]+\.(?: |$)`;
 
 	sequences.NormalizableBlocks = sequence/* fsharp */ `
@@ -395,7 +393,7 @@ const matchers = {};
       (?:\n${INSET}$)+
     )+)
   `;
-	matchers.NormalizableParagraphs = new RegExp(sequences.NormalizableParagraphs, 'gm');
+	matchers.NormalizableParagraphs = new RegExp(sequences.NormalizableParagraphs, 'gmu');
 
 	sequences.RewritableParagraphs = sequence/* fsharp */ `
     ^
@@ -409,7 +407,7 @@ const matchers = {};
     ))
   `;
 
-	matchers.RewritableParagraphs = new RegExp(sequences.RewritableParagraphs, 'gm');
+	matchers.RewritableParagraphs = new RegExp(sequences.RewritableParagraphs, 'gmu');
 
 	sequences.NormalizableLists = sequence/* fsharp */ `
     (?=(\n${INSET})(?:${LIST}))
@@ -420,7 +418,7 @@ const matchers = {};
       (?=\1|$)
     )+)
   `;
-	matchers.NormalizableLists = new RegExp(sequences.NormalizableLists, 'g');
+	matchers.NormalizableLists = new RegExp(sequences.NormalizableLists, 'gu');
 
 	sequences.NormalizableListItem = sequence/* fsharp */ `
     ^
@@ -428,17 +426,17 @@ const matchers = {};
     (${LIST}|)
     ([^\n]+(?:\n\1(?:   ?|\t ?)(?![ \t]|${LIST}).*)*)$
   `;
-	matchers.NormalizableListItem = new RegExp(sequences.NormalizableListItem, 'gm');
+	matchers.NormalizableListItem = new RegExp(sequences.NormalizableListItem, 'gmu');
 
 	sequences.NormalizableReferences = sequence/* fsharp */ `
-    \!?
+    !?
     ${escape('[')}(\S.*?\S)${escape(']')}
     (?:
       ${escape('(')}(\S[^\n${escape('()[]')}]*?\S)${escape(')')}
       |${escape('[')}(\S[^\n${escape('()[]')}]*\S)${escape(']')}
     )
   `;
-	matchers.NormalizableReferences = new RegExp(sequences.NormalizableReferences, 'gm');
+	matchers.NormalizableReferences = new RegExp(sequences.NormalizableReferences, 'gmu');
 
 	sequences.RewritableAliases = sequence/* fsharp */ `
     ^
@@ -450,7 +448,7 @@ const matchers = {};
       |
     )(?=\s*$)
   `;
-	matchers.RewritableAliases = new RegExp(sequences.RewritableAliases, 'gm');
+	matchers.RewritableAliases = new RegExp(sequences.RewritableAliases, 'gmu');
 
 	sequences.NormalizableLink = sequence/* fsharp */ `
     \s*(
@@ -458,7 +456,7 @@ const matchers = {};
     )
     (?:\s+[${`'"`}]([^\n]*)[${`'"`}]|)
   `;
-	matchers.NormalizableLink = new RegExp(sequences.NormalizableLink);
+	matchers.NormalizableLink = new RegExp(sequences.NormalizableLink, 'u');
 }
 
 const {
@@ -562,16 +560,18 @@ class MarkoutBlockNormalizer {
 				let href, title;
 				// debugging && console.log(m, {text, link, alias, reference, index});
 				if (link) {
-					[, href = '#', title] = NormalizableLink.exec(link);
+					[, href, title] = NormalizableLink.exec(link);
 				} else if (alias && alias in aliases) {
-					({href = '#', title} = aliases[alias]);
+					({href, title} = aliases[alias]);
 				}
-				// debugging && console.log(m, {href, title, text, link, alias, reference, index});
+
 				if (m[0] === '!') {
-					return ` <img src="${href}"${text || title ? ` title="${text || title}"` : ''} /> `;
+					return ` <img${href ? ` src="${encodeURI(href)}"` : ''}${
+						text || title ? ` title="${text || title}"` : ''
+					} />`;
 				} else {
 					text = text || encodeEntities(href);
-					return ` <a href="${href}"${title ? ` title="${title}"` : ''}>${text || reference}</a>`;
+					return ` <a${href ? ` href="${href}"` : ''}${title ? ` title="${title}"` : ''}>${text || reference}</a>`;
 				}
 			}
 			return m;
@@ -609,13 +609,7 @@ class MarkoutBlockNormalizer {
 						list.parent = parent;
 					} else if (depth < list.listDepth) {
 						while ((list = list.parent) && depth < list.listDepth);
-					} else if (
-						'listStyle' in list &&
-						!(like = ComposableList.markerIsLike(matchedMarker, list.listStyle))
-						// ((like = ComposableList.markerIsLike(marker, list.listStyle)) === undefined
-						// 	? (like = ComposableList.markerIsLike(marker, list.listType))
-						// 	: like)
-					) {
+					} else if ('listStyle' in list && !(like = ComposableList.markerIsLike(matchedMarker, list.listStyle))) {
 						const parent = list.parent;
 						((list = new ComposableList()).parent = parent) ? parent.push(list) : lists.push((top = list));
 					}
@@ -657,24 +651,16 @@ class MarkoutBlockNormalizer {
 	 * @param {string} sourceText
 	 */
 	normalizeParagraphs(sourceText) {
-		return (
-			sourceText
-				// .replace(MalformedParagraphs, (m, a, b, c, index, sourceText) => {
-				// 	// console.log('normalizeParagraphs:\n\t%o%o\u23CE%o [%o]', a, b, c, index);
-				// 	return `${a}${b}${(MERGED_MARKING && '\u{23CE}') || ''} `;
-				// })
-				.replace(NormalizableParagraphs, (m, feed, inset, body) => {
-					const paragraphs = body
-						.trim()
-						.split(/^(?:[> \t]*\n)+[> \t]*/m)
-						.filter(Boolean);
-					import.meta['debug:markout:paragraph-normalization'] &&
-						console.log('normalizeParagraphs:', {m, feed, inset, body, paragraphs});
+		return sourceText.replace(NormalizableParagraphs, (m, feed, inset, body) => {
+			const paragraphs = body
+				.trim()
+				.split(/^(?:[> \t]*\n)+[> \t]*/m)
+				.filter(Boolean);
+			import.meta['debug:markout:paragraph-normalization'] &&
+				console.log('normalizeParagraphs:', {m, feed, inset, body, paragraphs});
 
-					// return `${feed}<p>${paragraphs.join(`</p>${feed}<p>${feed}`)}</p>`;
-					return `${feed}<p>${paragraphs.join(`</p>\n${inset}<p>`)}</p>\n`;
-				})
-		);
+			return `${feed}<p>${paragraphs.join(`</p>\n${inset}<p>`)}</p>\n`;
+		});
 	}
 
 	normalizeBreaks(sourceText) {
@@ -685,35 +671,6 @@ class MarkoutBlockNormalizer {
 		});
 	}
 }
-
-// 'listStyle' in list ||
-// 	(list.listStyle =
-// 		(list.listType === 'ul' && ((marker[0] === '*' && 'disc') || 'square')) ||
-// 		(marker[0] === '0' && 'decimal-leading-zero') ||
-// 		(marker[0] > 0 && 'decimal') ||
-// 		`${marker === marker.toLowerCase() ? 'lower' : 'upper'}-${
-// 			/^[ivx]+\. $/i.test(marker) ? 'roman' : 'latin'
-// 		}`);
-
-// const {
-// 	NormalizableBlocks = /(?:^|\n)([> \t]*(?:\`\`\`|\~\~\~))[^]+?(?:(?:\n\1[ \t]*)+\n?|$)|([^]+?(?:(?=\n[> \t]*(?:\`\`\`|\~\~\~))|$))/g,
-// 	NormalizableParagraphs = /^((?:[ \t]*\n([> \t]*))+)((?:(?!(?:\d+\. |[a-z]\. |[ivx]+\. |[-*] ))[^\-#>|~\n].*(?:\n[> \t]*$)+|$)+)/gm,
-// 	RewritableParagraphs = /^([ \t]*[^\-\*#>\n].*?)(\b.*[^:\n\s>]+|\b)[ \t]*\n[ \t>]*(?=(\b|\[.*?\][^:\n]?|[^#`\[\n]))/gm,
-// 	NormalizableLists = /(?=(\n[> \t]*)(?:[-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. ))((?:\1(?:[-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. |   ?)+[^\n]+(?:\n[> \t]*)*(?=\1|$))+)/g,
-// 	NormalizableListItem = /^([> \t]*)([-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. |)([^\n]+(?:\n\1(?:   ?|\t ?)(?![ \t]|[-*] |\d+\. |[a-z]\. |[ivx]+\. ).*)*)$/gm,
-// 	NormalizableReferences = /\!?\[(\S.+?\S)\](?:\((\S[^\n()\[\]]*?\S)\)|\[(\S[^\n()\[\]]*\S)\])/g,
-// 	RewritableAliases = /^([> \t]*)\[(\S.+?\S)\]:\s+(\S+)(?:\s+"([^\n]*)"|\s+'([^\n]*)'|)(?=\s*$)/gm,
-// 	NormalizableLink = /\s*((?:\s?[^'"\(\)\]\[\s\n]+)*)(?:\s+["']([^\n]*)["']|)/,
-// } = matchers;
-
-// const NormalizableBlocks = /(?:^|\n)([> \t]*(?:\`\`\`|\~\~\~))[^]+?(?:(?:\n\1[ \t]*)+\n?|$)|([^]+?(?:(?=\n[> \t]*(?:\`\`\`|\~\~\~))|$))/g;
-// const NormalizableParagraphs = /^((?:[ \t]*\n([> \t]*))+)((?:(?!(?:\d+\. |[a-z]\. |[ivx]+\. |[-*] ))[^\-#>|~\n].*(?:\n[> \t]*$)+|$)+)/gm;
-// const RewritableParagraphs = /^([ \t]*[^\-\*#>\n].*?)(\b.*[^:\n\s>]+|\b)[ \t]*\n[ \t>]*(?=(\b|\[.*?\][^:\n]?|[^#`\[\n]))/gm;
-// const NormalizableLists = /(?=(\n[> \t]*)(?:[-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. ))((?:\1(?:[-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. |   ?)+[^\n]+(?:\n[> \t]*)*(?=\1|$))+)/g;
-// const NormalizableListItem = /^([> \t]*)([-*] |[1-9]+\d*\. |[a-z]\. |[ivx]+\. |)([^\n]+(?:\n\1(?:   ?|\t ?)(?![ \t]|[-*] |\d+\. |[a-z]\. |[ivx]+\. ).*)*)$/gm;
-// const NormalizableReferences = /\!?\[(\S.+?\S)\](?:\((\S[^\n()\[\]]*?\S)\)|\[(\S[^\n()\[\]]*\S)\])/g;
-// const RewritableAliases = /^([> \t]*)\[(\S.+?\S)\]:\s+(\S+)(?:\s+"([^\n]*)"|\s+'([^\n]*)'|)(?=\s*$)/gm;
-// const NormalizableLink = /\s*((?:\s?[^'"\(\)\]\[\s\n]+)*)(?:\s+["']([^\n]*)["']|)/;
 
 class Segmenter extends RegExp {
 	/**
@@ -948,14 +905,30 @@ const declarativeStyling = (declarativeStyling => {
 	const selectors = [];
 	const style = document.createElement('span').style;
 
-	for (const property of new Set(
-		[
+	declarativeStyling.normalize = (value, property) => {
+		if (!value || !(value = value.trim())) return '';
+		value.startsWith('--') && !value.includes(' ') && (value = `var(--${property}-${value.slice(2)}-style)`);
+		return value;
+	};
+
+	declarativeStyling.mixin = (element, style) => {
+		element.style.border = `var(--border-${style}-style)`;
+		element.style.background = `var(--background-${style}-style)`;
+		element.style.color = `var(--color-${style}-style)`;
+		element.style.font = `var(--font-${style}-style)`;
+	};
+
+	for (const property of new Set([
+		// Markout style properties
+		'style', // mixin styling
+		// CSS style properties
+		...[
 			// Webkit/Blink
 			...getOwnPropertyNames(style),
 			// Firefox
 			...getOwnPropertyNames(getPrototypeOf(style)),
 		].filter(property => style[property] === '' && Filter.test(property)),
-	)) {
+	])) {
 		const attribute = `${property.replace(Boundary, '$&-').toLowerCase()}:`;
 		lookup[attribute] = property;
 		selectors.push(`[${CSS.escape(attribute)}]`);
@@ -1009,16 +982,15 @@ const declarativeStyling = (declarativeStyling => {
 	selector: '',
 	apply: element => {
 		const style = element.style;
-		const {lookup, autoprefix} = declarativeStyling;
-		if (autoprefix) {
-			for (const attribute of element.getAttributeNames())
-				attribute in lookup &&
-					((style[lookup[attribute]] = autoprefix(element.getAttribute(attribute))),
-					element.removeAttribute(attribute));
-		} else {
-			for (const attribute of element.getAttributeNames())
-				attribute in lookup &&
-					((style[lookup[attribute]] = element.getAttribute(attribute)), element.removeAttribute(attribute));
+		const {lookup, autoprefix, normalize} = declarativeStyling;
+		for (const attribute of element.getAttributeNames()) {
+			attribute in lookup &&
+				(attribute === 'style:'
+					? declarativeStyling.mixin(element, element.getAttribute(attribute))
+					: autoprefix === undefined
+					? (style[lookup[attribute]] = normalize(element.getAttribute(attribute), attribute.slice(0, -1)))
+					: (style[lookup[attribute]] = autoprefix(normalize(element.getAttribute(attribute), attribute.slice(0, -1)))),
+				element.removeAttribute(attribute));
 		}
 	},
 	/** @type {(value: string) => string} */
@@ -1046,6 +1018,8 @@ const {
 		template.innerHTML = render(
 			(tokens = tokenize((normalizedText = normalize(sourceText)))),
 		);
+
+		// console.log({sourceText, normalizedText, innerHTML: template.innerHTML});
 
 		fragment = template.content.cloneNode(true);
 		fragment.fragment = fragment;
@@ -1242,6 +1216,9 @@ const {
 	// Attempts to overcome **__**
 	'markout-render-span-restacking': SPAN_RESTACKING = true,
 	'markout-render-newline-consolidation': NEWLINE_CONSOLIDATION = false,
+	// Patched regression from changing markdown.FRAGMENTS
+	//   to /[^\\\n\s\[\]\(\)\<\>&`"*~_]+?/ which has been reversed
+	'markout-render-patch-stray-brace': STRAY_BRACE = false,
 } = import.meta;
 
 const normalize = sourceText => {
@@ -1251,8 +1228,8 @@ const normalize = sourceText => {
 
 const render = tokens => {
 	const {
-		punctuators = (render.punctuators = createPunctuators()),
-		renderer = (render.renderer = new MarkoutRenderer({punctuators})),
+		lookups = (render.lookups = createLookups()),
+		renderer = (render.renderer = new MarkoutRenderer({lookups})),
 	} = render;
 	return renderer.renderTokens(tokens);
 };
@@ -1260,15 +1237,15 @@ const render = tokens => {
 const tokenize = sourceText => tokenize$1(`${sourceText.trim()}\n}`, {sourceType: 'markdown'});
 
 const encodeEscapedEntities = ((Escapes, replace) => text => text.replace(Escapes, replace))(
-	/\\([*^-`])/g,
-	(m, e) => encodeEntity(e),
+	/\\([*^~`_])(\1|)/g,
+	(m, e, e2) => (e2 ? encodeEntity(e).repeat(2) : encodeEntity(e)),
 );
 
 const FencedBlockHeader = /^(?:(\w+)(?:\s+(.*?)\s*|)$|)/m;
 
 class MarkoutRenderingContext {
 	constructor(renderer) {
-		({punctuators: this.punctuators} = this.renderer = renderer);
+		({lookups: this.lookups} = this.renderer = renderer);
 
 		[
 			this.passthru,
@@ -1285,20 +1262,46 @@ class MarkoutRenderingContext {
 }
 
 class MarkoutRenderer {
-	constructor({punctuators = createPunctuators()} = {}) {
-		this.punctuators = punctuators;
+	constructor({lookups = createLookups()} = {}) {
+		this.lookups = lookups;
+	}
+	renderBlockTokens(block, token, tokens, classes) {
+		let before, tag, body;
+		let previous = token;
+		let inset = '';
+		while ((previous = previous.previous)) {
+			if (previous.lineBreaks) break;
+			inset = `${previous.text}${inset}`;
+		}
+		if (!/[^> \t]/.test(inset)) {
+			before = `<${block}${this.renderClasses(classes)}>`;
+			tag = 'tt';
+			classes.push('opener', `${token.type}-token`);
+		} else {
+			body = token.text;
+		}
+		return {before, tag, body};
 	}
 	renderTokens(tokens, context = new MarkoutRenderingContext(this)) {
-		let text, type, punctuator, lineBreaks, hint, previous, body, tag, classes, before, after, details;
+		let text, type, punctuator, lineBreaks, hint, previous, body, tag, classes, before, after, meta;
 		context.tokens = tokens;
 
-		const {punctuators} = context;
+		const {lookups} = context;
 		const {renderClasses} = this;
+
+		// context.openTags = 0;
+		context.openTags = [];
+		context.closeTags = [];
 
 		for (const token of context.tokens) {
 			if (!token || !(body = token.text)) continue;
 			({text, type = 'text', punctuator, lineBreaks, hint = 'text', previous} = token);
-			tag = classes = before = after = details = undefined;
+
+			// Sub type 'text' to 'whitespace'
+			// TODO: Sub type 'text' to 'break' (ie !!lineBreaks)
+			type !== 'text' || lineBreaks || text.trim() || (type = 'whitespace');
+
+			tag = classes = before = after = meta = undefined;
 
 			if (context.passthru || context.fenced) {
 				if (context.fenced) {
@@ -1321,10 +1324,9 @@ class MarkoutRenderer {
 						}
 						// passthru rendered code
 						context.renderedText += `<${context.block} class="markup code" ${SourceTypeAttribute}="${sourceType ||
-							'markup'}"${
-							// sourceParameters ? ` ${SourceParameters}="${sourceParameters}"` : ''
-							(sourceAttributes && ` ${sourceAttributes}`) || ''
-						}>${encodeEntities(context.passthru)}</${context.block}>`;
+							'markup'}"${(sourceAttributes && ` ${sourceAttributes}`) || ''}>${encodeEntities(context.passthru)}</${
+							context.block
+						}>`;
 						context.header = context.indent = context.fenced = context.passthru = '';
 					} else {
 						// passthru code
@@ -1332,8 +1334,29 @@ class MarkoutRenderer {
 					}
 					// continue;
 				} else {
-					// passthru body
+					// Construct body
 					context.passthru += body;
+					// Construct open and close tags
+					if (context.currentTag) {
+						if (context.currentTag.nodeName === '') {
+							if (type === 'text' || text === '-' || text === ':') {
+								context.currentTag.construct += text;
+							} else if (context.currentTag.construct === '') {
+								context.currentTag.nodeName = ' ';
+								context.currentTag.construct = text;
+							} else {
+								context.currentTag.nodeName = context.currentTag.construct;
+								// Substitute element name from lookup
+								context.currentTag.nodeName in lookups.elements &&
+									(context.passthru = context.passthru.replace(
+										context.currentTag.nodeName,
+										(context.currentTag.nodeName = lookups.elements[context.currentTag.nodeName]),
+									));
+							}
+						} else {
+							context.currentTag.construct = text;
+						}
+					}
 					if (punctuator === 'closer' || (context.comment && punctuator === 'comment')) {
 						// passthru body rendered
 						context.renderedText += context.passthru;
@@ -1347,15 +1370,27 @@ class MarkoutRenderer {
 			classes = hint.split(/\s+/);
 
 			if (hint === 'markdown' || hint.startsWith('markdown ') || hint.includes('in-markdown')) {
-				(type === 'text' && lineBreaks) ||
-					(!text.trim() && (type = 'whitespace')) ||
-					(text in punctuators.entities && (body = punctuators.entities[text]));
+				type !== 'text' || lineBreaks || (text in lookups.entities && (body = lookups.entities[text]));
 
 				if (punctuator) {
 					context.passthru =
-						(((context.comment = punctuator === 'comment' && text) || punctuators.tags.has(text)) && text) || '';
+						(((context.comment = punctuator === 'comment' && text) || lookups.tags.has(text)) && text) || '';
+					// Opener
+					if (punctuator === 'opener') {
+						if (text === '<') {
+							context.openTags.push(
+								(context.currentTag = {opener: token, delimiter: text, construct: '', nodeName: ''}),
+							);
+						} else if (text === '</') {
+							context.closeTags.push(
+								(context.currentTag = {closer: token, delimiter: text, construct: '', nodeName: ''}),
+							);
+						}
+					} else if (punctuator === 'closer') {
+						context.currentTag = undefined;
+					}
 					if (context.passthru) continue;
-					// SPAN_RESTACKING && punctuator === 'opener' && context.stack[text] >= 0 && (punctuator = 'closer');
+
 					if (punctuator === 'opener') {
 						if ((context.fenced = text === '```' && text)) {
 							context.block = 'pre';
@@ -1363,13 +1398,11 @@ class MarkoutRenderer {
 							[context.indent = ''] = /^[ \t]*/gm.exec(previous.text);
 							context.indent && (context.indent = new RegExp(String.raw`^${context.indent}`, 'mg'));
 							context.header = '';
-							// punctuator opener fence
 							continue;
-						} else if (text in punctuators.spans) {
+						} else if (text in lookups.spans) {
 							if (SPAN_RESTACKING && (before = context.stack.open(text, body, classes)) === undefined) continue;
-							before || ((before = `<${punctuators.spans[text]}${renderClasses(classes)}>`), classes.push('opener'));
+							before || ((before = `<${lookups.spans[text]}${renderClasses(classes)}>`), classes.push('opener'));
 						} else if (text === '<!' || text === '<%') {
-							// Likely <!doctype …> || Processing instruction
 							let next;
 							while (
 								(next = context.tokens.next().value) &&
@@ -1384,11 +1417,20 @@ class MarkoutRenderer {
 						}
 					} else if (punctuator === 'closer') {
 						if (text === '```') {
-							context.block = punctuators.blocks['```'] || 'pre';
-						} else if (text in punctuators.spans) {
+							context.block = lookups.blocks['```'] || 'pre';
+						} else if (text in lookups.spans) {
 							if (SPAN_RESTACKING && (after = context.stack.close(text, body, classes)) === undefined) continue;
-							after || ((after = `</${punctuators.spans[text]}>`), classes.push('closer'));
+							after || ((after = `</${lookups.spans[text]}>`), classes.push('closer'));
 						}
+					} else if (SPAN_RESTACKING && text in lookups.spans) {
+						if (
+							(context.stack[text] >= 0
+								? (after = context.stack.close(text, body, classes))
+								: (before = context.stack.open(text, body, classes))) === undefined
+						)
+							continue;
+					} else if (!context.block && (context.block = lookups.blocks[text])) {
+						({before = before, tag = tag, body = body} = this.renderBlockTokens(context.block, token, tokens, classes));
 					}
 					(before || after) && (tag = 'tt');
 					classes.push(`${punctuator}-token`);
@@ -1401,25 +1443,18 @@ class MarkoutRenderer {
 							body = text.replace(/(``?)(.*)\1/, '$2');
 							let fence = '`'.repeat((text.length - body.length) / 2);
 							body = encodeEntities(body.replace(/&nbsp;/g, '\u202F'));
-							fence in punctuators.entities && (fence = punctuators.entities[fence]);
+							fence in lookups.entities && (fence = lookups.entities[fence]);
 							classes.push('fenced-code');
 							classes.push('code');
 						} else if (text.startsWith('---') && !/[^\-]/.test(text)) {
 							tag = 'hr';
-						} else if (!context.block && (context.block = punctuators.blocks[text])) {
-							let previous = token;
-							let inset = '';
-							while ((previous = previous.previous)) {
-								if (previous.lineBreaks) break;
-								inset = `${previous.text}${inset}`;
-							}
-							if (!/[^> \t]/.test(inset)) {
-								before = `<${context.block}${renderClasses(classes)}>`;
-								tag = 'tt';
-								classes.push('opener', `${type}-token`);
-							} else {
-								body = text;
-							}
+						} else if (!context.block && (context.block = lookups.blocks[text])) {
+							({before = before, tag = tag, body = body} = this.renderBlockTokens(
+								context.block,
+								token,
+								tokens,
+								classes,
+							));
 						} else {
 							// sequence
 							body = text;
@@ -1435,13 +1470,13 @@ class MarkoutRenderer {
 				}
 			}
 
-			details =
+			meta =
 				tag &&
 				[
-					punctuator && `punctuator="${punctuator}"`,
-					type && `token-type="${type}"`,
-					hint && `token-hint="${hint}"`,
-					lineBreaks && `line-breaks="${lineBreaks}"`,
+					punctuator && `punctuator="${escape(punctuator)}"`,
+					type && `token-type="${escape(type)}"`,
+					hint && `token-hint="${escape(hint)}"`,
+					lineBreaks && `line-breaks="${escape(lineBreaks)}"`,
 				].join(' ');
 
 			tag === 'span' && (body = encodeEscapedEntities(body));
@@ -1455,13 +1490,16 @@ class MarkoutRenderer {
 				? (context.renderedText += '<hr/>')
 				: body &&
 				  (tag
-						? (context.renderedText += `<${tag} ${details}${renderClasses(classes)}>${body}</${tag}>`)
+						? (context.renderedText += `<${tag} ${meta}${renderClasses(classes)}>${body}</${tag}>`)
 						: (context.renderedText += body));
 			after && (context.renderedText += after);
 		}
 
+		if (STRAY_BRACE && context.renderedText.endsWith(`>}</span>`)) {
+			context.renderedText = context.renderedText.slice(0, context.renderedText.lastIndexOf('<span'));
+		}
+
 		return context.renderedText;
-		// return (context.output = new MarkoutOutput(context));
 	}
 
 	renderClasses(classes) {
@@ -1469,17 +1507,16 @@ class MarkoutRenderer {
 	}
 }
 
-// render.classes = classes => ((classes = classes.filter(Boolean).join(' ')) && ` class="${classes}"`) || '';
-
 /// Features
 
-const createPunctuators = (
+const createLookups = (
 	repeats = {['*']: 2, ['`']: 3, ['#']: 6},
 	entities = {['*']: '&#x2217;', ['`']: '&#x0300;'},
 	aliases = {'*': ['_'], '**': ['__'], '`': ['``']},
 	blocks = {['-']: 'li', ['>']: 'blockquote', ['#']: 'h*', ['```']: 'pre'},
 	spans = {['*']: 'i', ['**']: 'b', ['~~']: 's', ['`']: 'code'},
 	tags = ['<', '>', '<!--', '-->', '<%', '%>', '</', '/>'],
+	elements = {'markout-details': 'details'},
 ) => {
 	const symbols = new Set([...Object.keys(repeats), ...Object.keys(entities)]);
 	for (const symbol of symbols) {
@@ -1505,16 +1542,16 @@ const createPunctuators = (
 
 	const escapes = {};
 
-	for (const symbol of '* _ ~ `'.split(' ')) {
+	for (const symbol of '* ^ ~ `'.split(' ')) {
 		escapes[`\\${symbol}`] = `&#x${symbol.charAt(0).toString(16)};`;
 	}
 
-	return {entities, blocks, spans, tags: new Set(tags)};
+	return {entities, blocks, spans, tags: new Set(tags), elements};
 };
 
 const createSpanStack = context => {
 	const {
-		punctuators: {spans},
+		lookups: {spans},
 		renderer,
 	} = context;
 	const stack = [];
