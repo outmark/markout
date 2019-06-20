@@ -1,15 +1,25 @@
 ﻿<markout-details style:=fence><summary color:=transparent>
 
+<!-- `markout-details` renders like `div` in markdown and as actual `details` in markout -->
+
 <center color:="var(--markout--band-text, initial)">
 
+<!-- any CSS property can be inlined using the `:=` notation without a leading space -->
+
 <img width=50% min-width:=75% max-width:=50em title="smotaal.io/markout" src="./assets/markout-banner.png"/>
+
+<!-- sometimes elements can have special styling facilities like `<img/>` with `width` and `height` -->
 
 HTML-flavoured markup-inspired client-side renderer
 
 <kbd>`Markdown` Previewed</kbd> <kbd>`Markout` Unleashed</kbd>
 
+<!-- Markout is a lot more fogriving about mysterious rules like needing linebreaks when you open tags — if you are targeting markdown renderers you should adhere to them  -->
 
 <small hidden display:=inline-block opacity:=0.5>Read More</small>
+
+<!-- This is a hack to make sure that is only visible in markout -->
+
 </center>
 
 </summary>
@@ -40,164 +50,165 @@ Current experimental efforts divide the rendering into two phases, the first por
 - [x] Markout Attribute Styles <figure columns:=20em font-size:=90%>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=html margin:=0 padding:=0>`<span color:=red>one</span>`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><span color:=red>one</span></figure>
+        <pre title=source text-align:=center source-type=html margin:=0 padding:=0>`<span color:=red>one</span>`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><span color:=red>one</span></figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><span style="color:red">one</span></pre>
         </figure>
 
 - [x] Markdown-Style Italics <figure columns:=20em font-size:=90%>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one _two_ three`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one _two_ three</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <i>two</i> three</pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one _two_ three`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one _two_ three</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <i>two</i> three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`_one_two_three_`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>_one_two_three_</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><i>one_two_three</i></pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`_one_two_three_`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>_one_two_three_</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><i>one_two_three</i></pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`_one__two__three_`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>_one__two__three_</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><i>one__two__three</i></pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`_one__two__three_`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>_one__two__three_</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><i>one__two__three</i></pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one *two* three`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one *two* three</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <i>two</i> three</pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one *two* three`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one *two* three</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <i>two</i> three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one*two*three`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one*two*three</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one<i>two</i>three</pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one*two*three`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one*two*three</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one<i>two</i>three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`*one*_two_*three*`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>*one*_two_*three*</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><i>one</i><i>two</i><i>three</i></pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`*one*_two_*three*`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>*one*_two_*three*</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><i>one</i><i>two</i><i>three</i></pre>
         </figure>
 
 
 - [x] Markdown-Style Bold <figure columns:=20em font-size:=90%>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one **two** three`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one **two** three</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <b>two</b> three</pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one **two** three`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one **two** three</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <b>two</b> three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one**two**three`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one**two**three</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one<b>two</b>three</pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one**two**three`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one**two**three</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one<b>two</b>three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`**one****two****three**`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>**one****two****three**</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><b>one</b><b>two</b><b>three</b></pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`**one****two****three**`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>**one****two****three**</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><b>one</b><b>two</b><b>three</b></pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one __two__ three`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one __two__ three</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <b>two</b> three</pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one __two__ three`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one __two__ three</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <b>two</b> three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`_one__two__three_`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>__one__two__three__</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><b>one&#x5F;&#x5F;two&#x5F;&#x5F;three</b></pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`_one__two__three_`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>__one__two__three__</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><b>one&#x5F;&#x5F;two&#x5F;&#x5F;three</b></pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`__one____two____three__`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>__one____two____three__</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><b>one&#x5F;&#x5F;&#x5F;&#x5F;two&#x5F;&#x5F;&#x5F;&#x5F;three</b></pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`__one____two____three__`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>__one____two____three__</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><b>one&#x5F;&#x5F;&#x5F;&#x5F;two&#x5F;&#x5F;&#x5F;&#x5F;three</b></pre>
         </figure>
 
 - [x] Markdown-Style Bold + Italics <figure columns:=20em font-size:=90%>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one **_two_ three**`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one **_two_ three**</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <b><i>two</i> three</b></pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one **_two_ three**`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one **_two_ three**</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <b><i>two</i> three</b></pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`__*one*two*three*__`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>__*one*two*three*__</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><b><i>one</i>two<i>three</i></b></pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`__*one*two*three*__`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>__*one*two*three*__</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><b><i>one</i>two<i>three</i></b></pre>
         </figure>
 
 - [x] Markdown-Style Strikethrough <figure columns:=20em font-size:=90%>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one ~~two~~ three`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one ~~two~~ three</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <s>two</s> three</pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one ~~two~~ three`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one ~~two~~ three</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <s>two</s> three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one~~two~~three`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one~~two~~three</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one<s>two</s>three</pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one~~two~~three`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one~~two~~three</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one<s>two</s>three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`~~one~~two~~three~~`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>~~one~~two~~three~~</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><s>one</s>two<s>three</s></pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`~~one~~two~~three~~`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>~~one~~two~~three~~</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><s>one</s>two<s>three</s></pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`~~one~~~~two~~~~three~~`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>~~one~~~~two~~~~three~~</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><s>one</s><s>two</s><s>three</s></pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`~~one~~~~two~~~~three~~`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>~~one~~~~two~~~~three~~</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><s>one</s><s>two</s><s>three</s></pre>
         </figure>
 
 
 - [x] Markdown-Style Escapes (ie not styled) <figure columns:=20em font-size:=90%>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one\*two\*three`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\*two\*three</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one&#x2A;two&#x2A;three</pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one\*two\*three`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\*two\*three</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one&#x2A;two&#x2A;three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`\_one_two_three\_`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>\_one_two_three\_</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>&#x5F;one&#x5F;two&#x5F;three&#x5F;</pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`\_one_two_three\_`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>\_one_two_three\_</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>&#x5F;one&#x5F;two&#x5F;three&#x5F;</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one\**two\**three`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\**two\**three</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one&#x2A;two&#x2A;three</pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one\**two\**three`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\**two\**three</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one&#x2A;&#x2A;two&#x2A;&#x2A;three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one\*\*two\*\*three`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\*\*two\*\*three</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one&#x2A;&#x2A;two&#x2A;&#x2A;three</pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one\*\*two\*\*three`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\*\*two\*\*three</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one&#x2A;&#x2A;two&#x2A;&#x2A;three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one\~~two\~~three`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\~~two\~~three</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one&#x7E;&#x7E;two&#x7E;&#x7E;three</pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one\~~two\~~three`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\~~two\~~three</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one&#x7E;&#x7E;two&#x7E;&#x7E;three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre text-align:=center source-type=markdown margin:=0 padding:=0>`one\~\~two\~\~three`</pre>
-        <figure text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\~\~two\~\~three</figure>
-        <pre text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one&#x7E;&#x7E;two&#x7E;&#x7E;three</pre>
+        <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one\~\~two\~\~three`</pre>
+        <figure title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\~\~two\~\~three</figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one&#x7E;&#x7E;two&#x7E;&#x7E;three</pre>
         </figure>
 </div>
 <!-- prettier-ignore-end -->
