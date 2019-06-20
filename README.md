@@ -8,6 +8,8 @@ HTML-flavoured markup-inspired client-side renderer
 
 <kbd>`Markdown` Previewed</kbd> <kbd>`Markout` Unleashed</kbd>
 
+
+<small hidden display:=inline-block opacity:=0.5>Read More</small>
 </center>
 
 </summary>
@@ -220,6 +222,7 @@ Current experimental efforts divide the rendering into two phases, the first por
 <figure>
 
 > **Note**: renders as hidden anchors
+
 [unreferenced]: ./README.md
 [referenced]: ./README.md
 </figure>
@@ -465,7 +468,3 @@ a. 123
 ```
 
 </markout-details>
-
-<footer hidden>
-
-[-]: #
