@@ -310,7 +310,11 @@ const partials = {};
 		ranges.NumberingSeparators = freeze(split(NUMBERING_SEPARATORS));
 	}
 
-	Sequences: {
+	// TODO: Document partials and sequences
+
+	Partials: {
+		partials.BlockFence = join(...ranges.FenceMarks.map(fence => escape(fence.repeat(3))));
+
 		// Unordered lists are broken into two distinct classes:
 		//
 		//   NOTE: Markout differs here in that markers are not semantically interchangeable
@@ -393,27 +397,23 @@ const partials = {};
 		partials.ListMarker = sequence`${join(partials.ChecklistMarker, partials.UnorderedMarker, partials.OrderedMarker)}`;
 
 		patterns.DiscMarker = sequence`^${partials.DiscMark}(?= (?!${partials.Checkbox})|$)`;
-		sequences.DiscMarker = sequence`(?:${partials.DiscMark} )(?!${partials.Checkbox})`;
-
 		patterns.SquareMarker = sequence`^${partials.SquareMark}(?= (?!${partials.Checkbox})|$)`;
-		sequences.SquareMarker = sequence`(?:${partials.SquareMark} )(?!${partials.Checkbox})`;
-
 		patterns.UnorderedMarker = sequence`^${partials.UnorderedMark}(?= (?!${partials.Checkbox})|$)`;
-		sequences.UnorderedMarker = sequence`(?:${partials.UnorderedMark} )(?!${partials.Checkbox})`;
-
 		patterns.ArabicMarker = sequence`^${partials.ArabicMarker}(?= |$)`;
-		sequences.ArabicMarker = `(?:${partials.ArabicMarker} )`;
-
 		patterns.LatinMarker = sequence`^${partials.LatinMarker}(?= |$)`;
-		sequences.LatinMarker = sequence`(?:${partials.LatinMarker} )`;
-
 		patterns.RomanMarker = sequence`^${partials.RomanMarker}(?= |$)`;
-		sequences.RomanMarker = sequence`(?:${partials.RomanMarker} )`;
-
 		patterns.OrderedMarker = sequence`^${partials.OrderedMarker}(?= |$)`;
-		sequences.OrderedMarker = sequence`(?:${partials.OrderedMarker} )`;
-
 		patterns.ChecklistMarker = sequence`^${partials.ChecklistMarker}(?= |$)`;
+	}
+
+	Sequences: {
+		sequences.DiscMarker = sequence`(?:${partials.DiscMark} )(?!${partials.Checkbox})`;
+		sequences.SquareMarker = sequence`(?:${partials.SquareMark} )(?!${partials.Checkbox})`;
+		sequences.UnorderedMarker = sequence`(?:${partials.UnorderedMark} )(?!${partials.Checkbox})`;
+		sequences.ArabicMarker = `(?:${partials.ArabicMarker} )`;
+		sequences.LatinMarker = sequence`(?:${partials.LatinMarker} )`;
+		sequences.RomanMarker = sequence`(?:${partials.RomanMarker} )`;
+		sequences.OrderedMarker = sequence`(?:${partials.OrderedMarker} )`;
 		sequences.ChecklistMarker = sequence`(?:${partials.ChecklistMarker} )`;
 
 		// There are two groups of list marker expressions:
@@ -428,13 +428,12 @@ const partials = {};
 	}
 
 	Matchers: {
-		const FENCE = sequence`${escape('```')}|${escape('~~~')}`;
 		const INSET = sequence`[> \t]*`;
 		// const ListMarker = sequence`[-*](?: |$)|[1-9]+\d*[.)](?: |$)|[a-z][.)](?: |$)|[ivx]+\.(?: |$)`;
 
 		sequences.NormalizableBlocks = sequence/* fsharp */ `
-      (?:^|\n)(${INSET}(?:${FENCE}))[^]+?(?:(?:\n\1[ \t]*)+\n?|$)
-      |([^]+?(?:(?=\n${INSET}(?:${FENCE}))|$))
+      (?:^|\n)(${INSET}(?:${partials.BlockFence}))[^]+?(?:(?:\n\1[ \t]*)+\n?|$)
+      |([^]+?(?:(?=\n${INSET}(?:${partials.BlockFence}))|$))
     `;
 		matchers.NormalizableBlocks = new RegExp(sequences.NormalizableBlocks, 'g');
 
@@ -483,14 +482,15 @@ const partials = {};
 		matchers.NormalizableListItem = new RegExp(sequences.NormalizableListItem, 'gmu');
 
 		sequences.NormalizableReferences = sequence/* fsharp */ `
-      !?
+      \!?
       ${escape('[')}(\S.*?\S)${escape(']')}
       (?:
         ${escape('(')}(\S[^\n${escape('()[]')}]*?\S)${escape(')')}
         |${escape('[')}(\S[^\n${escape('()[]')}]*\S)${escape(']')}
       )
-    `;
-		matchers.NormalizableReferences = new RegExp(sequences.NormalizableReferences, 'gmu');
+		`;
+		// NOTE: Safari seems to struggle with /\S|\s/gmu
+		matchers.NormalizableReferences = new RegExp(sequences.NormalizableReferences, 'gm');
 
 		sequences.RewritableAliases = sequence/* fsharp */ `
       ^
@@ -500,15 +500,17 @@ const partials = {};
         \s+${'"'}([^\n]*)${'"'}
         |\s+${"'"}([^\n]*)${"'"}
         |
-      )(?=\s*$)
-    `;
-		matchers.RewritableAliases = new RegExp(sequences.RewritableAliases, 'gmu');
+      )\s*$
+		`;
+		// NOTE: Safari seems to struggle with /\S|\s/gmu
+		matchers.RewritableAliases = new RegExp(sequences.RewritableAliases, 'gm');
 
 		sequences.NormalizableLink = sequence/* fsharp */ `
       \s*((?:\s?[^${`'"`}${escape('()[]')}}\s\n]+)*)
       (?:\s+[${`'"`}]([^\n]*)[${`'"`}]|)
-    `;
-		matchers.NormalizableLink = new RegExp(sequences.NormalizableLink, 'u');
+		`;
+		// NOTE: Safari seems to struggle with /\S|\s/gmu
+		matchers.NormalizableLink = new RegExp(sequences.NormalizableLink);
 	}
 }
 
@@ -667,8 +669,8 @@ ComposableList.LIKE = {
 
 const {
 	/** Attempts to overcome **__** */
-
-	'markout-render-merged-marking': MERGED_MARKING = true,
+	'markout-render-merged-marking': MERGED_MARKING = false,
+	'markout-render-comment-stashing': COMMENT_STASHING = false,
 } = import.meta;
 
 const MATCHES = Symbol('matches');
@@ -686,6 +688,19 @@ const {
 	NormalizableLink,
 } = matchers;
 
+const decomment = body => {
+	const comments = [];
+	body = body.replace(/<!--[^]+-->/g, comment => `<!--${comments.push(comment)}!-->`);
+	return {body, comments};
+};
+
+const recomment = (body, comments) => {
+	return body.replace(
+		new RegExp(`<!--(${comments.map((comment, i) => comments.length - i).join('|')})!-->`, 'g'),
+		(comment, index) => comments[index] || '<!---->',
+	);
+};
+
 class MarkoutBlockNormalizer {
 	/**
 	 * @param {string} sourceText
@@ -696,6 +711,8 @@ class MarkoutBlockNormalizer {
 
 		const source = {sourceText, [BLOCKS]: [], [ALIASES]: {}};
 		sources.push(source);
+
+		// ({body: sourceText, comments: state.comments} = decomment(sourceText));
 
 		Blocks: {
 			const {
@@ -748,6 +765,8 @@ class MarkoutBlockNormalizer {
 			source.normalizedText = sourceBlocks.join('\n');
 			import.meta['debug:markout:block-normalization'] && console.log('normalizeSourceText:', state);
 		}
+
+		// source.normalizedText = recomment(source.normalizedText, state.comments);
 
 		return source.normalizedText;
 	}
@@ -858,16 +877,23 @@ class MarkoutBlockNormalizer {
 	 */
 	normalizeParagraphs(sourceText) {
 		return sourceText.replace(NormalizableParagraphs, (m, feed, inset, body) => {
-			const paragraphs = body
+			let paragraphs, comments;
+
+			COMMENT_STASHING && ({body, comments} = decomment(body));
+
+			paragraphs = body
 				.trim()
 				.split(/^(?:[> \t]*\n)+[> \t]*/m)
 				.filter(Boolean);
+
 			import.meta['debug:markout:paragraph-normalization'] &&
 				console.log('normalizeParagraphs:', {m, feed, inset, body, paragraphs});
 
-				// console.log(paragraphs);
+			body = `${feed}<p>${paragraphs.join(`</p>\n${inset}<p>`)}</p>\n`;
 
-			return `${feed}<p>${paragraphs.join(`</p>\n${inset}<p>`)}</p>\n`;
+			COMMENT_STASHING && (body = recomment(body, comments));
+
+			return body;
 		});
 	}
 
