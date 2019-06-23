@@ -55,6 +55,9 @@ pre.markup[line-numbers] > .markup-line {
 pre.markup[line-wrap] > .markup-line {
 	--markup-gutter: 0.01pt;
 	min-width: initial;
+	-webkit-tab-size: var(--markup-tab-size, 2);
+	-moz-tab-size: var(--markup-tab-size, 2);
+	tab-size: var(--markup-tab-size, 2);
 }
 
 pre.markup[line-numbers] > .markup-line {
