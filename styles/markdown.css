@@ -140,10 +140,13 @@ li[type='checkbox'][indeterminate]:before {
 }
 
 li[type='checkbox']::before {
+	/* all: initial; */
+
 	content: var(--switch-marker);
 	background-color: var(--switch-background);
 	color: var(--switch-color);
 	font-family: var(--markout--body-font-family);
+	/* font-family: var(--markout--system-ui); */
 
 	overflow: hidden;
 	padding: 0;
@@ -165,7 +168,7 @@ li[type='checkbox']::before {
 	vertical-align: text-top;
 	text-align: center;
 	text-indent: 0;
-	font-weight: 800;
+	font-weight: 900;
 	font-size: 75%;
 	transform: translateX(-1.75em) translateY(50%);
 	white-space: pre;
