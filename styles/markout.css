@@ -22,13 +22,20 @@ pre.markup > .markup-line {
 	font-family: var(--markout--body-font-family);
 }
 
-/* :host(source-code), */
-/* :matches(.source-code, pre, code, tt, samp)  */
-/* :host pre,
-:host code,
-:host samp,
-:host kbd,
-:host tt {
-	font-family: var(--markout--code-font-family);
-	font-variant-ligatures: common-ligatures discretionary-ligatures contextual historical-ligatures;
-} */
+@media screen {
+	li[type='checkbox']::before {
+		box-shadow: inset 0 1px 1px #0000001e, inset 0 1px 0.5ex #00000016, inset 0 0 1px #0006, 0 1px 0 #fffc;
+	}
+}
+
+@media screen and (prefers-color-scheme: dark) {
+	li[type='checkbox']::before {
+		box-shadow: none;
+		box-shadow: 0 0 0 1px var(--shade, #999);
+		background-color: transparent;
+		color: var(--shade, #999);
+		border-color: var(--shade, #999);
+		/* background-color: #9990; */
+		/* box-shadow: inset 0 1px 1px #0000001e, inset 0 1px 0.5ex #00000016, inset 0 0 1px #0006, 0 1px 0 #fffc; */
+	}
+}

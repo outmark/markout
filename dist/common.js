@@ -463,12 +463,12 @@ const partials = {};
 		matchers.RewritableParagraphs = new RegExp(sequences.RewritableParagraphs, 'gmu');
 
 		sequences.NormalizableLists = sequence/* fsharp */ `
-      (?=(\n${INSET})(?:${sequences.ListMarker}))
-      ((?:\1
+			(?=\n?^(${INSET})(?:${sequences.ListMarker}))
+      ((?:\n?\1
         (?:${sequences.ListMarker}|   ?)+
         [^\n]+
         (?:\n${INSET})*
-        (?=\1|$)
+        (?=\n\1|$)
       )+)
     `;
 		matchers.NormalizableLists = new RegExp(sequences.NormalizableLists, 'gmu');
@@ -533,7 +533,9 @@ class ComposableList extends Array {
 
 		const attributes = `${
 			// TODO: Explore using type attribute instead
-			(listStyle && `style="list-style: ${listStyle}"`) || ''
+			(listStyle &&
+				`style="list-style: ${listStyle}"${(listStyle in ListTypes && ` type="${ListTypes[listStyle]}"`) || ''}`) ||
+				''
 		} ${
 			// TODO: Check if guard against invalid start is needed
 			(listStart && `start="${listStart}"`) || ''
@@ -586,6 +588,14 @@ const LatinMarker = new RegExp(patterns.LatinMarker);
 const RomanMarker = new RegExp(patterns.RomanMarker);
 const OrderedMarker = new RegExp(patterns.OrderedMarker);
 const UnorderedMarker = new RegExp(patterns.UnorderedMarker);
+const ListTypes = {
+	'lower-latin': 'a',
+	'upper-latin': 'A',
+	'lower-roman': 'i',
+	'upper-roman': 'I',
+	decimal: '1',
+	'decimal-leading-zero': '1',
+};
 
 LATIN: {
 	const parseLatin = latin => parseLatin.mappings[latin] || NaN;
@@ -847,13 +857,13 @@ class MarkoutBlockNormalizer {
 						((list.listInset = matchedInset),
 						(list.listDepth = depth),
 						(list.listType =
-							matchedMarker[0] === '* ' || matchedMarker[0] === '-'
+							matchedMarker[0] === '*' || matchedMarker[0] === '-'
 								? 'ul'
 								: ((list.listStart = matchedMarker.replace(/\W/g, '')), 'ol')));
 
 					'listStyle' in list ||
 						(list.listStyle =
-							(list.listType === 'ul' && ((matchedMarker[0] === '* ' && 'disc') || 'square')) ||
+							(list.listType === 'ul' && ((matchedMarker[0] === '*' && 'disc') || 'square')) ||
 							ComposableList.orderedStyleOf(matchedMarker));
 
 					matchedLine = matchedLine.replace(/[ \t]*\n[> \t]*/g, ' ');

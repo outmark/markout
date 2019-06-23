@@ -36,6 +36,14 @@
 	--field-line\-: var(--markout--field-line\-);
 	--field-stroke: var(--markout--field-stroke);
 
+	--switch-background-default: var(--markout--section-background, #ffffffee);
+	--switch-color-default: var(--markout--section-text, #000);
+	--switch-background-active: var(--shade, #39f);
+	--switch-color-active: var(--shade-contrast, #fff);
+	--switch-marker-default: ' ';
+	--switch-marker-checked: '\2713';
+	--switch-marker-indeterminate: '\FF0D';
+
 	--φ: 0.6180339887498948482;
 	--ß: 0.85;
 
@@ -51,6 +59,7 @@
 	line-height: 1.75em;
 	overflow: scroll;
 	-webkit-text-size-adjust: 100%;
+	/* color: var(--markout-section-text); */
 }
 
 :host * {
@@ -106,55 +115,60 @@ li[type='checkbox'] {
 	list-style-type: none;
 }
 
+li[type='checkbox']:before {
+	--switch-marker: var(--switch-marker-default);
+
+	/* --switch-background-default: var(--band, initial); */
+	/* --switch-color-default: var(--band, initial); */
+	/* --switch-background-active: var(--shade, ActiveBorder); */
+	/* --switch-color-active: var(--shade-contrast, ActiveCaption); */
+
+	--switch-background: var(--switch-background-default);
+	--switch-color: var(--switch-color-default);
+}
+
+li[type='checkbox'][checked]:before {
+	--switch-marker: var(--switch-marker-checked);
+	--switch-background: var(--switch-background-active);
+	--switch-color: var(--switch-color-active);
+}
+
+li[type='checkbox'][indeterminate]:before {
+	--switch-marker: var(--switch-marker-indeterminate);
+	--switch-background: var(--switch-background-active);
+	--switch-color: var(--switch-color-active);
+}
+
 li[type='checkbox']::before {
-	content: ' ';
+	content: var(--switch-marker);
+	background-color: var(--switch-background);
+	color: var(--switch-color);
+	font-family: var(--markout--body-font-family);
+
 	overflow: hidden;
 	padding: 0;
 	margin: 0;
 	margin-inline-end: -1.125em;
 	/* position: absolute; */
-	display: inline-block;
+	display: inline-grid;
+	place-items: center;
 	/* text-indent: -1.75em; */
 	float: left;
 	width: 1.125em;
 	height: 1.125em;
 	border-radius: 0.25em;
-	/* box-sizing: border-box; */
-	box-shadow: inset 0 1px 1px #0000001e, inset 0 1px 0.5ex #00000016, inset 0 0 1px #0006, 0 1px 0 #fffc;
-	/* box-shadow: 0 0 1px #0006; */
+	box-sizing: content-box;
+	border: 0 solid transparent;
 	background-clip: content-box;
-	background-color: #fff6;
-	color: #999;
 	line-height: 112.5%;
-	/* vertical-align: -0.125ex; */
-	/* vertical-align: baseline; */
+	/* line-height: 1.125em; */
 	vertical-align: text-top;
 	text-align: center;
 	text-indent: 0;
-	font-family: var(--markout--body-font-family);
 	font-weight: 800;
 	font-size: 75%;
-	/* transform: translateX(-150%) translateY(0.375ex); */
-	/* transform: translateX(-150%) translateY(1.125ex); */
-	transform: translateX(-1.75em) translateY(1.175ex);
-	/* transform: translateX(-1.75em) translateY(0.175ex); */
-	/* transform: translateX(-1.75em) translateY(0.375ex); */
+	transform: translateX(-1.75em) translateY(50%);
 	white-space: pre;
-}
-
-li[type='checkbox'][checked]::before {
-	content: '\2713';
-	background-color: #3366ff;
-	background-color: var(--shade, Highlight);
-	color: white;
-}
-
-li[type='checkbox'][indeterminate]::before {
-	content: '\FF0D';
-	font-stretch: wider;
-	background-color: #dddee0;
-	background-color: var(--shade, Highlight);
-	color: white;
 }
 
 h1,
@@ -197,18 +211,10 @@ figcaption + * {
 	margin-block-start: 0;
 }
 
-:not(a) > :first-child:last-child,
-a:first-child:last-child > :first-child:last-child,
-hgroup:empty,
-hgroup h1,
-hgroup h2,
-hgroup h3,
-hgroup h4,
-hgroup h5,
-hgroup h6 {
-	margin-block-start: 0;
-	margin-block-end: 0;
-	/* --block-margin: 0; */
+li > div:first-child,
+li > figure:first-child,
+li > pre:first-child {
+	margin: 0;
 }
 
 /* blockquote, */
@@ -226,6 +232,20 @@ summary > :first-child:last-child {
 	/* vertical-align: middle; */
 	/* transform: translateY(0.125em); */
 	margin: 0;
+}
+
+*:not(a) > *:first-child:last-child,
+a:first-child:last-child > :first-child:last-child,
+hgroup:empty,
+hgroup h1,
+hgroup h2,
+hgroup h3,
+hgroup h4,
+hgroup h5,
+hgroup h6 {
+	margin-block-start: 0;
+	margin-block-end: 0;
+	/* --block-margin: 0; */
 }
 
 /**/ /**/ /* PRIMITIVES */ /**/ /**/
@@ -496,7 +516,7 @@ kbd {
 	/* box-shadow: inset 0 -0.25ch 0 #6666; */
 	background-color: var(--field-fill);
 	box-shadow: inset 0 -0.25ch 0 var(--field-line);
-	border: var(--markout--hairline) solid var(--field-line\-);
+	border: var(--markout--microline) solid var(--field-line\-);
 	border-bottom-color: var(--field-stroke);
 }
 

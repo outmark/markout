@@ -38,6 +38,7 @@
 :root {
 	--markout\resolution: normal;
 	--markout--microline: 0.5px;
+	--markout--microline: 0.06vmax;
 	--markout--hairline: 1px;
 	--markout--thinline: 1px;
 	--markout--thickline: 2px;
@@ -46,6 +47,7 @@
 :root {
 	--markout\color: light;
 	--markout--section-shadow: #0003;
+	--markout--section-text: #000;
 	--markout--section-band: #0002;
 	--markout--section-overlay: #fffa;
 	--markout--section-background: #ffffffee;
@@ -76,11 +78,12 @@
 	:root {
 		--markout\color: dark;
 
+		--markout--section-text: #ccc;
 		--markout--section-shadow: #0006;
 		--markout--section-band: #fff2;
-
-		--markout--section-overlay: #000a;
+		--markout--section-overlay: #333a;
 		--markout--section-background: #1f1f1fee;
+
 		--markout--band-line: #9993;
 		/* --markout--band-line: var(--shade, #eee); */
 		/* --markout--band-stroke: #666; */

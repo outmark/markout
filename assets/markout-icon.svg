@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 420 420">
+  <defs>
+    <style>
+      .a {
+        fill: url(#a);
+      }
+
+      .b {
+        fill: none;
+      }
+
+      .c {
+        clip-path: url(#b);
+      }
+
+      .d {
+        mask: url(#c);
+      }
+
+      .e {
+        opacity: 0.5;
+      }
+
+      .f {
+        fill: #e6e6e6;
+      }
+
+      .g {
+        fill: #ff931e;
+      }
+
+      .h {
+        fill: #7ac943;
+      }
+    </style>
+    <linearGradient id="a" x2="420" y2="420" gradientUnits="userSpaceOnUse">
+      <stop offset="0.25" stop-color="#fff"/>
+      <stop offset="1"/>
+    </linearGradient>
+    <clipPath id="b">
+      <rect class="b" width="420" height="420" rx="84"/>
+    </clipPath>
+    <mask id="c" x="0" y="0" width="420" height="420" maskUnits="userSpaceOnUse">
+      <rect class="a" width="420" height="420"/>
+    </mask>
+  </defs>
+  <title>Markout Icon (outline)</title>
+  <g class="c">
+    <g class="d">
+      <g class="e">
+        <rect class="f" width="420" height="420"/>
+      </g>
+    </g>
+    <g>
+      <path class="g" d="M137.87,258.9,61.13,212.77V208.4l76.74-46.13,2.18,3.5-75,44.82,75,44.81Z"/>
+      <path class="h" d="M170.09,319.11l10.5-59.24H158.2l1.4-8.39H182l13.53-76H173.12l1.4-8.39h22.39l10.49-59.23h9.33l-10.49,59.23h29.85l10.49-59.23h9.33l-10.49,59.23H267.8l-1.4,8.39H244l-13.53,76h22.39l-1.4,8.39H229.09L218.6,319.11h-9.33l10.49-59.24H189.91l-10.49,59.24Zm21.22-67.63h29.85l13.53-76H204.84Z"/>
+      <path class="g" d="M288.14,258.78l-2.19-3.5,75-44.82-75-44.82,2.19-3.5,76.73,46.13v4.38Z"/>
+    </g>
+  </g>
+</svg>

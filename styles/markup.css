@@ -4,7 +4,7 @@
 
 @media screen and (prefers-color-scheme: dark) {
 	pre {
-		background-color: #0009;
+		/* background-color: #0009; */
 
 		--markup-background: var(--markup-dark-background, var(--markup-light-background));
 		--markup-faults-background: var(--markup-dark-faults-background, var(--markup-light-faults-background));
