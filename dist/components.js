@@ -1,4 +1,15 @@
 // @ts-check
+/// <reference path="./types/global.d.ts" />
+
+const components = {};
+
+components.html = import.meta['components.html'];
+components.css = import.meta['components.css'];
+components.Assets = import.meta['components.Assets'];
+components.Attributes = import.meta['components.Attributes'];
+components.Component = import.meta['components.Component'];
+
+//@ts-check
 
 /** @type {TaggedTemplate<string, any>} */
 const css = (options => {
@@ -100,12 +111,14 @@ const css = (options => {
   prefixed: ['user-select', 'backdrop-filter', 'position'],
 });
 
+import.meta['components.css'] = components.css = css;
+
 /**
  * @template T, V
  * @typedef {import('./templates').TaggedTemplate<T, V>} TaggedTemplate
  */
 
-// @ts-check
+//@ts-check
 
 /** @typedef {{raw: TemplateStringsArray['raw']}} RawStrings */
 /** @typedef {TemplateStringsArray | RawStrings} TemplateStrings */
@@ -158,6 +171,9 @@ const html = (template => {
   };
 })(template());
 
+import.meta['components.template'] = components.template = template;
+import.meta['components.html'] = components.html = html;
+
 // /**
 //  * @param {TemplateStringsArray | {raw: string[]}} strings
 //  * @param {*} values
@@ -173,7 +189,6 @@ const html = (template => {
 // css.prefix = ['user-select'];
 
 // @ts-check
-/// <reference path="./types/global.d.ts" />
 
 const DefaultAttributes = 'defaultAttributes';
 const IsInitialized = 'isInitialized';
@@ -402,6 +417,46 @@ const Component = (() => {
         },
         ...descriptor,
       },
+      html: {
+        set(value) {
+          // (value || (value = import.meta['components.html'])) &&
+          this === Component || updateProperty(this, 'html', value);
+        },
+        get() {
+          //@ts-ignore
+          return components.html;
+        },
+      },
+      css: {
+        set(value) {
+          // (value || (value = import.meta['components.css'])) &&
+          this === Component || updateProperty(this, 'css', value);
+        },
+        get() {
+          //@ts-ignore
+          return components.css;
+        },
+      },
+      Attributes: {
+        set(value) {
+          // (value || (value = import.meta['components.Attributes'])) &&
+          this === Component || updateProperty(this, 'Attributes', value);
+        },
+        get() {
+          //@ts-ignore
+          return components.Attributes;
+        },
+      },
+      Assets: {
+        set(value) {
+          // (value || (value = import.meta['components.Assets'])) &&
+          this === Component || updateProperty(this, 'Assets', value);
+        },
+        get() {
+          //@ts-ignore
+          return components.Assets;
+        },
+      },
     });
   }
 
@@ -423,13 +478,27 @@ const Component = (() => {
     /** @type {string} */
     Component.styles = undefined;
 
+    // Those properties are meant for bundling
+    Component.html = import.meta['components.html'];
+    Component.css = import.meta['components.css'];
+    Component.Assets = import.meta['components.Assets'];
+    Component.Attributes = import.meta['components.Attributes'];
+
     /** @type {<T, R, U>(attributeName: string, nextValue?: T, previousValue?: T | R) => U} */
     Component.prototype.updateAttribute = undefined;
   }
 })();
 
+import.meta['components.Component'] = components.Component = Component;
+
+// if (import.meta.url.includes('/components/lib/components.js')) {
+
+// }
+
 /** @typedef {import('./attributes')['Attributes']} Attributes */
 /** @typedef {HTMLStyleElement & Partial<{cloneStyleSheet(): ComponentStyleElement, loaded?: Promise<void>}>} ComponentStyleElement */
+
+//@ts-check
 
 const {Toggle, Attributes} = (() => {
   const {assign, defineProperties, getOwnPropertyNames} = Object;
@@ -455,26 +524,29 @@ const {Toggle, Attributes} = (() => {
    * @extends {Array<K>}
    */
   class Attributes extends Array {
-    /**
-     * @param {{[index: number]:K} | {[name: K]}} attributes
-     */
+    //@ts-ignore
+    /** @param {{[index: number]:K} | {[name: K]}} attributes */
     constructor(attributes) {
       const names =
         (attributes &&
           ((Symbol.iterator in attributes && attributes) || getOwnPropertyNames(attributes))) ||
         '';
+      //@ts-ignore
       super(...names);
       !attributes || names === attributes || assign(this, attributes);
     }
 
+    //@ts-ignore
     *entries() {
       for (const key of super[Symbol.iterator]()) {
+        //@ts-ignore
         yield [key, this[key]];
       }
     }
 
     /**
      * @template {string} K
+     //@ts-ignore
      * @template {{[name: K]}} T
      * @param {...T} definitions
      * @returns {Attributes<K> | T}
@@ -483,6 +555,7 @@ const {Toggle, Attributes} = (() => {
       const attributes = {};
 
       for (const object of definitions) {
+        //@ts-ignore
         for (const name of Symbol.iterator in object ? object : getOwnPropertyNames(object)) {
           typeof name !== 'string' ||
             (name in attributes
@@ -496,6 +569,8 @@ const {Toggle, Attributes} = (() => {
     }
   }
 
+  Attributes.Toggle = Toggle;
+
   defineProperties(Attributes.prototype, {
     [Symbol.toStringTag]: {value: 'Attributes'},
     [Symbol.isConcatSpreadable]: {value: false},
@@ -503,6 +578,8 @@ const {Toggle, Attributes} = (() => {
 
   return {Attributes, Toggle};
 })();
+
+import.meta['components.Attributes'] = components.Attributes = Attributes;
 
 /**
  * @typedef {*} attribute.value
@@ -514,6 +591,7 @@ const {Toggle, Attributes} = (() => {
 
 /**
  * @template T
+ //@ts-ignore
  * @typedef {T extends attribute.true ? true : T extends attribute.false ? false : T extends attribute.empty ? '' : undefined} attribute.toggle
  */
 
@@ -720,9 +798,11 @@ const preload = (src => {
   return preload;
 })(import.meta.url);
 
+//@ts-check
+
 const root =
   (currentDocument && currentDocument.baseURI && new URL('./', currentDocument.baseURI)) ||
-  (currentWindow && currentWindow.location && new URL('./', currentWindow.location)) ||
+  (currentWindow && currentWindow.location && new URL('./', String(currentWindow.location))) ||
   (currentProcess && currentProcess.cwd && new URL(`file://${currentProcess.cwd()}`)) ||
   new URL('../', import.meta.url);
 
@@ -779,14 +859,14 @@ class Asset extends URL {
 }
 
 class Assets {
-  /** @typedef {{base: string}} Options */
+  /** @typedef {{base: string, Asset?: typeof Asset}} Options */
   /** @typedef {string} specifier */
   /** @param {Options} [options] */
   /** @param {... specifier} [specifiers] */
   constructor(options, ...specifiers) {
     const assets = {script: {}, style: {}};
 
-    const {base = `${root}`} = {
+    const {base = `${root}`, Asset = new.target.Asset || Assets.Asset} = {
       ...(((!arguments.length || typeof options === 'object') && options) ||
         (options = void ([...specifiers] = arguments))),
     };
@@ -829,7 +909,10 @@ class Assets {
       Object.defineProperty(
         assets[type],
         href,
-        (descriptors[id] = {value: new Asset(url, type, id), enumerable: true}),
+        (descriptors[id] = {
+          value: new Asset(url, type, id),
+          enumerable: true,
+        }),
       );
 
       id !== specifier && (descriptors[specifier] = {get: () => this[id]});
@@ -847,7 +930,11 @@ class Assets {
   }
 }
 
+Assets.Asset = Asset;
+
+import.meta['components.Assets'] = components.Assets = Assets;
+
 /** @package components */
 
-export { Assets, Attributes, Component, Toggle, css, html, raw };
+export { Assets, Attributes, Component, Toggle, components, css, html, raw };
 //# sourceMappingURL=components.js.map

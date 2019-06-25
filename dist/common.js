@@ -433,16 +433,38 @@ const partials = {};
 
 		sequences.NormalizableBlocks = sequence/* fsharp */ `
       (?:^|\n)(${INSET}(?:${partials.BlockFence}))[^]+?(?:(?:\n\1[ \t]*)+\n?|$)
-      |([^]+?(?:(?=\n${INSET}(?:${partials.BlockFence}))|$))
+      |(?:^|\n)(${INSET})(?:
+				<style>[^]+?(?:(?:\n\2</style>[ \t]*)+\n?|$)
+				|<script type=module>[^]+?(?:(?:\n\2</script>[ \t]*)+\n?|$)
+				|<script>[^]+?(?:(?:\n\2</script>[ \t]*)+\n?|$)
+			)
+      |([^]+?(?:(?=\n${INSET}(?:${partials.BlockFence}|<script>|<style>|<script type=module>))|$))
     `;
 		matchers.NormalizableBlocks = new RegExp(sequences.NormalizableBlocks, 'g');
+
+		partials.HTMLTagBody = sequence/* fsharp */ `(?:[^${`"'`}>]+?|".*?"|'.*?')`;
+
+		sequences.HTMLTags = sequence/* fsharp */ `
+			<\/?[a-zA-z]\w*${partials.HTMLTagBody}*?>
+			|<%[^]*?%>
+			|<!--[^]*?-->
+			|<!\w[^]>
+		`;
+
+		matchers.HTMLTags = new RegExp(sequences.HTMLTags, 'g');
 
 		sequences.NormalizableParagraphs = sequence/* fsharp */ `
       ^
       ((?:[ \t]*\n(${INSET}))+)
       ($|(?:
-        (?!(?:${sequences.ListMarker}))
-        [^-#>|~\n].*
+				(?:
+					</?(?:span|small|big|kbd)\b${partials.HTMLTagBody}*?>
+					|(?!(?:${join(
+						sequences.HTMLTags,
+						// sequences.ListMarker,
+					)}))
+				)
+				[^-#>|~\n].*
         (?:\n${INSET}$)+
       )+)
     `;
@@ -454,7 +476,8 @@ const partials = {};
       (\b.*[^:\n\s>]+|\b)
       [ \t]*\n[ \t>]*?
       (?=(
-        \b
+				</?(?:span|small|big|kbd)\b${partials.HTMLTagBody}*?>[^-#>|~\n].*
+        |\b(?!(?:${sequences.HTMLTags}))
         |${escape('[')}.*?${escape(']')}[^:\n]?
         |[^#${'`'}${escape('[')}\n]
       ))
@@ -681,6 +704,7 @@ const {
 	/** Attempts to overcome **__** */
 	'markout-render-merged-marking': MERGED_MARKING = false,
 	'markout-render-comment-stashing': COMMENT_STASHING = false,
+	'markout-render-paragraph-trimming': PARAGRAPH_TRIMMING = true,
 } = import.meta;
 
 const MATCHES = Symbol('matches');
@@ -711,6 +735,8 @@ const recomment = (body, comments) => {
 	);
 };
 
+const isNotBlank = text => typeof text === 'string' && !(text === '' || text.trim() === '');
+
 class MarkoutBlockNormalizer {
 	/**
 	 * @param {string} sourceText
@@ -730,7 +756,11 @@ class MarkoutBlockNormalizer {
 				[BLOCKS]: sourceBlocks,
 				[BLOCKS]: {
 					[MATCHES]: matchedBlocks = (sourceBlocks[MATCHES] = []),
-					[MATCHES]: {fenced: fenced = (matchedBlocks.fenced = []), unfenced: unfenced = (matchedBlocks.unfenced = [])},
+					[MATCHES]: {
+						fenced: fenced = (matchedBlocks.fenced = []),
+						embedded: embedded = (matchedBlocks.embedded = []),
+						unfenced: unfenced = (matchedBlocks.unfenced = []),
+					},
 				},
 				[ALIASES]: sourceAliases,
 				[ALIASES]: {
@@ -751,21 +781,25 @@ class MarkoutBlockNormalizer {
 			};
 
 			while ((match = NormalizableBlocks.exec(sourceText))) {
-				matchedBlocks.push(([match.text, match.fence, match.unfenced] = match));
+				matchedBlocks.push(([match.text, match.fence, match.inset, match.unfenced] = match));
 				if (match.fence) {
 					fenced.push(match);
+				} else if (match.inset !== undefined) {
+					embedded.push(match);
 				} else {
 					unfenced.push(match);
 					match.text = match.text.replace(RewritableAliases, replaceAlias);
 				}
 			}
+
+			// console.log(matchedBlocks);
 		}
 
 		Normalization: {
 			const {[BLOCKS]: sourceBlocks} = source;
-			for (const {text, fence, unfenced} of sourceBlocks[MATCHES]) {
+			for (const {text, fence, inset, unfenced} of sourceBlocks[MATCHES]) {
 				sourceBlocks.push(
-					fence
+					fence || inset !== undefined
 						? text
 						: this.normalizeParagraphs(
 								this.normalizeBreaks(this.normalizeLists(this.normalizeReferences(text, state))),
@@ -886,7 +920,7 @@ class MarkoutBlockNormalizer {
 	 * @param {string} sourceText
 	 */
 	normalizeParagraphs(sourceText) {
-		return sourceText.replace(NormalizableParagraphs, (m, feed, inset, body) => {
+		sourceText = sourceText.replace(NormalizableParagraphs, (m, feed, inset, body) => {
 			let paragraphs, comments;
 
 			COMMENT_STASHING && ({body, comments} = decomment(body));
@@ -894,7 +928,7 @@ class MarkoutBlockNormalizer {
 			paragraphs = body
 				.trim()
 				.split(/^(?:[> \t]*\n)+[> \t]*/m)
-				.filter(Boolean);
+				.filter(isNotBlank);
 
 			import.meta['debug:markout:paragraph-normalization'] &&
 				console.log('normalizeParagraphs:', {m, feed, inset, body, paragraphs});
@@ -905,6 +939,10 @@ class MarkoutBlockNormalizer {
 
 			return body;
 		});
+
+		PARAGRAPH_TRIMMING && (sourceText = sourceText.replace(/<p>[\s\n]*<\/p>/g, ''));
+
+		return sourceText;
 	}
 
 	normalizeBreaks(sourceText) {
@@ -1248,6 +1286,7 @@ const {
 	normalizeHeadingsInFragment,
 	normalizeChecklistsInFragment,
 	normalizeParagraphsInFragment,
+	flattenTokensInFragment,
 	applyDeclarativeStylingInFragment,
 	renderSourceTextsInFragment,
 } = (() => {
@@ -1369,6 +1408,13 @@ const {
 		}
 	};
 
+	const flattenTokensInFragment = fragment => {
+		for (const token of fragment.querySelectorAll('span[token-type],tt[token-type]')) {
+			token.nodeName === 'TT' || token.before(...token.childNodes);
+			token.remove();
+		}
+	};
+
 	const applyDeclarativeStylingInFragment = fragment => {
 		if (
 			typeof declarativeStyling.apply === 'function' &&
@@ -1432,6 +1478,7 @@ const {
 		normalizeHeadingsInFragment,
 		normalizeChecklistsInFragment,
 		normalizeParagraphsInFragment,
+		flattenTokensInFragment,
 		applyDeclarativeStylingInFragment,
 		renderSourceTextsInFragment,
 	};
@@ -1619,7 +1666,10 @@ class MarkoutRenderer {
 			tag = 'span';
 			classes = context.classes = hint.split(/\s+/);
 
-			if (hint === 'markdown' || hint.startsWith('markdown ') || hint.includes('in-markdown')) {
+			if (hint.includes('-in-markdown')) {
+				context.renderedText += token.text;
+				continue;
+			} else if (hint === 'markdown' || hint.startsWith('markdown ') || hint.includes('in-markdown')) {
 				type !== 'text' || lineBreaks || (text in lookups.entities && (body = lookups.entities[text]));
 
 				if (punctuator) {
@@ -1841,5 +1891,5 @@ debugging('markout', import.meta, [
 	'fenced-block-header-rendering',
 ]);
 
-export { normalizeBreaksInFragment as a, normalizeHeadingsInFragment as b, createRenderedFragment as c, normalizeParagraphsInFragment as d, normalizeChecklistsInFragment as e, applyDeclarativeStylingInFragment as f, renderSourceTextsInFragment as g, normalize as n, populateAssetsInFragment as p, render as r, tokenize as t };
+export { normalizeBreaksInFragment as a, normalizeHeadingsInFragment as b, createRenderedFragment as c, normalizeParagraphsInFragment as d, normalizeChecklistsInFragment as e, applyDeclarativeStylingInFragment as f, flattenTokensInFragment as g, renderSourceTextsInFragment as h, normalize as n, populateAssetsInFragment as p, render as r, tokenize as t };
 //# sourceMappingURL=common.js.map

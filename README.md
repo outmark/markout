@@ -47,173 +47,173 @@ Current experimental efforts divide the rendering into two phases, the first por
 <!-- prettier-ignore-start -->
 <div>
 
-- [x] Markout Attribute Styles <figure columns:=20em font-size:=90%>
+- [x] <figcaption>Markout Attribute Styles</figcaption> <figure columns:=20em font-size:=90%>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=html margin:=0 padding:=0>`<span color:=red>one</span>`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><span color:=red>one</span></figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><span color:=red>one</span></figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><span style="color:red">one</span></pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=html margin:=0 padding:=0>`… <span style:=fence>one</span> …`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>…<span style:=fence>one</span>…</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>…<span style:=fence>one</span>…</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>…<span style="border:var(--border-fence-style); background:var(--background-fence-style); color:var(--color-fence-style); font:var(--font-fence-style);">one</span>…</pre>
         </figure>
 
-- [x] Markdown-Style Italics <figure columns:=20em font-size:=90%>
+- [x] <figcaption>Markdown-Style Italics</figcaption> <figure columns:=20em font-size:=90%>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one _two_ three`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one _two_ three</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one _two_ three</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <i>two</i> three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`_one_two_three_`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>_one_two_three_</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>_one_two_three_</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><i>one_two_three</i></pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`_one__two__three_`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>_one__two__three_</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>_one__two__three_</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><i>one__two__three</i></pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one *two* three`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one *two* three</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one *two* three</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <i>two</i> three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one*two*three`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one*two*three</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one*two*three</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one<i>two</i>three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`*one*_two_*three*`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>*one*_two_*three*</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>*one*_two_*three*</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><i>one</i><i>two</i><i>three</i></pre>
         </figure>
 
 
-- [x] Markdown-Style Bold <figure columns:=20em font-size:=90%>
+- [x] <figcaption>Markdown-Style Bold</figcaption> <figure columns:=20em font-size:=90%>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one **two** three`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one **two** three</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one **two** three</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <b>two</b> three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one**two**three`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one**two**three</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one**two**three</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one<b>two</b>three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`**one****two****three**`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>**one****two****three**</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>**one****two****three**</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><b>one</b><b>two</b><b>three</b></pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one __two__ three`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one __two__ three</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one __two__ three</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <b>two</b> three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`_one__two__three_`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>__one__two__three__</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>__one__two__three__</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><b>one&#x5F;&#x5F;two&#x5F;&#x5F;three</b></pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`__one____two____three__`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>__one____two____three__</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>__one____two____three__</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><b>one&#x5F;&#x5F;&#x5F;&#x5F;two&#x5F;&#x5F;&#x5F;&#x5F;three</b></pre>
         </figure>
 
-- [x] Markdown-Style Bold + Italics <figure columns:=20em font-size:=90%>
+- [x] <figcaption>Markdown-Style Bold + Italics</figcaption> <figure columns:=20em font-size:=90%>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one **_two_ three**`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one **_two_ three**</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one **_two_ three**</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <b><i>two</i> three</b></pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`__*one*two*three*__`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>__*one*two*three*__</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>__*one*two*three*__</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><b><i>one</i>two<i>three</i></b></pre>
         </figure>
 
-- [x] Markdown-Style Strikethrough <figure columns:=20em font-size:=90%>
+- [x] <figcaption>Markdown-Style Strikethrough</figcaption> <figure columns:=20em font-size:=90%>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one ~~two~~ three`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one ~~two~~ three</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one ~~two~~ three</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one <s>two</s> three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one~~two~~three`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one~~two~~three</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one~~two~~three</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one<s>two</s>three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`~~one~~two~~three~~`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>~~one~~two~~three~~</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>~~one~~two~~three~~</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><s>one</s>two<s>three</s></pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`~~one~~~~two~~~~three~~`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>~~one~~~~two~~~~three~~</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>~~one~~~~two~~~~three~~</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column><s>one</s><s>two</s><s>three</s></pre>
         </figure>
 
 
-- [x] Markdown-Style Escapes (ie not styled) <figure columns:=20em font-size:=90%>
+- [x] <figcaption>Markdown-Style Escapes  (ie not styled)</figcaption><figure columns:=20em font-size:=90%>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one\*two\*three`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\*two\*three</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\*two\*three</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one&#x2A;two&#x2A;three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`\_one_two_three\_`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>\_one_two_three\_</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>\_one_two_three\_</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>&#x5F;one&#x5F;two&#x5F;three&#x5F;</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one\**two\**three`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\**two\**three</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\**two\**three</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one&#x2A;&#x2A;two&#x2A;&#x2A;three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one\*\*two\*\*three`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\*\*two\*\*three</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\*\*two\*\*three</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one&#x2A;&#x2A;two&#x2A;&#x2A;three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one\~~two\~~three`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\~~two\~~three</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\~~two\~~three</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one&#x7E;&#x7E;two&#x7E;&#x7E;three</pre>
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
         <pre title=source text-align:=center source-type=markdown margin:=0 padding:=0>`one\~\~two\~\~three`</pre>
-        <figure class=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\~\~two\~\~three</figure>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one\~\~two\~\~three</figure>
         <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>one&#x7E;&#x7E;two&#x7E;&#x7E;three</pre>
         </figure>
 </div>
@@ -236,7 +236,7 @@ Current experimental efforts divide the rendering into two phases, the first por
 [referenced]: ./README.md
 ```
 
-<figure class=all>
+<figure debug=all>
 
 > **Note**: renders as hidden anchors
 
@@ -257,7 +257,7 @@ Current experimental efforts divide the rendering into two phases, the first por
 - [Not Referenced Link][not-referenced]
 ```
 
-<figure class=all>
+<figure debug=all>
 
 - [Link](./README.md)
 - [Referenced Link][referenced]
@@ -278,23 +278,23 @@ Current experimental efforts divide the rendering into two phases, the first por
 > **Note**: Markdown handles this differently
 
 
-- [x] Markout's Unordered Lists <figure columns:=20em>
+- [x] <figcaption>Markout's Unordered Lists</figcaption> <figure columns:=20em>
 
-  - [x] Square <figure class=ul font-size:=90%>
+  - [x] Square <figure debug=ul font-size:=90%>
 
     - Square
       - Square
       * Disc
 
-  - [x] Disc <figure class=ul font-size:=90%>
+  - [x] Disc <figure debug=ul font-size:=90%>
 
     * Disc
       - Square
       * Disc
 
-- [x] Markout's Ordered Lists <figure columns:=20em>
+- [x] <figcaption>Markout's Ordered Lists</figcaption> <figure columns:=20em>
 
-  - [x] Latin Numbering <figure class=ol font-size:=90%>
+  - [x] Latin Numbering <figure debug=ol font-size:=90%>
 
     a) `    a) Latin     (auto)   `
       iv. `  iv. Roman  (coerced)`
@@ -302,7 +302,7 @@ Current experimental efforts divide the rendering into two phases, the first por
       g.  `  g.  Latin  (coerced)`
       a.  `  h.  Latin  (auto)   `
 
-  - [x] Arabic Numbering <figure class=ol font-size:=90%>
+  - [x] Arabic Numbering <figure debug=ol font-size:=90%>
 
     1) `  1) Arabic    (auto)   `
       g.  `g.  Latin  (coerced)`
@@ -310,7 +310,7 @@ Current experimental efforts divide the rendering into two phases, the first por
       11. `11. Arabic (coerced)`
       1.  `1.  Arabic (auto)   `
 
-  - [x] Roman Numbering <figure class=ol font-size:=90%>
+  - [x] Roman Numbering <figure debug=ol font-size:=90%>
 
     i. `  i. Roman     (auto)   `
       11. `11. Arabic (coerced)`
@@ -318,23 +318,23 @@ Current experimental efforts divide the rendering into two phases, the first por
       iv. `iv. Roman  (coerced)`
       i.  ` i. Roman  (auto)   `
 
-- [x] Markout's Checklists <figure columns:=20em>
+- [x] <figcaption>Markout's Checklists</figcaption> <figure columns:=20em>
 
-  - [x] Force-Checked <figure class=ul font-size:=90%>
+  - [x] Force-Checked <figure debug=ul font-size:=90%>
 
     - [x] `- [x] Checked           `
       - [x] `- [x] Checked       `
       - [-] `- [-] Indeterminate `
       - [ ] `- [ ] Unchecked     `
 
-  - [x] Force-Indeterminated <figure class=ul font-size:=90%>
+  - [x] Force-Indeterminated <figure debug=ul font-size:=90%>
 
     - [-] `- [-] Indeterminate     `
       - [x] `- [x] Checked       `
       - [-] `- [-] Indeterminate `
       - [ ] `- [ ] Unchecked     `
 
-  - [x] Auto-Unchecked <figure class=ul font-size:=90%>
+  - [x] Auto-Unchecked <figure debug=ul font-size:=90%>
 
     - [ ] `- [ ] Unchecked        `
       - [x] `- [x] Checked      `
@@ -342,6 +342,8 @@ Current experimental efforts divide the rendering into two phases, the first por
       - [ ] `- [ ] Unchecked    `
 
 </markout-details>
+
+<!-- prettier-ignore-start -->
 
 <markout-details open><summary type=checkbox>
 
@@ -351,7 +353,6 @@ Current experimental efforts divide the rendering into two phases, the first por
 
 - [x] Heading groups are created from well-chained heading blocks
 
-<!-- prettier-ignore-start -->
 <div column-grid font-size:=75%>
 
 ```md
@@ -370,7 +371,7 @@ Current experimental efforts divide the rendering into two phases, the first por
 ## Heading 2
 ```
 
-<figure class=all><div font-size:=75%>
+<figure debug=all><div font-size:=75%>
 
 # Heading 1
 ## Subheading
@@ -387,8 +388,11 @@ Current experimental efforts divide the rendering into two phases, the first por
 ## Heading 2
 </div></figure>
 </div>
-<!-- prettier-ignore-end -->
 </markout-details>
+
+<!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
 
 <markout-details open><summary type=checkbox>
 
@@ -398,7 +402,6 @@ Current experimental efforts divide the rendering into two phases, the first por
 
 - [x] ATX headings
 
-<!-- prettier-ignore-start -->
 <div column-grid font-size:=75%>
 
 ```md
@@ -417,7 +420,7 @@ Current experimental efforts divide the rendering into two phases, the first por
 ####### No Heading 7
 ```
 
-<figure class=all><div font-size:=75%>
+<figure debug=all><div font-size:=75%>
 
 # Heading 1
 ---
@@ -436,14 +439,10 @@ Current experimental efforts divide the rendering into two phases, the first por
 </div></figure>
 </div>
 
-<!-- prettier-ignore-end -->
-
 - [x] HTML headings
 
-<!-- prettier-ignore-start -->
 <div column-grid font-size:=75%>
 
-<!-- prettier-ignore-start -->
 ```md
 <h1>Heading 1</h1>
 ---
@@ -459,28 +458,36 @@ Current experimental efforts divide the rendering into two phases, the first por
 ---
 <h7>No Heading 7</h7>
 ```
-<!-- prettier-ignore-end -->
 
-<figure class=all><div font-size:=75%>
+<figure debug=all><div font-size:=75%>
 
-## <h1>Heading 1</h1>
-
-## <h2>Heading 2</h2>
-
-## <h3>Heading 3</h3>
-
-## <h4>Heading 4</h4>
-
-## <h5>Heading 5</h5>
-
-## <h6>Heading 6</h6>
-
+<h1>Heading 1</h1>
+---
+<h2>Heading 2</h2>
+---
+<h3>Heading 3</h3>
+---
+<h4>Heading 4</h4>
+---
+<h5>Heading 5</h5>
+---
+<h6>Heading 6</h6>
+---
 <h7>No Heading 7</h7>
 
 </div></figure>
 </div>
-<!-- prettier-ignore-end -->
 
 </markout-details>
 
-<!-- <style src=./styles/readme.css></style> -->
+<!-- prettier-ignore-end -->
+
+<style src=./styles/markout.debug.css></style>
+
+<script>
+  console.log('a');
+</script>
+
+<style>
+  /* * { color: blue; } */
+</style>

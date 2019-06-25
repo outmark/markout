@@ -1,6 +1,6 @@
 ﻿import dynamicImport from '/browser/dynamic-import.js';
-import {html, css, Component, Assets} from '../lib/components.js';
 import * as content from '../lib/content.js';
+import {Component} from '../lib/components.js';
 
 const {
 	'markout-content-dom-mutations': DOM_MUTATIONS = undefined,
@@ -8,17 +8,20 @@ const {
 	'markout-content-heading-normalization': HEADING_NORMALIZATION = true,
 	'markout-content-paragraph-normalization': PARAGRAPH_NORMALIZATION = true,
 	'markout-content-checklist-normalization': CHECKLIST_NORMALIZATION = true,
+	'markout-content-token-flattening': TOKEN_FLATTENING = true,
 	'markout-content-declarative-styling': DECLARATIVE_STYLING = true,
 	'markout-content-source-text-rendering': SOURCE_TEXT_RENDERING = true,
 	'markout-content-asset-remapping': ASSET_REMAPPING = true,
 	'markout-content-asset-initialization': ASSET_INITIALIZATION = true,
 } = import.meta;
 
+// console.log({...components}, {...components.Component});
+
 export class MarkoutContent extends Component {
 	static get template() {
 		return super.set(
 			'template',
-			html`
+			this.html/* html */ `
 				<slot inert hidden style="display:none;"></slot>
 				<slot id="styles" name="styles"></slot>
 				<div id="links"></div>
@@ -34,13 +37,13 @@ export class MarkoutContent extends Component {
 	}
 
 	static get assets() {
-		return super.set('assets', new Assets({base: new URL('../', import.meta.url)}, 'style:styles/markout.css'));
+		return super.set('assets', new this.Assets({base: new URL('../', import.meta.url)}, 'style:styles/markout.css'));
 	}
 
 	static get styles() {
 		return super.set(
 			'styles',
-			css`
+			this.css/* css */ `
 				@import "${MarkoutContent.assets['style:styles/markout.css']}";
 
 				:host {
@@ -176,6 +179,38 @@ export class MarkoutContent extends Component {
 			const anchors = contentSlot.querySelectorAll('a[href]');
 			anchors && this.rewriteAnchors([...anchors]);
 		}
+
+		const marker = document.createComment('<!-- embedded -->');
+		const selector = [
+			// 'style:not([type]):not([src])',
+			// 'style[type="text/css"]:not([src])',
+			'script:not([type]):not([src])',
+			'script[type="text/javascript"]:not([src])',
+		].join(',');
+
+		for (const embedded of contentSlot.querySelectorAll(selector)) {
+			if (embedded.nodeName === 'SCRIPT') {
+				embedded.before(marker);
+				embedded.remove();
+				embedded.type = 'text/javascript';
+				// embedded.type = 'classic';
+				// embedded.src = URL.createObjectURL(new Blob([embedded.innerText], {type: 'text/javascript'}));
+				// embedded.async = true;
+			} else if (embedded.nodeName === 'STYLE') {
+				continue;
+			} else {
+				continue;
+			}
+			marker.parentElement.replaceChild(embedded, marker);
+			// embedded.type ||
+			// 	((embedded.nodeName === 'SCRIPT' && ()) ||
+			// 		(embedded.nodeName === 'STYLE' && (embedded.type = 'text/css')));
+			// // embedded.textContent = embedded.innerText;
+			// embedded.src = URL.createObjectURL(new Blob([embedded.innerText], {type: 'text/javascript'}));
+			// // console.log(embedded);
+			// // this.appendChild(embedded);
+			// // document.adoptNode(embedded);
+		}
 	}
 
 	/** @param {string} sourceText @param {HTMLSlotElement} contentSlot @param {string} baseURL */
@@ -200,6 +235,9 @@ export class MarkoutContent extends Component {
 			(PARAGRAPH_NORMALIZATION === true || DOM_MUTATIONS === true) && content.normalizeParagraphsInFragment(fragment),
 			(CHECKLIST_NORMALIZATION === true || DOM_MUTATIONS === true) && content.normalizeChecklistsInFragment(fragment),
 			(DECLARATIVE_STYLING === true || DOM_MUTATIONS === true) && content.applyDeclarativeStylingInFragment(fragment));
+
+		(TOKEN_FLATTENING === true || (TOKEN_FLATTENING !== false && DOM_MUTATIONS !== false)) &&
+			content.flattenTokensInFragment(fragment);
 
 		return fragment;
 	}

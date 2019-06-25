@@ -1,0 +1,35 @@
+﻿/*//// Outlines ////*/
+
+[debug~='ol'] ol,
+[debug~='ol'] ol > li,
+[debug~='ul'] ul,
+[debug~='ul'] ul > li,
+[debug~='all'] * {
+	outline-style: solid;
+	outline-color: #39c6;
+	outline-offset: -1px;
+	outline-width: var(--outline);
+	opacity: var(--opacity);
+}
+
+[debug] {
+	--outline: 0;
+}
+
+[debug]:hover :hover ~ *,
+[debug]:hover * {
+	--opacity: 0.75;
+	--outline: 0;
+}
+
+[debug] *:hover * {
+	/* outline-color: #39c6; */
+	--opacity: 0.75;
+	--outline: 0.5px;
+}
+
+[debug] *:hover {
+	outline-color: #39c;
+	--opacity: 1;
+	--outline: 1px;
+}

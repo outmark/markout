@@ -7,6 +7,11 @@
 	color-scheme: light dark;
 }
 
+span[token-type],
+tt[token-type] {
+	display: contents;
+}
+
 pre.markup.code[markup-syntax='log'] {
 	-webkit-tab-size: 12 !important;
 	-moz-tab-size: 12 !important;
@@ -17,6 +22,29 @@ pre.markup > .markup-line {
 	/* display: inline-block; */
 	min-width: max-content;
 }
+
+pre[data-markout-open-tag]::before {
+	content: attr(data-markout-open-tag);
+	display: block;
+	margin-block-start: -0.5em;
+	font-weight: 100;
+}
+
+pre[data-markout-close-tag]::after {
+	content: attr(data-markout-close-tag);
+	display: block;
+	margin-block-end: -0.5em;
+	font-weight: 100;
+}
+
+/* iframe {
+	border: none;
+	background: transparent;
+	width: 100%;
+	height: 100%;
+	box-sizing: border-box;
+	padding: 1em;
+} */
 
 :host {
 	font-family: var(--markout--body-font-family);

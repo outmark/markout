@@ -237,7 +237,7 @@ summary > :first-child:last-child {
 	margin: 0;
 }
 
-*:not(a) > *:first-child:last-child,
+*:not(a):not(li) > *:first-child:last-child,
 a:first-child:last-child > :first-child:last-child,
 hgroup:empty,
 hgroup h1,
@@ -251,6 +251,10 @@ hgroup h6 {
 	/* --block-margin: 0; */
 }
 
+*:not(a) > *:first-child:last-child {
+	margin-block-start: 0;
+}
+
 /**/ /**/ /* PRIMITIVES */ /**/ /**/
 
 h1,
@@ -260,6 +264,7 @@ h2 {
 	border-width: 0;
 }
 
+iframe,
 figure,
 pre,
 aside,
@@ -456,6 +461,16 @@ tr > th:empty {
 dt {
 	font-weight: 600;
 	font-style: italic;
+}
+
+iframe {
+	border: var(--border-fence-style);
+	background-color: var(--background-fence-style);
+	/* background: transparent; */
+	width: 100%;
+	height: 100%;
+	box-sizing: border-box;
+	padding: 1em;
 }
 
 pre,
