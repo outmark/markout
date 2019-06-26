@@ -20,7 +20,8 @@
 
 	--markout--cell-padding: 1em;
 	--markout--code-tab-size: 2;
-	--markout--code-line-height: 1.5em;
+	/* --markout--code-line-height: 1.5em; */
+	--markout--code-line-height: 1.75;
 
 	--markout--system-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif,
 		'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;

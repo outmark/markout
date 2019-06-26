@@ -1,0 +1,13 @@
+﻿body,
+html {
+	background-color: transparent;
+}
+body {
+	line-height: 175%;
+	margin: 0;
+}
+
+body > * {
+	margin: 0;
+	padding: 0;
+}

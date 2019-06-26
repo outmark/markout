@@ -1,11 +1,6 @@
 import { sequence as sequence$1, debugging, normalizeString } from '/markout/lib/helpers.js';
 import { encodeEntities, entities as entities$1, render as render$1, tokenize as tokenize$1, encodeEntity } from '/markup/dist/tokenizer.browser.js';
 
-// export const MarkupSourceTypeAttribute = 'source-type';
-// export const MarkupModeAttribute = 'markup-mode';
-// export const MarkupOptionsAttribute = 'markup-options';
-// export const MarkupSyntaxAttribute = 'markup-syntax';
-
 //@ts-check
 /// <reference path="./types.d.ts" />
 
@@ -1279,6 +1274,80 @@ const declarativeStyling = (declarativeStyling => {
 	autoprefix: undefined,
 });
 
+//@ts-check
+
+/** @template T @param {T} pairs @returns {Readonly<T>} */
+const Enum = pairs => Object.freeze(Object.setPrototypeOf(pairs, null));
+
+// const {
+// 	fromEntries = (reducer => (...entries) => entries.reduce(reducer, {}))(
+// 		(entries, [key, value]) => ((entries[key] = value), entries),
+// 	),
+// } = Object;
+
+/** @type {(text: string, matcher: RegExp | string) => IterableIterator<RegExpExecArray>} */
+const matchAll$1 = Function.call.bind(
+	String.prototype.matchAll ||
+		{
+			/**
+			 * @this {string}
+			 * @param {RegExp | string} pattern
+			 */
+			*matchAll() {
+				const matcher = arguments[0] && (arguments[0] instanceof RegExp ? arguments[0] : RegExp(arguments[0], 'g'));
+				const string = String(this);
+				for (
+					let match, lastIndex = -1;
+					lastIndex <
+					// (((arguments[0].lastIndex = lastIndex > -1 ? lastIndex : null), (match = next()))
+					(((matcher.lastIndex = lastIndex > -1 ? lastIndex + 1 : null), (match = matcher.exec(string)))
+						? (lastIndex = matcher.lastIndex)
+						: lastIndex);
+					yield match
+				);
+			},
+		}.matchAll,
+);
+
+// export const typeed = (type, index) => index !== 0 && type != null;
+
+// export class RenderableList extends Array {
+// 	toString(inset = this.inset || '', type = this.type || 'ul', style = this.style, start = this.start) {
+// 		const attributes = `${
+// 			// TODO: Explore using type attribute instead
+// 			(style && `style="list-style: ${style}"`) || ''
+// 		} ${
+// 			// TODO: Check if guard against invalid start is needed
+// 			(start && `start="${start}"`) || ''
+// 		}`.trim();
+
+// 		const rows = [`${inset}<${type}${(attributes && ` ${attributes}`) || ''}>`];
+// 		for (const item of this) {
+// 			if (item && typeof item === 'object') {
+// 				if (item instanceof RenderableList) {
+// 					const last = rows.length - 1;
+// 					const row = rows[last];
+// 					last > 0
+// 						? (rows[rows.length - 1] = `${row.slice(0, -5)}\n${item.toString(`${inset}\t\t`)}\n${inset}\t</li>`)
+// 						: rows.push(`${inset}\t<li>\n${item.toString(`${inset}\t\t`)}\n${inset}\t</li>`);
+// 				} else {
+// 					const insetText = `${item}`;
+// 					let text = insetText;
+// 					for (const character of inset) {
+// 						if (!text.startsWith(character)) break;
+// 						text = text.slice(1);
+// 					}
+// 					rows.push(text);
+// 				}
+// 			} else {
+// 				rows.push(`${inset}\t<li>${`${item}`.trim()}</li>`);
+// 			}
+// 		}
+// 		rows.push(`${inset}</${type}>`);
+// 		return `\n${rows.join('\n')}\n`;
+// 	}
+// }
+
 const {
 	createRenderedFragment,
 	populateAssetsInFragment,
@@ -1488,21 +1557,17 @@ const SourceTypeAttribute = 'source-type';
 const MarkupModeAttribute = 'markup-mode';
 const MarkupSyntaxAttribute = 'markup-syntax';
 
-const AssetTypeMap = Object.freeze(
-	Object.setPrototypeOf(
-		{
-			IMG: 'images',
-			VIDEO: 'videos',
-			SOURCE: 'sources',
-		},
-		null,
-	),
-);
+const AssetTypeMap = Enum({
+	IMG: 'images',
+	VIDEO: 'videos',
+	SOURCE: 'sources',
+});
 
 const AssetSelector = ['script', 'style', ...Object.keys(AssetTypeMap)]
 	.map(tag => `${tag.toUpperCase()}[src]:not([slot])`)
 	.join(',');
 
+/** @type {any} */
 const {
 	// Attempts to overcome **__**
 	'markout-render-span-restacking': SPAN_RESTACKING = true,
@@ -1891,5 +1956,5 @@ debugging('markout', import.meta, [
 	'fenced-block-header-rendering',
 ]);
 
-export { normalizeBreaksInFragment as a, normalizeHeadingsInFragment as b, createRenderedFragment as c, normalizeParagraphsInFragment as d, normalizeChecklistsInFragment as e, applyDeclarativeStylingInFragment as f, flattenTokensInFragment as g, renderSourceTextsInFragment as h, normalize as n, populateAssetsInFragment as p, render as r, tokenize as t };
+export { MarkupSyntaxAttribute as M, SourceTypeAttribute as S, normalizeBreaksInFragment as a, normalizeHeadingsInFragment as b, createRenderedFragment as c, normalizeParagraphsInFragment as d, normalizeChecklistsInFragment as e, applyDeclarativeStylingInFragment as f, flattenTokensInFragment as g, renderSourceTextsInFragment as h, MarkupModeAttribute as i, normalize as n, populateAssetsInFragment as p, render as r, tokenize as t };
 //# sourceMappingURL=common.js.map

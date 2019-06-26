@@ -180,37 +180,29 @@ export class MarkoutContent extends Component {
 			anchors && this.rewriteAnchors([...anchors]);
 		}
 
-		const marker = document.createComment('<!-- embedded -->');
-		const selector = [
-			// 'style:not([type]):not([src])',
-			// 'style[type="text/css"]:not([src])',
-			'script:not([type]):not([src])',
-			'script[type="text/javascript"]:not([src])',
-		].join(',');
+		// const marker = document.createComment('<!-- embedded -->');
+		// const selector = [
+		// 	// 'style:not([type]):not([src])',
+		// 	// 'style[type="text/css"]:not([src])',
+		// 	'script:not([type]):not([src])',
+		// 	'script[type="text/javascript"]:not([src])',
+		// ].join(',');
 
-		for (const embedded of contentSlot.querySelectorAll(selector)) {
-			if (embedded.nodeName === 'SCRIPT') {
-				embedded.before(marker);
-				embedded.remove();
-				embedded.type = 'text/javascript';
-				// embedded.type = 'classic';
-				// embedded.src = URL.createObjectURL(new Blob([embedded.innerText], {type: 'text/javascript'}));
-				// embedded.async = true;
-			} else if (embedded.nodeName === 'STYLE') {
-				continue;
-			} else {
-				continue;
-			}
-			marker.parentElement.replaceChild(embedded, marker);
-			// embedded.type ||
-			// 	((embedded.nodeName === 'SCRIPT' && ()) ||
-			// 		(embedded.nodeName === 'STYLE' && (embedded.type = 'text/css')));
-			// // embedded.textContent = embedded.innerText;
-			// embedded.src = URL.createObjectURL(new Blob([embedded.innerText], {type: 'text/javascript'}));
-			// // console.log(embedded);
-			// // this.appendChild(embedded);
-			// // document.adoptNode(embedded);
-		}
+		// for (const embedded of contentSlot.querySelectorAll(selector)) {
+		// 	if (embedded.nodeName === 'SCRIPT') {
+		// 		embedded.before(marker);
+		// 		embedded.remove();
+		// 		embedded.type = 'text/javascript';
+		// 		// embedded.type = 'classic';
+		// 		// embedded.src = URL.createObjectURL(new Blob([embedded.innerText], {type: 'text/javascript'}));
+		// 		// embedded.async = true;
+		// 	} else if (embedded.nodeName === 'STYLE') {
+		// 		continue;
+		// 	} else {
+		// 		continue;
+		// 	}
+		// 	marker.parentElement.replaceChild(embedded, marker);
+		// }
 	}
 
 	/** @param {string} sourceText @param {HTMLSlotElement} contentSlot @param {string} baseURL */
@@ -332,6 +324,18 @@ export class MarkoutContent extends Component {
 
 	set sourceText(sourceText) {
 		this.renderMarkoutContent(sourceText);
+	}
+
+	/// Constants
+
+	static get MARKUP_SYNTAX_ATTRIBUTE() {
+		return super.set('MARKUP_SYNTAX_ATTRIBUTE', content.MarkupSyntaxAttribute);
+	}
+	static get SOURCE_TYPE_ATTRIBUTE() {
+		return super.set('SOURCE_TYPE_ATTRIBUTE', content.SourceTypeAttribute);
+	}
+	static get MARKUP_MODE_ATTRIBUTE() {
+		return super.set('MARKUP_MODE_ATTRIBUTE', content.MarkupModeAttribute);
 	}
 }
 

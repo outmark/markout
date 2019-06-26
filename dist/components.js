@@ -934,7 +934,5 @@ Assets.Asset = Asset;
 
 import.meta['components.Assets'] = components.Assets = Assets;
 
-/** @package components */
-
 export { Assets, Attributes, Component, Toggle, components, css, html, raw };
 //# sourceMappingURL=components.js.map

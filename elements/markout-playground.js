@@ -1,12 +1,15 @@
 ﻿//@ts-check
 
-// import {html, css, Component, Assets} from '../lib/components.js';
 import {Playground} from '../lib/playground.js';
+import {encodeEntities} from '../lib/markup.js';
 
-/** @type {import('./markout-content.js')['MarkoutContent']} */
-const MarkoutContent = customElements.get('markout-content');
-/** @type {import('../lib/components.js')['Component']} */
-const Component = Object.getPrototypeOf(MarkoutContent);
+/** @type {any} */
+const {
+	// Attempts to overcome **__**
+	'markout-playground-inject-bootstrap-link': INJECT_BOOTSTRAP_LINK = true,
+	'markout-playground-inject-css-reset-link': INJECT_CSS_RESET_LINK = false,
+	'markout-playground-inline-css-reset': INLINE_CSS_RESET = false,
+} = import.meta;
 
 export const MarkoutPlayground = (() => {
 	/** @type {typeof MarkoutPlayground} */
@@ -16,16 +19,26 @@ export const MarkoutPlayground = (() => {
 
 	const PlaygroundInitialized = Symbol('playground.initialized');
 
+	/** @type {import('./markout-content.js')['MarkoutContent']} */
+	const MarkoutContent = customElements.get('markout-content');
+	/** @type {import('../lib/components.js')['Component']} */
+	const Component = Object.getPrototypeOf(MarkoutContent);
+
+	const {MARKUP_SYNTAX_ATTRIBUTE} = MarkoutContent;
+
 	class MarkoutPlayground extends Component {
 		constructor() {
 			super();
+			/** @type {string | URL} */
+			this.baseURL = undefined;
 			/** @type {Playground} */
 			this.playground = undefined;
+			/** @type {HTMLTemplateElement} */
+			this.template = undefined;
 		}
 
 		async connectedCallback() {
-			//@ts-ignore
-			await (this[PlaygroundInitialized] || (this[PlaygroundInitialized] = this.initializeMarkoutPlayground()));
+			await (this[PlaygroundInitialized] || this.initializeMarkoutPlayground());
 			this.isConnected && this.playground.connect();
 		}
 
@@ -33,122 +46,135 @@ export const MarkoutPlayground = (() => {
 			this.playground && this.playground.disconnect();
 		}
 
-		async initializeMarkoutPlayground() {
-			// if (this.playground !== undefined && arguments[0] === this.playground) {
-			// 	//@ts-ignore
-			// 	if (this[PlaygroundInitialized]) return this[PlaygroundInitialized];
-			// } else if (
-			// 	this.playground === undefined &&
-			// 	arguments[0] === undefined &&
-			// 	//@ts-ignore
-			// 	this[PlaygroundInitialized] === undefined
-			// ) {
-			// 	this.playground = Playground.createBrowserPlayground(this);
-			// 	//@ts-ignore
-			// 	return (this[PlaygroundInitialized] = this.initializeMarkoutPlayground(this.playground));
-			// }
-
-			// const playground = this.playground;
-
+		initializeMarkoutPlayground() {
 			const playground = (this.playground = Playground.createBrowserPlayground(this));
 
+			const {
+				head = (playground.fragments.head = new Playground.Fragments()),
+				body = (playground.fragments.body = new Playground.Fragments()),
+			} = playground.fragments;
+
+			head.push(`<base href="${this.baseURL || this.baseURI}" />`);
+
+			/** @type {IterableIterator<PlaygroundBlock>} */
 			//@ts-ignore
-			playground[PlaygroundInitialized] = this[PlaygroundInitialized];
+			const blocks = this.querySelectorAll('pre[fragment], pre[script], pre[style]');
 
-			const content = document.createDocumentFragment();
-
-			const fragments = [];
-
-			for (const element of this.querySelectorAll('pre[fragment], pre[script], pre[style]')) {
+			//@ts-ignore
+			for (const block of blocks) {
 				const {
 					fragment: fragmentAttribute,
 					script: scriptAttribute,
 					style: styleAttribute,
-					'markup-syntax': syntaxAttribute,
-				} = element.attributes;
+					[MARKUP_SYNTAX_ATTRIBUTE]: syntaxAttribute,
+				} = block.attributes;
+				if (fragmentAttribute == null && scriptAttribute == null && styleAttribute == null) continue;
 				const node = {};
+
 				if (fragmentAttribute) {
+					//@ts-ignore
+					node.body = 'sourceText' in block ? block.sourceText : block.textContent;
 					node.tag = '#document-fragment';
-					node.type =
-						(syntaxAttribute.value === 'html' && 'text/html') || (syntaxAttribute.value === 'md' && 'text/markdown');
-					// node.attributes = `type="${node.type}"`;
-					node.body =
-						syntaxAttribute.value === 'html'
-							? element.textContent
-							: `<markout-content>${element.textContent}</markout-content>`;
+					node.type = syntaxAttribute.value.toLowerCase();
+					switch (node.type) {
+						case 'md':
+							node.type = 'markdown';
+						case 'markdown':
+						case 'markout':
+							node.opener = '<markout-content>';
+							node.closer = '</markout-content>';
+							node.type = `text/${node.type}`;
+							node.body = `<markout-content><template>${node.body}</template></markout-content>`;
+							// node.attributes = `type="${node.type}`;
+							break;
+						case 'html':
+							node.type = 'text/html';
+							break;
+						default:
+							node.tag = 'object';
+							node.attributes = `${fragmentAttribute.value ? `type="${(node.type = fragmentAttribute.value)}" ` : ''}`;
+							node.textContent = node.body;
+							// Escaping the body here lends to more
+							//   predictable fragments but will require
+							//   unescaping later on.
+							// TODO: Where can we safely unescape this?
+							//  &&
+							block.hasAttribute('preserve-entities') ||
+								/\bhtml?\b|\bsvg\b/i.test(node.type) ||
+								(node.body = encodeEntities(node.body));
+					}
 				} else if (scriptAttribute) {
+					node.body = block.textContent;
 					node.tag = 'script';
 					node.type = scriptAttribute.value || (syntaxAttribute.value === 'js' && 'text/javascript') || 'text/plain';
-					node.attributes = `type="${node.type}"${element.hasAttribute('async') ? ' async' : ''}${
-						element.hasAttribute('defer') ? ' defer' : ''
+					node.attributes = `type="${node.type}"${block.hasAttribute('async') ? ' async' : ''}${
+						block.hasAttribute('defer') ? ' defer' : ''
 					}`;
-					node.body = element.textContent;
 				} else if (styleAttribute) {
+					node.body = block.textContent;
 					node.tag = 'style';
 					node.attributes = `type="${(node.type =
 						styleAttribute.value || (syntaxAttribute.value === 'css' && 'text/css') || 'text/plain')}"`;
-					node.body = element.textContent;
 				}
 
-				element['(playground-node)'] = node;
+				block['(playground-node)'] = node;
 
 				if (node.tag && node.body) {
 					const opener = `<${node.tag}${node.attributes ? ` ${node.attributes}` : ''}>`;
 					const closer = `</${node.tag}>`;
-					fragments.push((node.html = node.tag[0] === '#' ? node.body : `${opener}\n${node.body}\n${closer}`));
-					element.setAttribute('data-markout-open-tag', opener);
-					element.setAttribute('data-markout-close-tag', closer);
+					body.push((node.html = node.tag[0] === '#' ? node.body : `${opener}\n${node.body}\n${closer}`));
+					block.setAttribute('data-markout-open-tag', node.opener || opener);
+					block.setAttribute('data-markout-close-tag', node.closer || closer);
 				}
 			}
 
-			// fragments.length && (content.textContent = fragments.join('\n'));
+			return (playground[PlaygroundInitialized] = this[
+				PlaygroundInitialized
+			] = MarkoutPlayground.initializeMarkoutPlayground(playground));
+		}
 
-			await new Promise(requestAnimationFrame);
-			await new Promise(requestAnimationFrame);
+		/** @param {Playground} playground */
+		static async initializeMarkoutPlayground(playground) {
+			playground.target.hidden = true;
 
-			{
-				const {document, frame, target} = playground;
+			// We wait at least one frame (more for Firefox particularly)
+			//   But really UX wise it's best to request idle here!
+			//@ts-ignore
+			await new Promise(typeof requestIdleCallback === 'function' ? requestIdleCallback : requestAnimationFrame);
 
-				const markoutContentModuleURL = import.meta.url.replace('/markout-playground.js', '/markout-content.js');
-				const markoutContentStyleID = 'style:styles/markout.css';
-				const markoutContentStyleURL = MarkoutContent.assets[markoutContentStyleID];
+			// We might need to coerce styles which may be:
+			INJECT_CSS_RESET_LINK
+				? // 1. using a `reset.css`:
+				  playground.fragments.head.push(
+						`<link rel=stylesheet href="${`${MarkoutContent.assets['style:styles/markout.css']}`.replace(
+							/[^/]+\.css/,
+							'playground.css',
+						)}"/>`,
+				  )
+				: INLINE_CSS_RESET &&
+				  // 2. directly setting properties:
+				  ((playground.document.documentElement.style.background = 'transparent'),
+				  (playground.document.body.style.margin = '0'));
 
-				// target.setAttribute(
-				// 	'style',
-				// 	`border: none; background: transparent; width: 100%; height: 100%; box-sizing: border-box; padding: 1em;`,
-				// );
-
-				document.head.append(
-					Object.assign(document.createElement('base'), {
-						href: this.ownerDocument.baseURI,
-					}),
-					Object.assign(document.createElement('link'), {
-						id: markoutContentStyleID,
-						rel: 'preload',
-						as: 'style',
-						href: markoutContentStyleURL,
-					}),
-					Object.assign(document.createElement('script'), {
-						type: 'module',
-						src: markoutContentModuleURL,
-					}),
-					Object.assign(document.createElement('link'), {
-						rel: 'stylesheet',
-						href: `${markoutContentStyleURL}`.replace('/markout.css', '/styles.css'),
-					}),
+			// Injecting works better than playground.frame.eval(`import(…)`);
+			INJECT_BOOTSTRAP_LINK &&
+				playground.fragments.head.push(
+					`<script type=module src="/markout/playground.js${
+						/\?.*?\bdev\b/i.test(location.href) ? '?dev' : ''
+					}"></script>`,
 				);
 
-				// document.body.style.padding = '1em';
-				document.documentElement.style.background = 'transparent';
-				document.body.innerHTML = fragments.join('\n');
+			'head' in playground.fragments &&
+				playground.fragments.head.length > 0 &&
+				playground.document.head.appendChild(playground.fragments.head.createFragment(playground.document));
 
-				// Import <markout-content>
-				// frame.eval(`import("${import.meta.url.replace('/markout-playground.js', '/markout-content.js')}")`);
+			'body' in playground.fragments &&
+				playground.fragments.body.length > 0 &&
+				playground.document.body.appendChild(playground.fragments.body.createFragment(playground.document));
 
-				await new Promise(requestAnimationFrame);
-				await new Promise(requestAnimationFrame);
-				target.hidden = false;
-			}
+			// We really need just the one frame here
+			await new Promise(requestAnimationFrame);
+			playground.target.hidden = false;
 
 			return playground;
 		}
@@ -159,8 +185,30 @@ export const MarkoutPlayground = (() => {
 	return component;
 })();
 
-// try {
-// 	customElements.define('markout-playground', MarkoutPlayground);
-// } catch (exception) {
-// 	console.warn(exception);
-// }
+/** @typedef {HTMLElement['attributes']} HTMLElementAttributes */
+/** @typedef {HTMLElementAttributes & Record<'fragment'|'script'|'style'|import('./markout-content.js')['MarkoutContent']['MARKUP_SYNTAX_ATTRIBUTE'], Attr>} PlaygroundBlockAttributes */
+/** @typedef {HTMLPreElement & {attributes: PlaygroundBlockAttributes}} PlaygroundBlock */
+
+// const markoutContentModuleURL = import.meta.url.replace('/markout-playground.js', '/markout-content.js');
+// const markoutContentStyleID = 'style:styles/markout.css';
+// const markoutContentStyleURL = MarkoutContent.assets[markoutContentStyleID];
+
+// document.head.append(
+// 	Object.assign(document.createElement('base'), {
+// 		href: baseURI,
+// 	}),
+// 	// Object.assign(document.createElement('link'), {
+// 	// 	id: markoutContentStyleID,
+// 	// 	rel: 'preload',
+// 	// 	as: 'style',
+// 	// 	href: markoutContentStyleURL,
+// 	// }),
+// 	// Object.assign(document.createElement('script'), {
+// 	// 	type: 'module',
+// 	// 	src: markoutContentModuleURL,
+// 	// }),
+// 	// Object.assign(document.createElement('link'), {
+// 	// 	rel: 'stylesheet',
+// 	// 	href: `${markoutContentStyleURL}`.replace('/markout.css', '/styles.css'),
+// 	// }),
+// );

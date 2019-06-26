@@ -1,6 +1,6 @@
 import { debugging } from '/markout/lib/helpers.js';
 import '/markup/dist/tokenizer.browser.js';
-import { c as createRenderedFragment, a as normalizeBreaksInFragment, b as normalizeHeadingsInFragment, d as normalizeParagraphsInFragment, e as normalizeChecklistsInFragment, f as applyDeclarativeStylingInFragment, g as flattenTokensInFragment, h as renderSourceTextsInFragment, p as populateAssetsInFragment } from './common.js';
+import { c as createRenderedFragment, a as normalizeBreaksInFragment, b as normalizeHeadingsInFragment, d as normalizeParagraphsInFragment, e as normalizeChecklistsInFragment, f as applyDeclarativeStylingInFragment, g as flattenTokensInFragment, h as renderSourceTextsInFragment, p as populateAssetsInFragment, M as MarkupSyntaxAttribute, S as SourceTypeAttribute, i as MarkupModeAttribute } from './common.js';
 import { Component } from './components.js';
 
 async function dynamicImport(specifier, referrer) {
@@ -259,37 +259,29 @@ class MarkoutContent extends Component {
 			anchors && this.rewriteAnchors([...anchors]);
 		}
 
-		const marker = document.createComment('<!-- embedded -->');
-		const selector = [
-			// 'style:not([type]):not([src])',
-			// 'style[type="text/css"]:not([src])',
-			'script:not([type]):not([src])',
-			'script[type="text/javascript"]:not([src])',
-		].join(',');
+		// const marker = document.createComment('<!-- embedded -->');
+		// const selector = [
+		// 	// 'style:not([type]):not([src])',
+		// 	// 'style[type="text/css"]:not([src])',
+		// 	'script:not([type]):not([src])',
+		// 	'script[type="text/javascript"]:not([src])',
+		// ].join(',');
 
-		for (const embedded of contentSlot.querySelectorAll(selector)) {
-			if (embedded.nodeName === 'SCRIPT') {
-				embedded.before(marker);
-				embedded.remove();
-				embedded.type = 'text/javascript';
-				// embedded.type = 'classic';
-				// embedded.src = URL.createObjectURL(new Blob([embedded.innerText], {type: 'text/javascript'}));
-				// embedded.async = true;
-			} else if (embedded.nodeName === 'STYLE') {
-				continue;
-			} else {
-				continue;
-			}
-			marker.parentElement.replaceChild(embedded, marker);
-			// embedded.type ||
-			// 	((embedded.nodeName === 'SCRIPT' && ()) ||
-			// 		(embedded.nodeName === 'STYLE' && (embedded.type = 'text/css')));
-			// // embedded.textContent = embedded.innerText;
-			// embedded.src = URL.createObjectURL(new Blob([embedded.innerText], {type: 'text/javascript'}));
-			// // console.log(embedded);
-			// // this.appendChild(embedded);
-			// // document.adoptNode(embedded);
-		}
+		// for (const embedded of contentSlot.querySelectorAll(selector)) {
+		// 	if (embedded.nodeName === 'SCRIPT') {
+		// 		embedded.before(marker);
+		// 		embedded.remove();
+		// 		embedded.type = 'text/javascript';
+		// 		// embedded.type = 'classic';
+		// 		// embedded.src = URL.createObjectURL(new Blob([embedded.innerText], {type: 'text/javascript'}));
+		// 		// embedded.async = true;
+		// 	} else if (embedded.nodeName === 'STYLE') {
+		// 		continue;
+		// 	} else {
+		// 		continue;
+		// 	}
+		// 	marker.parentElement.replaceChild(embedded, marker);
+		// }
 	}
 
 	/** @param {string} sourceText @param {HTMLSlotElement} contentSlot @param {string} baseURL */
@@ -411,6 +403,18 @@ class MarkoutContent extends Component {
 
 	set sourceText(sourceText) {
 		this.renderMarkoutContent(sourceText);
+	}
+
+	/// Constants
+
+	static get MARKUP_SYNTAX_ATTRIBUTE() {
+		return super.set('MARKUP_SYNTAX_ATTRIBUTE', MarkupSyntaxAttribute);
+	}
+	static get SOURCE_TYPE_ATTRIBUTE() {
+		return super.set('SOURCE_TYPE_ATTRIBUTE', SourceTypeAttribute);
+	}
+	static get MARKUP_MODE_ATTRIBUTE() {
+		return super.set('MARKUP_MODE_ATTRIBUTE', MarkupModeAttribute);
 	}
 }
 
