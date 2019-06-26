@@ -72,6 +72,10 @@ First html content fragment!
 
 ---
 
+> **Note**: For easier viewing, all blocks which will be rendered in the playground are additionally decorated with the fencing from the source text, and alternatively those decorations will show the open and close tags on clicking and holding anywhere inside the blocks margin.
+
+---
+
 Nothing prevents you from throwing scripts and styles right in your fragment, and sometimes it makes sense (as shown above), otherwise, it is far more useful to give those their own fenced code blocks (as will be shown below).
 
 It's a little different for fenced blocks which are meant for a specific tag, which still need to be explicitly indicated in the header but instead of `fragment` the qualifying tag name (like `script` or `style`). However, you can expect the `type` attribute to be derived based on the markup syntax for the block, at least for the usual cases.

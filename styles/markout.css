@@ -23,31 +23,64 @@ pre.markup > .markup-line {
 	min-width: max-content;
 }
 
+/* pre[data-markout-fence]::before, */
 pre[data-markout-open-tag]::before {
 	content: attr(data-markout-open-tag);
-	display: block;
-	/* margin-inline-start: -1em; */
-	margin-block-start: -0.5em;
-	font-weight: 100;
+	content: attr(data-markout-fence) attr(data-markout-header);
+	margin-block-start: -0.75em;
+	margin-block-end: 0.25em;
 }
 
+/* pre[data-markout-fence]::after, */
 pre[data-markout-close-tag]::after {
 	content: attr(data-markout-close-tag);
-	display: block;
-	/* margin-inline-start: -1em; */
-	margin-block-end: -0.5em;
-	font-weight: 100;
+	content: attr(data-markout-fence);
+	margin-block-start: 0.25em;
+	margin-block-end: -0.75em;
+	justify-self: flex-end;
+}
+
+pre[data-markout-open-tag]:active::before {
+	content: attr(data-markout-open-tag);
+}
+
+pre[data-markout-close-tag][data-markout-fence]:active::after {
+	content: attr(data-markout-close-tag);
 }
 
 pre[data-markout-open-tag],
 pre[data-markout-close-tag] {
-	--markup-gutter: 1em;
+	--markup-gutter: 1.25em;
 }
 
-pre[data-markout-open-tag] > .markup-line,
-pre[data-markout-close-tag] > .markup-line {
-	/* border-inline-start: 1px solid #9999; */
-	/* padding-inline-start: 1em; */
+/* pre[data-markout-fence]::before, */
+/* pre[data-markout-fence]::after, */
+pre[data-markout-open-tag]::before,
+pre[data-markout-close-tag]::after {
+	white-space: nowrap;
+	display: block;
+	margin-inline-start: -0.75em;
+	margin-inline-end: -0.75em;
+	padding: 0 0.5em;
+	font-weight: 300;
+	font-size: 90%;
+	line-height: 125%;
+	/* color: #fffc; */
+	background-color: #9991;
+	box-sizing: border-box;
+	border: 0.5px solid #9993;
+	border-radius: 0.33em;
+	color: #999c;
+	mix-blend-mode: difference;
+}
+
+pre[data-markout-fence]:not(:hover)::before,
+pre[data-markout-fence]:not(:hover)::after,
+pre[data-markout-open-tag]:not(:hover)::before,
+pre[data-markout-close-tag]:not(:hover)::after {
+	opacity: 0.25;
+	background-color: transparent;
+	/* filter: blur(3px); */
 }
 
 /* iframe {
