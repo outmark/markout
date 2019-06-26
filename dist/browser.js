@@ -187,7 +187,7 @@ class MarkoutContent extends Component {
 	}
 
 	connectedCallback() {
-		'renderedText' in this || this.renderMarkoutContent(this.sourceText);
+		'renderedText' in this || (this.rendered = this.renderMarkoutContent(this.sourceText));
 		super.connectedCallback();
 	}
 
@@ -195,16 +195,18 @@ class MarkoutContent extends Component {
 		/** @type {HTMLAnchorElement} */
 		let target;
 		const {'::content': content} = this;
-		if (anchor)
+		if (typeof anchor === 'string' && (anchor = anchor.trim()) !== '') {
+			anchor = anchor.toLocaleLowerCase().replace(/^the-/, '');
 			(target = content.querySelector(`a[id="${anchor}"]`))
 				? target.scrollIntoView({behavior: 'smooth', block: 'start', inline: 'nearest'})
 				: console.warn('scrollIntoView: %o', {anchor, target});
+		}
 	}
 
 	async updateMarkoutContent(slot = this['::']) {
 		const assignedNodes = slot && slot.assignedNodes();
 		if (assignedNodes.length) {
-			return this.renderMarkoutContent(this.sourceText || '');
+			return (this.rendered = this.renderMarkoutContent(this.sourceText || ''));
 		}
 	}
 
@@ -258,30 +260,6 @@ class MarkoutContent extends Component {
 			const anchors = contentSlot.querySelectorAll('a[href]');
 			anchors && this.rewriteAnchors([...anchors]);
 		}
-
-		// const marker = document.createComment('<!-- embedded -->');
-		// const selector = [
-		// 	// 'style:not([type]):not([src])',
-		// 	// 'style[type="text/css"]:not([src])',
-		// 	'script:not([type]):not([src])',
-		// 	'script[type="text/javascript"]:not([src])',
-		// ].join(',');
-
-		// for (const embedded of contentSlot.querySelectorAll(selector)) {
-		// 	if (embedded.nodeName === 'SCRIPT') {
-		// 		embedded.before(marker);
-		// 		embedded.remove();
-		// 		embedded.type = 'text/javascript';
-		// 		// embedded.type = 'classic';
-		// 		// embedded.src = URL.createObjectURL(new Blob([embedded.innerText], {type: 'text/javascript'}));
-		// 		// embedded.async = true;
-		// 	} else if (embedded.nodeName === 'STYLE') {
-		// 		continue;
-		// 	} else {
-		// 		continue;
-		// 	}
-		// 	marker.parentElement.replaceChild(embedded, marker);
-		// }
 	}
 
 	/** @param {string} sourceText @param {HTMLSlotElement} contentSlot @param {string} baseURL */
@@ -367,6 +345,13 @@ class MarkoutContent extends Component {
 		module['(markout host)'] = this;
 		module.before(document.createComment(module.outerHTML.trim()));
 		module.remove();
+		module.src.startsWith(location.origin) &&
+			/\?.*?\bdev\b/i.test(location.href) &&
+			(module.src = module.src.replace(
+				/(\?[^#]*|)(#.*|)$/,
+				(m, query, hash) => `${query ? `${query}&` : '?'}dev${hash}`,
+			));
+		// console.log(module, module.src);
 		dynamicImport(module.src);
 	}
 
@@ -402,7 +387,7 @@ class MarkoutContent extends Component {
 	}
 
 	set sourceText(sourceText) {
-		this.renderMarkoutContent(sourceText);
+		this.rendered = this.renderMarkoutContent(sourceText);
 	}
 
 	/// Constants

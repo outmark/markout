@@ -35,10 +35,14 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 
 				await defined;
 				await new Promise(requestAnimationFrame);
-				await new Promise(resolve => setTimeout(resolve, 150));
+				await new Promise(resolve => setTimeout(resolve, 250));
 				await new Promise(requestAnimationFrame);
-				await new Promise(resolve => setTimeout(resolve, 150));
+				await new Promise(resolve => setTimeout(resolve, 250));
 				await new Promise(requestAnimationFrame);
+				if (typeof requestIdleCallback === 'function') {
+					await new Promise(requestIdleCallback);
+				}
+				await section.rendered;
 				section.scrollToAnchor(anchor);
 			};
 

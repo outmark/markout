@@ -1,4 +1,6 @@
-﻿body,
+﻿@import './root.css';
+
+body,
 html {
 	background-color: transparent;
 }

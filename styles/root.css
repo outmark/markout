@@ -109,7 +109,20 @@
 		--markout--field-text: var(--markout--band-text);
 	}
 
-	:host {
+	a:link {
+		color: #69f;
+	}
+
+	a:visited {
+		color: #f3f;
+	}
+
+	a:active {
+		color: #f96;
+	}
+
+	:host,
+	body {
 		color-scheme: dark;
 		color: white;
 	}

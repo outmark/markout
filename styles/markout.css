@@ -26,6 +26,7 @@ pre.markup > .markup-line {
 pre[data-markout-open-tag]::before {
 	content: attr(data-markout-open-tag);
 	display: block;
+	/* margin-inline-start: -1em; */
 	margin-block-start: -0.5em;
 	font-weight: 100;
 }
@@ -33,8 +34,20 @@ pre[data-markout-open-tag]::before {
 pre[data-markout-close-tag]::after {
 	content: attr(data-markout-close-tag);
 	display: block;
+	/* margin-inline-start: -1em; */
 	margin-block-end: -0.5em;
 	font-weight: 100;
+}
+
+pre[data-markout-open-tag],
+pre[data-markout-close-tag] {
+	--markup-gutter: 1em;
+}
+
+pre[data-markout-open-tag] > .markup-line,
+pre[data-markout-close-tag] > .markup-line {
+	/* border-inline-start: 1px solid #9999; */
+	/* padding-inline-start: 1em; */
 }
 
 /* iframe {

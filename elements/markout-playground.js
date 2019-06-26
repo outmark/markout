@@ -58,7 +58,9 @@ export const MarkoutPlayground = (() => {
 
 			/** @type {IterableIterator<PlaygroundBlock>} */
 			//@ts-ignore
-			const blocks = this.querySelectorAll('pre[fragment], pre[script], pre[style]');
+			const blocks = this.querySelectorAll(
+				`pre[markup-syntax][fragment], pre[markup-syntax][script], pre[markup-syntax][style]`,
+			);
 
 			//@ts-ignore
 			for (const block of blocks) {
@@ -123,6 +125,7 @@ export const MarkoutPlayground = (() => {
 					const opener = `<${node.tag}${node.attributes ? ` ${node.attributes}` : ''}>`;
 					const closer = `</${node.tag}>`;
 					body.push((node.html = node.tag[0] === '#' ? node.body : `${opener}\n${node.body}\n${closer}`));
+					block.setAttribute('line-wrap', '');
 					block.setAttribute('data-markout-open-tag', node.opener || opener);
 					block.setAttribute('data-markout-close-tag', node.closer || closer);
 				}

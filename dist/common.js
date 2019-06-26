@@ -771,7 +771,7 @@ class MarkoutBlockNormalizer {
 				// TODO: Figure out anchors: https://www.w3.org/TR/2017/REC-html52-20171214/links.html
 				return alias && alias.trim()
 					? (aliased.push((sourceAliases[alias] = aliases[alias] = match)),
-					  `<a hidden rel="alias" name="${alias}" href="${href}">${title || ''}</a>`)
+					  `<a hidden rel="alias" name="${alias}" href="${href}" tab-index=-1>${title || ''}</a>`)
 					: (unaliased.push(match), text);
 			};
 
@@ -1156,7 +1156,7 @@ const {
 	MarkdownWordJoiners = raw` \\\/:_\-\xA0\u2000-\u200B\u202F\u2060`,
 	MarkdownWordJoiner = raw`[${MarkdownWordJoiners}]+`,
 	// MarkdownIdentity = raw`(?:\s|\n|^)(${MarkdownWord}(?:${MarkdownWordJoiner}${MarkdownWord})*(?=\b[\s\n]|$))`,
-	MarkdownIdentity = raw`(?:\s|\n|^)(${MarkdownWord}(?:${MarkdownWordJoiner}${MarkdownWord})*)`,
+	MarkdownIdentity = raw`(?:\s|\n|^)(?:The (?=\w)|)(${MarkdownWord}(?:${MarkdownWordJoiner}${MarkdownWord})*)`,
 }) => ({
 	UnicodeIdentifier: new RegExp(UnicodeIdentifier, 'u'),
 	MarkdownIdentityPrefixer: new RegExp(raw`^[${MarkdownWordPrefixes}]?`, 'u'),
@@ -1177,23 +1177,10 @@ const entities = /*#__PURE__*/Object.freeze({
 const declarativeStyling = (declarativeStyling => {
 	const {getOwnPropertyNames, setPrototypeOf, getPrototypeOf, freeze, keys} = Object;
 	const {lookup} = declarativeStyling;
-	const Filter = /^(?!webkit[A-Z])(?!moz[A-Z])[a-zA-Z]{2,}$/;
+	const Prefix = /^-?webkit-|-?moz-/;
 	const Boundary = /[a-z](?=[A-Z])/g;
 	const selectors = [];
 	const style = document.createElement('span').style;
-
-	declarativeStyling.normalize = (value, property) => {
-		if (!value || !(value = value.trim())) return '';
-		value.startsWith('--') && !value.includes(' ') && (value = `var(--${property}-${value.slice(2)}-style)`);
-		return value;
-	};
-
-	declarativeStyling.mixin = (element, style) => {
-		element.style.border = `var(--border-${style}-style)`;
-		element.style.background = `var(--background-${style}-style)`;
-		element.style.color = `var(--color-${style}-style)`;
-		element.style.font = `var(--font-${style}-style)`;
-	};
 
 	for (const property of new Set([
 		// Markout style properties
@@ -1204,9 +1191,10 @@ const declarativeStyling = (declarativeStyling => {
 			...getOwnPropertyNames(style),
 			// Firefox
 			...getOwnPropertyNames(getPrototypeOf(style)),
-		].filter(property => style[property] === '' && Filter.test(property)),
+		].filter(property => style[property] === ''),
+		// ].filter(property => style[property] === '' && Filter.test(property)),
 	])) {
-		const attribute = `${property.replace(Boundary, '$&-').toLowerCase()}:`;
+		const attribute = `${property.replace(Boundary, '$&-').toLowerCase()}:`.replace(Prefix, '');
 		lookup[attribute] = property;
 		selectors.push(`[${CSS.escape(attribute)}]`);
 	}
@@ -1251,6 +1239,23 @@ const declarativeStyling = (declarativeStyling => {
 		}
 	}
 
+	declarativeStyling.normalize = (value, property) => {
+		if (!value || !(value = value.trim())) return '';
+		value.startsWith('--') && !value.includes(' ') && (value = `var(${value}--${property}--)`);
+		return value;
+	};
+
+	declarativeStyling.mixin = (element, style) => {
+		// TODO: Explore computedStyle mixins
+		element.style.border = `var(--${style}--border--, unset)`;
+		element.style.background = `var(--${style}--background--, unset)`;
+		element.style.color = `var(--${style}--color--, unset)`;
+		element.style.font = `var(--${style}--font--, unset)`;
+		element.style.opacity = `var(--${style}--opacity--, unset)`;
+	};
+
+	// declarativeStyling.mixin['markout-content'] = undefined;
+
 	freeze(declarativeStyling);
 	return declarativeStyling;
 })({
@@ -1272,6 +1277,10 @@ const declarativeStyling = (declarativeStyling => {
 	},
 	/** @type {(value: string) => string} */
 	autoprefix: undefined,
+	/** @type {(element: HTMLElement, style: string) => void} */
+	mixin: undefined,
+	/** @type {(value: string, property: string) => string} */
+	normalize: undefined,
 });
 
 //@ts-check
@@ -1451,6 +1460,7 @@ const {
 				.replace(Joiner, '-')
 				.toLowerCase();
 			anchor.append(...heading.childNodes);
+			anchor.tabIndex = -1;
 			heading.appendChild(anchor);
 			headings[anchor.id] = {anchor, identity, heading};
 		}
