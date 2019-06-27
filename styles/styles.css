@@ -385,3 +385,29 @@ body > main > details > summary,
 body > main > details > markout-content {
 	/* background-color: #fffffff0; */
 }
+
+@media print {
+	* {
+		-webkit-mask-image: unset !important;
+	}
+
+	html,
+	body,
+	body > main,
+	body > main > markout-content {
+		padding: 0;
+		margin: 0;
+		width: auto;
+		height: max-content;
+		box-sizing: content-box !important;
+		max-width: unset !important;
+		max-height: unset !important;
+		min-width: unset !important;
+		min-height: unset !important;
+		display: block !important;
+		overflow-y: unset !important;
+		shape-rendering: geometricPrecision;
+		text-rendering: optimizeLegibility;
+		image-rendering: optimizeQuality;
+	}
+}

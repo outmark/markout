@@ -771,7 +771,7 @@ class MarkoutBlockNormalizer {
 				// TODO: Figure out anchors: https://www.w3.org/TR/2017/REC-html52-20171214/links.html
 				return alias && alias.trim()
 					? (aliased.push((sourceAliases[alias] = aliases[alias] = match)),
-					  `<a hidden rel="alias" name="${alias}" href="${href}" tab-index=-1>${title || ''}</a>`)
+					  `<a hidden rel="alias" name="${alias}" href="${href}">${title || ''}</a>`)
 					: (unaliased.push(match), text);
 			};
 
@@ -1432,7 +1432,7 @@ const {
 
 	const normalizeHeadingsInFragment = fragment => {
 		const {MarkdownIdentity: Identity, MarkdownIdentityPrefixer: Prefixer, MarkdownIdentityJoiner: Joiner} = entities;
-		const {headings = (fragment.headings = {})} = fragment;
+		const {headings = (fragment.headings = {}), TEXT_NODE} = fragment;
 
 		for (const subheading of fragment.querySelectorAll(`h1+h2, h2+h3, h3+h4, h4+h5, h5+h6`)) {
 			const previousElementSibling = subheading.previousElementSibling;
@@ -1449,9 +1449,27 @@ const {
 			}
 		}
 
+		const HeadingNumber = /^[1-9]\d*\.$|/;
+
 		for (const heading of fragment.querySelectorAll(
-			`h1:not([id]):not(:empty),h2:not([id]):not(:empty),h3:not([id]):not(:empty)`,
+			`h1:not([id]):not(:empty),h2:not([id]):not(:empty),h3:not([id]):not(:empty),h4:not([id]):not(:empty),h5:not([id]):not(:empty),h6:not([id]):not(:empty)`,
 		)) {
+			const level = parseFloat(heading.nodeName[1]);
+			const textSpan = heading.querySelector('span[token-type]');
+			const textNode =
+				(textSpan && textSpan.firstChild && textSpan.firstChild.nodeType === TEXT_NODE && textSpan.firstChild) ||
+				undefined;
+
+			const number = textNode && heading.matches('hgroup > *') && parseFloat(HeadingNumber.exec(textSpan.textContent));
+
+			// Assuming all hgroup headings are either intentional or
+			//   implied from markout notation, we want to pull out
+			//   numbering into a data attribute
+			number > 0 && ((heading.dataset.headingNumber = number), textNode.remove());
+
+			// We're limit anchoring from H1 thru H3
+			// if (parseFloat(heading.nodeName[1]) > 3) continue;
+
 			const [, identity] = Identity.exec(heading.textContent) || '';
 			if (!identity) continue;
 			const anchor = document.createElement('a');
@@ -1460,9 +1478,12 @@ const {
 				.replace(Joiner, '-')
 				.toLowerCase();
 			anchor.append(...heading.childNodes);
-			anchor.tabIndex = -1;
+			// anchor.tabIndex = -1;
+			anchor.heading = heading.anchor = {anchor, identity, heading, level, number};
 			heading.appendChild(anchor);
-			headings[anchor.id] = {anchor, identity, heading};
+
+			// Unique mappings are prioritized by heading level
+			(anchor.id in headings && headings[anchor.id].level > level) || (headings[anchor.id] = heading.anchor);
 		}
 	};
 

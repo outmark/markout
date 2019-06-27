@@ -324,7 +324,6 @@ blockquote {
 	padding-inline-end: 1em;
 
 	color: var(--band-text\-\-);
-	opacity: 0.9;
 }
 
 blockquote > q {
@@ -335,7 +334,13 @@ blockquote > q {
 
 blockquote > q + cite {
 	font-style: normal;
-	opacity: 0.9;
+}
+
+@media only screen {
+	blockquote > q + cite,
+	blockquote {
+		opacity: 0.9;
+	}
 }
 
 hr {
@@ -473,12 +478,7 @@ dt {
 iframe {
 	border: var(--fence--border--);
 	background-color: var(--fence--background--);
-	/* background: transparent; */
-	width: 100%;
-	height: 100%;
-	min-height: max-content;
 	box-sizing: border-box;
-	padding: 1em;
 }
 
 pre,

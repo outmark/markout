@@ -26,6 +26,13 @@ export const MarkoutPlayground = (() => {
 
 	const {MARKUP_SYNTAX_ATTRIBUTE} = MarkoutContent;
 
+	// Event Handlers
+	const {focus: focusElement} = {
+		focus() {
+			this.focus();
+		},
+	};
+
 	class MarkoutPlayground extends Component {
 		constructor() {
 			super();
@@ -35,6 +42,9 @@ export const MarkoutPlayground = (() => {
 			this.playground = undefined;
 			/** @type {HTMLTemplateElement} */
 			this.template = undefined;
+
+			// Hover when tapped on iOS
+			this.onclick = focusElement;
 		}
 
 		async connectedCallback() {
@@ -48,6 +58,11 @@ export const MarkoutPlayground = (() => {
 
 		initializeMarkoutPlayground() {
 			const playground = (this.playground = Playground.createBrowserPlayground(this));
+
+			//@ts-ignore
+			playground.target.width = '100%';
+			//@ts-ignore
+			playground.target.height = '100%';
 
 			const {
 				head = (playground.fragments.head = new Playground.Fragments()),
@@ -125,6 +140,7 @@ export const MarkoutPlayground = (() => {
 					const opener = `<${node.tag}${node.attributes ? ` ${node.attributes}` : ''}>`;
 					const closer = `</${node.tag}>`;
 					body.push((node.html = node.tag[0] === '#' ? node.body : `${opener}\n${node.body}\n${closer}`));
+
 					block.setAttribute('line-wrap', '');
 					block.setAttribute('data-markout-open-tag', node.opener || opener);
 					block.setAttribute('data-markout-close-tag', node.closer || closer);

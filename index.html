@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html>
+<html style="--shade: #6699aaf6;">
 
 <head>
 	<title>Markout</title>
@@ -7,14 +7,16 @@
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
+	<!-- Custom font applied to markup and certain markout elements -->
 	<link rel="stylesheet" href="/fonts/iosevka.css" />
+
+	<!-- Markout's auto-injected shadow root stylesheet -->
+	<link id="style:styles/markout.css" rel="preload" as="style" href="/markout/styles/markout.css">
+
+	<!-- Markout's minimal reset styles and root variables -->
 	<link rel="stylesheet" href="/markout/styles/styles.css" />
-	<style>
-		html {
-			--shade: #6699aaf6;
-			/* --shade-dark: #336699f6; */
-		}
-	</style>
+
+	<!-- Markout's pages-like <markout-content> UX bootstrapper -->
 	<script type="module" src="/browser/markout-preview.js"></script>
 </head>
 
