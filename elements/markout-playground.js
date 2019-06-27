@@ -141,6 +141,7 @@ export const MarkoutPlayground = (() => {
 					const closer = `</${node.tag}>`;
 					body.push((node.html = node.tag[0] === '#' ? node.body : `${opener}\n${node.body}\n${closer}`));
 
+					block.setAttribute('line-numbers', '');
 					block.setAttribute('line-wrap', '');
 					block.setAttribute('data-markout-open-tag', node.opener || opener);
 					block.setAttribute('data-markout-close-tag', node.closer || closer);

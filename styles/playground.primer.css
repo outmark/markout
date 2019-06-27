@@ -158,16 +158,22 @@ markout-playground.primer pre[data-markout-close-tag]::after {
 
 markout-playground.primer pre[data-markout-open-tag],
 markout-playground.primer pre[data-markout-close-tag] {
-	--markup-gutter: 1.25em;
+	/* --markup-gutter: 1.25em; */
 }
+
+markout-playground.primer pre[line-numbers] .markup-line {
+	border-inline-start-color: #9993;
+	border-inline-start-width: 0.5pt;
+}
+
 
 markout-playground.primer pre[data-markout-open-tag]::before,
 markout-playground.primer pre[data-markout-close-tag]::after {
 	font-family: inherit !important;
 	white-space: nowrap;
 	display: block;
-	margin-inline-start: -0.75em;
-	margin-inline-end: -0.75em;
+	/* margin-inline-start: -0.75em; */
+	/* margin-inline-end: -0.75em; */
 	padding: 0 0.5em;
 	font-weight: 300;
 	font-size: 90%;
@@ -176,9 +182,24 @@ markout-playground.primer pre[data-markout-close-tag]::after {
 	border: 0.5pt solid #9993;
 	border-radius: 0.33em;
 	color: #9999;
+	/* padding: 0; */
+	/* margin: 0; */
+	text-indent: 0;
+	position: relative;
+	left: calc(var(--markup-gutter, 0) / 2 + 1px - 1em);
+	/* left: 0; */
+	/* margin-inline-start: calc(var(--markup-gutter, 0) + 1px -2.75em); */
+	/* margin-inline-end: calc(var(--markup-gutter, 0) + 1px -2.75em); */
+	/* margin-inline-end: -0.75rem; */
+	/* text-indent: calc(-1 * var(--markup-soft-indent, 0.0001em) + 1px); */
 }
 
 @media print {
+	markout-playground.primer pre[line-numbers] .markup-line {
+		--markup-line-number-color: #9999;
+		border-inline-start-color: #9993;
+	}
+
 	markout-playground.primer pre[data-markout-open-tag]::before,
 	markout-playground.primer pre[data-markout-open-tag]::after {
 		border-width: 0;
@@ -188,22 +209,31 @@ markout-playground.primer pre[data-markout-close-tag]::after {
 	markout-playground.primer pre[data-markout-open-tag]::before {
 		border-bottom-width: 1pt;
 		padding-block-end: 0.25em;
-		margin-block-end: 0.25em;
+		margin-block-end: 1em;
 	}
 
 	markout-playground.primer pre[data-markout-open-tag]::after {
 		border-top-width: 1pt;
 		padding-block-start: 0.25em;
-		margin-block-start: 0.25em;
+		margin-block-start: 1em;
 	}
 }
 
 @media screen {
+	markout-playground.primer pre[line-numbers] .markup-line::before {
+		font-weight: 100;
+	}
+
+	markout-playground.primer pre[line-numbers] .markup-line {
+		--markup-line-number-color: #9999;
+		border-inline-start-color: #9991;
+	}
+
 	markout-playground.primer pre[data-markout-open-tag]::before,
 	markout-playground.primer pre[data-markout-close-tag]::after {
 		color: #999c;
 		background-color: #9991;
-		border-color: #9993;
+		/* border-color: #9993; */
 		mix-blend-mode: difference;
 	}
 
