@@ -286,6 +286,7 @@ output {
 	border-radius: calc(var(--thinline, 1px) * 1.25);
 }
 
+iframe,
 figure,
 aside,
 pre {
@@ -295,8 +296,12 @@ pre {
 	margin-block-end: var(--block-margin);
 	border: var(--fence--border--);
 	shape-rendering: geometricPrecision;
+}
+
+figure,
+aside,
+pre {
 	padding: 1.25rem;
-	/* box-sizing: border-box; */
 }
 
 blockquote,

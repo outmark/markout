@@ -4,11 +4,11 @@
 
 Playgrounds in Markout are as straightforward as it gets, and this is a walk-through of the underlying concepts behind Markout's Playgrounds. Here we are throwing everything together in a single playground, mainly to show how it holds up together. <!-- Consider [this walk-through](./Playgrounds.md) for more granular examples. -->
 
-<aside padding-block-start:=0 screen-only><div max-height:=15em overflow-y:=scroll mask-image:="linear-gradient(black 90%, transparent)" padding-block-end:=1rem>
-
-## The Backstory
+<div style:=fence border-radius:=0.25ex padding-block-start:=0><div max-height:=10em overflow-y:=scroll mask-image:="linear-gradient(black 75%, transparent)" padding:="0 1rem 1rem">
 
 <small>
+
+## The Backstory
 
 For someone like myself who has been developing web things all their life, it is fascinating to see how far it has come along. Yet, with everything moving so fast, details often get lost, and hard lessons earned start fading away amid flashy things of viral appeal.
 
@@ -26,7 +26,7 @@ So, let's dig into it, the first narrative that evolved while hacking at the fir
 
 <br for-scrolling />
 
-</div></aside>
+</div></div>
 
 <section>
 
@@ -41,6 +41,15 @@ Everything inside a `<markout-playground>` element is considered a single playgr
 **Oops**! Playground should have render here!
 
 </aside></output>
+<blockquote><details><summary><b>Tip</b>: If you are not familiar with HTML inline frames…</summary>
+
+Sometimes when are authoring an HTML document, you want to embed within other documents, like ads... etc.
+
+The way you do this is using `<iframe src="‹some url›"></iframe>` which tells the browser to create a nested region within the current page and use it to contain the referenced document.
+
+Playgrounds uses this approach, but instead of loading a document from some URL, it generates this document dynamically by deriving it from your own narrative.
+
+</details></blockquote>
 
 Alternatively, you can use the `<output here><!--and you can leave some just-in-case markup here--></output>` placeholder as shown here, and your narrative for can give the necessary context, ie to make this point.
 
@@ -63,7 +72,43 @@ Let's look at the different ways to do that!
 
 ### HTML Fragments
 
-To turn your <code>\`\`\`html</code> block into actual content, simply change it to <code>\`\`\`html fragment</code>.
+Let's start with an example of narrative-only fragment — those are fragments that you want to be talking about only and so you still want them to format nicely in your narrative without them ending up inside the actual playground.
+
+<!--prettier-ignore-->
+```html
+<html> is awesome but that's besides the point!
+```
+
+<blockquote>
+
+<details><summary><b>Tip</b>: If you are not familiar with fenced code blocks…</summary>
+
+Fencing is a notation used to indicate to parsers when a fragment of text is of a different syntax than its surrounding.
+
+Historically was complicated but Markdown's clean and simplistic notation revolutionized that problem space.
+
+<!--prettier-ignore-start-->
+```md
+  In Markdown you can:
+
+    1. Fence \`code\` inline.
+	  2. Or in blocks where you can also indicate its syntax:
+
+       ```syntax
+       code
+       ```
+```
+<!--prettier-ignore-end-->
+
+</details>
+
+</blockquote>
+
+You don't want the above fragment to be in the playground, and besides of it being to make a point, this fragment which is actually malformed `html` syntax would likely break everything else you actually wanted in your playground.
+
+With this in mind, it is reasonable to say that if fragments needed to be differentiated, it is safer to rely on very explicit indicators to distinguish a playground fragment from narrative or otherwise ones.
+
+So in order to indicate a playground fragment, you would change the opening fence <code>\`\`\`html</code> block into actual content, we <code>\`\`\`html fragment</code>.
 
 <!--prettier-ignore-->
 ```html fragment
@@ -73,6 +118,7 @@ First html content fragment!
 <script>
 	console.trace(document.currentScript);
 </script>
+
 ```
 
 > **Note**: For easier viewing, all blocks which will be rendered in the playground are additionally decorated with the fencing from the source text, and alternatively those decorations will show the open and close tags on clicking and holding anywhere inside the margins of the block.
@@ -95,6 +141,9 @@ So, we've included a `script` here that tells us that this fragment works, and h
 		line-height: 175%;
 		-webkit-text-size-adjust: 100%;
 		text-align: center;
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		user-select: none;
 		/* place-items: baseline center; */
 		/* place-content: center space-evenly; */
 		/* display: grid; */

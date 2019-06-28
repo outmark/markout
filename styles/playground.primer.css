@@ -14,6 +14,10 @@
 	}
 }
 
+markout-playground.primer * {
+	--inline-margin: 1rem;
+}
+
 markout-playground.primer {
 	--body-spacing-size: 2;
 	--body-offset-size: 3;
@@ -21,12 +25,12 @@ markout-playground.primer {
 	--block--offset--: 2rem;
 	--block--inset--: 0.5rem;
 	--body--offset--: 1rem;
-	--body--inset--: 0.5rem;
-	--figure--inset--: 0.5rem;
-	padding-inline-start: 0;
-	padding-inline-end: 0;
-	margin-inline-start: 0;
-	margin-inline-end: 0;
+	/* --body--inset--: 0.5rem; */
+	/* --figure--inset--: 0.5rem; */
+	/* padding-inline-start: var(--body--inset--); */
+	/* padding-inline-end: var(--body--inset--); */
+	/* margin-inline-start: 0; */
+	/* margin-inline-end: 0; */
 	margin-block-start: var(--block--offset--);
 	margin-block-end: var(--block--offset--);
 }
@@ -34,10 +38,8 @@ markout-playground.primer {
 @media only screen and (min-width: 600px) {
 	markout-playground.primer {
 		--block--inset--: 1rem;
-		--body--inset--: 1.5rem;
-		--figure--inset--: 1rem;
-		padding-inline-start: var(--block--inset--);
-		padding-inline-end: var(--block--inset--);
+		/* --body--inset--: 1.5rem; */
+		/* --figure--inset--: 1rem; */
 	}
 }
 
@@ -71,25 +73,31 @@ markout-playground.primer h4,
 markout-playground.primer h5,
 markout-playground.primer h6,
 markout-playground.primer hgroup,
+markout-playground.primer blockquote,
 markout-playground.primer hr {
-	margin: 0;
-	padding: 0;
+	/* margin: 0; */
+	/* padding: 0; */
 	margin-block-start: var(--block--offset--);
 	margin-block-end: var(--block--offset--);
-	padding-inline-start: var(--block--inset--);
-	padding-inline-end: var(--block--inset--);
+	/* padding-inline-start: var(--block--inset--); */
+	/* padding-inline-end: var(--block--inset--); */
 }
 
-markout-playground.primer blockquote,
-markout-playground.primer p {
-	margin: 0;
-	padding: 0;
-	margin-inline-start: var(--body--inset--);
-	margin-inline-end: var(--body--inset--);
+/* markout-playground.primer blockquote, */
+markout-playground.primer article > p,
+markout-playground.primer section > p,
+markout-playground.primer > p {
+	/* margin: 0; */
+	/* padding: 0; */
+	/* margin-inline-start: var(--body--inset--); */
+	/* margin-inline-end: var(--body--inset--); */
 	margin-block-start: var(--body--offset--);
 	margin-block-end: var(--body--offset--);
 }
 
+markout-playground.primer > :last-child:not(:first-child),
+markout-playground.primer :not(pre):not(section):not(article) > :last-child:not(:first-child),
+markout-playground.primer iframe:not(:last-child),
 markout-playground.primer pre:not(:last-child) {
 	margin-block-end: 0;
 }
@@ -98,6 +106,7 @@ markout-playground.primer pre + p {
 	margin-block-start: calc(var(--body--offset--) * 2);
 }
 
+markout-playground.primer iframe + blockquote,
 markout-playground.primer pre + blockquote {
 	/* opacity: 0.5; */
 	margin-block-start: 0.5em;
@@ -105,20 +114,25 @@ markout-playground.primer pre + blockquote {
 	font-size: calc(100% * var(--ß));
 }
 
+markout-playground.primer blockquote > :first-child:last-child {
+	/* margin-inline-start: var(--body--inset--); */
+	/* margin-inline-end: var(--body--inset--); */
+}
+
 markout-playground.primer pre:hover + blockquote,
 markout-playground.primer pre + blockquote:hover {
 	/* opacity: 1; */
 }
 
-markout-playground.primer hgroup h1,
-markout-playground.primer hgroup h2,
-markout-playground.primer hgroup h3,
-markout-playground.primer hgroup h4,
-markout-playground.primer hgroup h5,
-markout-playground.primer hgroup h6 {
+markout-playground.primer hgroup > h1,
+markout-playground.primer hgroup > h2,
+markout-playground.primer hgroup > h3,
+markout-playground.primer hgroup > h4,
+markout-playground.primer hgroup > h5,
+markout-playground.primer hgroup > h6 {
 	margin: 0;
-	padding-inline-start: var(--block--inset--);
-	padding-inline-end: var(--block--inset--);
+	/* padding-inline-start: var(--block--inset--); */
+	/* padding-inline-end: var(--block--inset--); */
 }
 
 markout-playground.primer details[open] {
@@ -140,8 +154,8 @@ markout-playground.primer hr {
 markout-playground.primer iframe,
 markout-playground.primer figure,
 markout-playground.primer pre {
-	margin-inline-start: var(--figure--inset--);
-	margin-inline-end: var(--figure--inset--);
+	/* margin-inline-start: var(--figure--inset--); */
+	/* margin-inline-end: var(--figure--inset--); */
 
 	/* margin: 1.5em 1rem; */
 	max-width: -webkit-fill-available;
