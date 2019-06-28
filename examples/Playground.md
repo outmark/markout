@@ -4,9 +4,11 @@
 
 Playgrounds in Markout are as straightforward as it gets, and this is a walk-through of the underlying concepts behind Markout's Playgrounds. Here we are throwing everything together in a single playground, mainly to show how it holds up together. <!-- Consider [this walk-through](./Playgrounds.md) for more granular examples. -->
 
-<aside><div max-height:=15em overflow-y:=scroll mask-image:="linear-gradient(black 75%, transparent)">
+<aside padding-block-start:=0 screen-only><div max-height:=15em overflow-y:=scroll mask-image:="linear-gradient(black 90%, transparent)" padding-block-end:=1rem>
 
 ## The Backstory
+
+<small>
 
 For someone like myself who has been developing web things all their life, it is fascinating to see how far it has come along. Yet, with everything moving so fast, details often get lost, and hard lessons earned start fading away amid flashy things of viral appeal.
 
@@ -20,7 +22,9 @@ What was elusive was a more vivid way to actually capture those things, not that
 
 So, let's dig into it, the first narrative that evolved while hacking at the first Playground… enjoy!
 
-<br/> <!-- <center><big>\* \* \*</big></center> -->
+</small>
+
+<br for-scrolling />
 
 </div></aside>
 
@@ -66,8 +70,12 @@ To turn your <code>\`\`\`html</code> block into actual content, simply change it
 First html content fragment!
 
 <!-- This is to trace when it works -->
-<script>console.trace(document.currentScript);</script>
+<script>
+	console.trace(document.currentScript);
+</script>
 ```
+
+> **Note**: For easier viewing, all blocks which will be rendered in the playground are additionally decorated with the fencing from the source text, and alternatively those decorations will show the open and close tags on clicking and holding anywhere inside the margins of the block.
 
 As you can see, nothing prevents you from throwing scripts, styles... etc. right into your fragment when it makes sense.
 
@@ -79,16 +87,29 @@ So, we've included a `script` here that tells us that this fragment works, and h
 <link rel="stylesheet" href="/markout/styles/root.css" />
 
 <!-- Additional reset styles not assumed by Markout  -->
-<style>body {background-color: transparent; line-height: 175%; display: grid; -webkit-text-size-adjust: 100%;} body > * {padding:0;margin:0;}</style>
+<style>
+	body {
+		/* width: inherit; */
+		overflow-x: hidden;
+		background-color: transparent;
+		line-height: 175%;
+		-webkit-text-size-adjust: 100%;
+		text-align: center;
+		/* place-items: baseline center; */
+		/* place-content: center space-evenly; */
+		/* display: grid; */
+		/* grid-template: 0 / max-content; */
+	}
+
+	body > * {
+		padding: 0;
+		margin: 0;
+		/* white-space: pre-line; */
+	}
+</style>
 ```
 
 In this second fragment, we also include things inline as functional necessities or boilerplate secondary to the narrative.
-
----
-
-> **Note**: For easier viewing, all blocks which will be rendered in the playground are additionally decorated with the fencing from the source text, and alternatively those decorations will show the open and close tags on clicking and holding anywhere inside the margins of the block.
-
----
 
 But, you don't want all your markup to be in `html` fragments, this makes it a lot more difficult for tooling to lend you a good development experience — which is just foresight based on reasonable experience with today's related tools.
 
@@ -164,7 +185,7 @@ And equally unexpected as it is goes for a `<script type=module>` tag, you use a
 // This is to trace when it works
 console.trace(
 	// This is to know it works as expected
-	document.body.appendChild(
+	document.body.querySelector('script[type=module],:last-child').after(
 		Object.assign(document.createElement('p'), {
 			textContent: 'First <script type=module> tag… works!',
 		}),

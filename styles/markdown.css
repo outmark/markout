@@ -113,7 +113,7 @@ tr > :not(table),
 li,
 li > :not(ol):not(ul) {
 	break-inside: avoid;
-	page-break-inside: avoid;
+	/* page-break-inside: avoid; */
 }
 
 /** SEE: https://css-tricks.com/style-list-markers-css/ **/
@@ -201,7 +201,7 @@ caption + table,
 table + caption,
 figcaption + * {
 	break-before: avoid;
-	page-break-before: avoid;
+	/* page-break-before: avoid; */
 }
 
 /* dt figure */

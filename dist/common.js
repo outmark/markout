@@ -1544,7 +1544,7 @@ const {
 	 * @returns {Promise<HTMLElement>}
 	 */
 	const renderSourceText = async options => {
-		let element, fragment, sourceType, sourceText;
+		let element, sourceType, sourceText, state;
 
 		if (
 			!options ||
@@ -1559,14 +1559,27 @@ const {
 		)
 			return void console.warn('Aborted: renderSourceText(%o => %o)', arguments[0], {element, sourceType, sourceText});
 
-		element || ((element = document.createElement('pre')).className = 'markup code');
-		element.removeAttribute(SourceTypeAttribute);
-		element.setAttribute(MarkupSyntaxAttribute, sourceType);
-		fragment = document.createDocumentFragment();
+		element != null
+			? element.removeAttribute(SourceTypeAttribute)
+			: ((element = document.createElement('pre')).className = 'markup code');
+
+		state = element['(markup)'] = {element, sourceText, sourceType, fragment: document.createDocumentFragment()};
+
+		// TODO: Implement proper out-of-band handling for js versus es modes
+		if (/^(js|javascript|es|ecmascript)$/i.test(sourceType)) {
+			(state.parsingGoal = element.matches('[script=module], [module]')
+				? 'module'
+				: element.matches('[script]')
+				? 'script'
+				: 'code') === 'module' && (state.sourceType = sourceType = 'es');
+		}
+
+		element.setAttribute(MarkupSyntaxAttribute, state.sourceType);
 		element.textContent = '';
 		element.sourceText = sourceText;
-		await render$1(sourceText, {sourceType, fragment});
-		element.appendChild(fragment);
+		// await markup.render(sourceText, {sourceType, fragment});
+		await render$1(sourceText, state);
+		element.appendChild(state.fragment);
 
 		return element;
 	};

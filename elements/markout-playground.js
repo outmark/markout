@@ -101,11 +101,13 @@ export const MarkoutPlayground = (() => {
 							node.opener = '<markout-content>';
 							node.closer = '</markout-content>';
 							node.type = `text/${node.type}`;
-							node.body = `<markout-content><template>${node.body}</template></markout-content>`;
+							node.body = `<markout-content style="margin:0!important;padding:0!important;"><template>${node.body}</template></markout-content>`;
 							// node.attributes = `type="${node.type}`;
 							break;
 						case 'html':
 							node.type = 'text/html';
+							// TODO: Fix character before </script> or </style> being dropped
+							// node.body.replace(/(?=<\/(?:script|style)>)/g, '\u200B');
 							break;
 						default:
 							node.tag = 'object';
@@ -115,7 +117,6 @@ export const MarkoutPlayground = (() => {
 							//   predictable fragments but will require
 							//   unescaping later on.
 							// TODO: Where can we safely unescape this?
-							//  &&
 							block.hasAttribute('preserve-entities') ||
 								/\bhtml?\b|\bsvg\b/i.test(node.type) ||
 								(node.body = encodeEntities(node.body));

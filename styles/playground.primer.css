@@ -17,8 +17,7 @@
 markout-playground.primer {
 	--body-spacing-size: 2;
 	--body-offset-size: 3;
-	--block-margin: calc(1rem * var(--body-offset-size));
-
+	/* --block-margin: calc(1rem * var(--body-offset-size)); */
 	--block--offset--: 2rem;
 	--block--inset--: 0.5rem;
 	--body--offset--: 1rem;
@@ -72,7 +71,6 @@ markout-playground.primer h4,
 markout-playground.primer h5,
 markout-playground.primer h6,
 markout-playground.primer hgroup,
-markout-playground.primer blockquote,
 markout-playground.primer hr {
 	margin: 0;
 	padding: 0;
@@ -82,6 +80,7 @@ markout-playground.primer hr {
 	padding-inline-end: var(--block--inset--);
 }
 
+markout-playground.primer blockquote,
 markout-playground.primer p {
 	margin: 0;
 	padding: 0;
@@ -89,6 +88,26 @@ markout-playground.primer p {
 	margin-inline-end: var(--body--inset--);
 	margin-block-start: var(--body--offset--);
 	margin-block-end: var(--body--offset--);
+}
+
+markout-playground.primer pre:not(:last-child) {
+	margin-block-end: 0;
+}
+
+markout-playground.primer pre + p {
+	margin-block-start: calc(var(--body--offset--) * 2);
+}
+
+markout-playground.primer pre + blockquote {
+	/* opacity: 0.5; */
+	margin-block-start: 0.5em;
+	margin-block-end: calc(var(--body--offset--) * 2);
+	font-size: calc(100% * var(--ß));
+}
+
+markout-playground.primer pre:hover + blockquote,
+markout-playground.primer pre + blockquote:hover {
+	/* opacity: 1; */
 }
 
 markout-playground.primer hgroup h1,
@@ -131,7 +150,7 @@ markout-playground.primer pre {
 }
 
 markout-playground.primer iframe {
-	/* width: 100%; */
+	width: 100%;
 	/* height: 100%; */
 	/* min-height: max-content; */
 	/* box-sizing: border-box; */
@@ -199,9 +218,64 @@ markout-playground.primer pre[data-markout-close-tag]::after {
 }
 
 @media print {
+	markout-playground.primer {
+		--body-spacing-size: 2;
+		--body-offset-size: 2;
+		/* --block-margin: calc(1rem * var(--body-offset-size)); */
+		--block--offset--: 1.5rem;
+		--body--offset--: 0.75rem;
+	}
+
+	[screen-only] {
+		display: none;
+	}
+	/* :first-child, */
+	/* :last-child, */
+	markout-playground.primer section > :first-child:not(:last-child),
+	markout-playground.primer article > :first-child:not(:last-child),
+	markout-playground.primer section > :last-child:not(:first-child),
+	markout-playground.primer article > :last-child:not(:first-child),
+	p + pre,
+	p + figure,
+	pre + p,
+	figure + p,
+	* + br,
+	* + hr {
+		/* break-before: avoid; */
+		/* page-break-before: avoid; */
+		break-inside: avoid;
+		/* page-break-inside: avoid; */
+		/* break-after: avoid; */
+		/* page-break-after: avoid; */
+	}
+
+	markout-playground.primer section,
+	markout-playground.primer article {
+		/* break-before: auto; */
+		/* page-break-before: auto; */
+		/* break-inside: auto; */
+		/* page-break-inside: auto; */
+		break-after: auto;
+		/* page-break-after: auto; */
+	}
+
+	markout-playground.primer pre[line-numbers] {
+		break-inside: initial;
+		/* page-break-inside: auto; */
+	}
+
 	markout-playground.primer pre[line-numbers] .markup-line {
 		--markup-line-number-color: #9999;
 		border-inline-start-color: #9993;
+		/* break-before: avoid; */
+		break-inside: avoid;
+		break-after: avoid;
+		/* page-break-inside: avoid; */
+	}
+
+	markout-playground.primer pre[line-numbers] .markup-line:not(:first-child):not(:last-child) {
+		break-before: auto;
+		break-after: auto;
 	}
 
 	markout-playground.primer pre[data-markout-open-tag]::before,
@@ -228,6 +302,10 @@ markout-playground.primer pre[data-markout-close-tag]::after {
 }
 
 @media screen {
+	markout-playground.primer pre:not(:hover) + blockquote:not(:hover) {
+		opacity: 0.5;
+	}
+
 	markout-playground.primer pre[line-numbers] .markup-line::before {
 		font-weight: 100;
 	}
