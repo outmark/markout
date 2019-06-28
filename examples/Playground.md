@@ -133,7 +133,6 @@ So the `<script>` element that's included in the above fragment which outputs to
 <!-- Additional reset styles not assumed by Markout  -->
 <style>
 	body {
-		/* width: inherit; */
 		overflow-x: hidden;
 		background-color: transparent;
 		line-height: 175%;
@@ -142,16 +141,11 @@ So the `<script>` element that's included in the above fragment which outputs to
 		-webkit-user-select: none;
 		-moz-user-select: none;
 		user-select: none;
-		/* place-items: baseline center; */
-		/* place-content: center space-evenly; */
-		/* display: grid; */
-		/* grid-template: 0 / max-content; */
 	}
 
 	body > * {
 		padding: 0;
 		margin: 0;
-		/* white-space: pre-line; */
 	}
 </style>
 ```

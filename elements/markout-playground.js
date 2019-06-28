@@ -195,6 +195,14 @@ export const MarkoutPlayground = (() => {
 
 			// We really need just the one frame here
 			await new Promise(requestAnimationFrame);
+			// await new Promise(resolve => playground.frame.requestAnimationFrame(resolve));
+			playground.document.body.style.minHeight = 'max-content';
+			setTimeout(() => {
+				playground.target.height = `${playground.document.body.scrollHeight}`;
+				playground.target.style.opacity = '';
+			}, 500);
+			playground.target.style.opacity = 0;
+			// playground.target.style.transition = '0.25s';
 			playground.target.hidden = false;
 
 			return playground;
@@ -209,27 +217,3 @@ export const MarkoutPlayground = (() => {
 /** @typedef {HTMLElement['attributes']} HTMLElementAttributes */
 /** @typedef {HTMLElementAttributes & Record<'fragment'|'script'|'style'|import('./markout-content.js')['MarkoutContent']['MARKUP_SYNTAX_ATTRIBUTE'], Attr>} PlaygroundBlockAttributes */
 /** @typedef {HTMLPreElement & {attributes: PlaygroundBlockAttributes}} PlaygroundBlock */
-
-// const markoutContentModuleURL = import.meta.url.replace('/markout-playground.js', '/markout-content.js');
-// const markoutContentStyleID = 'style:styles/markout.css';
-// const markoutContentStyleURL = MarkoutContent.assets[markoutContentStyleID];
-
-// document.head.append(
-// 	Object.assign(document.createElement('base'), {
-// 		href: baseURI,
-// 	}),
-// 	// Object.assign(document.createElement('link'), {
-// 	// 	id: markoutContentStyleID,
-// 	// 	rel: 'preload',
-// 	// 	as: 'style',
-// 	// 	href: markoutContentStyleURL,
-// 	// }),
-// 	// Object.assign(document.createElement('script'), {
-// 	// 	type: 'module',
-// 	// 	src: markoutContentModuleURL,
-// 	// }),
-// 	// Object.assign(document.createElement('link'), {
-// 	// 	rel: 'stylesheet',
-// 	// 	href: `${markoutContentStyleURL}`.replace('/markout.css', '/styles.css'),
-// 	// }),
-// );
