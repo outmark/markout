@@ -103,7 +103,7 @@ summary,
 blockquote,
 dd,
 caption,
-section,
+/* section, */
 /* details, */
 pre,
 dt,
@@ -111,7 +111,9 @@ figure,
 tr,
 tr > :not(table),
 li,
-li > :not(ol):not(ul) {
+li > :not(ol):not(ul),
+p ~ p,
+p + p {
 	break-inside: avoid;
 	page-break-inside: avoid;
 }
@@ -190,6 +192,7 @@ h6 {
 	vertical-align: middle;
 }
 
+/* * * > * :first-child:last-child, */
 h1 + :not(:empty),
 h2 + :not(:empty),
 h3 + :not(:empty),
@@ -197,9 +200,9 @@ h4 + :not(:empty),
 h5 + :not(:empty),
 h6 + :not(:empty),
 li > :not(ol):not(ul),
+figcaption + *,
 caption + table,
-table + caption,
-figcaption + * {
+table + caption {
 	break-before: avoid;
 	page-break-before: avoid;
 }

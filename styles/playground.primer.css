@@ -110,9 +110,12 @@ markout-playground.primer hr {
 	border-width: 1px;
 }
 
-markout-playground.primer section,
-markout-playground.primer article {
-	border: var(--fence--border--, 1px solid #9999);
+@media only screen {
+	markout-playground.primer aside,
+	markout-playground.primer section,
+	markout-playground.primer article {
+		border: var(--fence--border--, 1px solid #9999);
+	}
 }
 
 markout-playground.primer iframe,
@@ -135,8 +138,10 @@ markout-playground.primer iframe {
 	/* padding: 1em; */
 }
 
-markout-playground.primer h1,
-markout-playground.primer h2,
+markout-playground.primer :not(hgroup) > h1,
+markout-playground.primer > h1,
+markout-playground.primer :not(hgroup) > h2,
+markout-playground.primer > h2,
 markout-playground.primer hgroup {
 	text-align: center;
 }
@@ -165,7 +170,6 @@ markout-playground.primer pre[line-numbers] .markup-line {
 	border-inline-start-color: #9993;
 	border-inline-start-width: 0.5pt;
 }
-
 
 markout-playground.primer pre[data-markout-open-tag]::before,
 markout-playground.primer pre[data-markout-close-tag]::after {
@@ -216,6 +220,10 @@ markout-playground.primer pre[data-markout-close-tag]::after {
 		border-top-width: 1pt;
 		padding-block-start: 0.25em;
 		margin-block-start: 1em;
+	}
+
+	markout-playground.primer :not(.markup) > br[for-scrolling] {
+		display: none;
 	}
 }
 
