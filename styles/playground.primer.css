@@ -1,8 +1,13 @@
 ﻿@media print {
+	markout-playground.primer figure,
+	markout-playground.primer code,
 	markout-playground.primer pre {
 		overflow-x: hidden !important;
 		white-space: pre-wrap !important;
+		/* border-width: 0 !important; */
+		color-adjust: exact;
 	}
+
 	markout-playground.primer * {
 		overflow-y: unset !important;
 		max-width: unset !important;
@@ -316,6 +321,7 @@ markout-playground.primer pre[data-markout-close-tag]::after {
 }
 
 @media screen {
+	markout-playground.primer iframe:not(:hover) + blockquote:not(:hover),
 	markout-playground.primer pre:not(:hover) + blockquote:not(:hover) {
 		opacity: 0.5;
 	}

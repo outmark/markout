@@ -43,11 +43,9 @@ Everything inside a `<markout-playground>` element is considered a single playgr
 </aside></output>
 <blockquote><details><summary><b>Tip</b>: If you are not familiar with HTML inline frames…</summary>
 
-Sometimes when are authoring an HTML document, you want to embed within other documents, like ads... etc.
+When you author HTML documents, sometimes you want to embed other documents, like ads... etc. The way you do this is by including an `<iframe src="‹some url›"></iframe>` fragment which tells the browser to create a nested container within the current page and use to show another — usually by loading it from `‹some url›`.
 
-The way you do this is using `<iframe src="‹some url›"></iframe>` which tells the browser to create a nested region within the current page and use it to contain the referenced document.
-
-Playgrounds uses this approach, but instead of loading a document from some URL, it generates this document dynamically by deriving it from your own narrative.
+Playgrounds uses this approach, but instead of loading a document from `‹some url›`, it will derive the document from content in your narrative — ie what you see above is generated from content that is narrated further down.
 
 </details></blockquote>
 
@@ -125,7 +123,7 @@ First html content fragment!
 
 As you can see, nothing prevents you from throwing scripts, styles... etc. right into your fragment when it makes sense.
 
-So, we've included a `script` here that tells us that this fragment works, and how else would you want to go about that, right!
+So the `<script>` element that's included in the above fragment which outputs to the console a stack trace is meant to let us know that everything worked as exected, ie the fragment did in fact end up in the playground — and practically speaking, how else would you want to go about knowing that it did, right!
 
 <!--prettier-ignore-->
 ```html fragment
