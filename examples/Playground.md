@@ -268,6 +268,8 @@ console.trace(
 );
 ```
 
+---
+
 > **Note**: This is all just work-in-progress intended to evolve while keeping with to standards, all of which is subject to change (let's hope).
 
 </section>
