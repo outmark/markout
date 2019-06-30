@@ -16,7 +16,9 @@ So I always like to slow things down, go grassroots, and here you start to see t
 
 This creates a lot of junk code, but which could also be good code, and usually is, depending on how you slice that narrative. But assuming it is, now what do you with all this potentially good code just not being in the right place? Do you just hit delete?!
 
-Along this quest I discovered the practice of weekly logging, ie blogging but without the traditional audience. It's where I pull together all those threads and trimmings to capture in review what I've accomplished and learned — and on occassion you want that to hold well enough to share it with others in your team(s).
+Some people always like to say that _writing code_ is easy. It is not if you're the one doing it, or if all you write is easy code, as in not good code, or just really bad, which ever falls nicer on the ears when we do it… but, writing code without a good frame is certainly bad, only you don't just know it yet…
+
+And I was unwittingly on a quest to figure this all out for myself. Along this quest I discovered the practice of weekly logging, ie blogging but without the traditional audience. It's where I pull together all those threads and trimmings to capture in review what I've accomplished and learned and frame things moving forward.
 
 What was elusive was a more vivid way to actually capture those things, not that it was not always intended to make this about playgrounds. But, it took just a little over a year to find the right framing for it — narratives.
 
