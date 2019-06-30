@@ -5,14 +5,14 @@
 	/* --apple-system, BlinkMacSystemFont */
 	/* 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', */
 	/* 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif; */
-	src: local('.SF NS Text'), local('.HelveticaNeueDeskInterface'), local('.LucidaGrandeUI'), local('Segoe UI'),
-		local('Ubuntu'), local('Roboto'), local('DroidSans'), local('Tahoma');
+	src: local('☺︎'), local('.SF NS Text'), local('.HelveticaNeueDeskInterface'), local('.LucidaGrandeUI'),
+		local('Segoe UI'), local('Ubuntu'), local('Roboto'), local('DroidSans'), local('Tahoma');
 }
 
 @font-face {
 	font-family: markout-monospace;
 	/* src: local('Iosevka Web'), local('Iosevka'), local('Fira Code'), local('Input'), local('Source Code Pro'); */
-	src: local(Iosevka);
+	src: local('☺︎'), local(Iosevka);
 }
 
 :root {
@@ -25,7 +25,7 @@
 
 	--markout--system-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif,
 		'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
-	--markout--sans-serif: system-ui, markout-sans-serif, sans-serif;
+	--markout--sans-serif: -apple-system, system-ui, markout-sans-serif, sans-serif;
 	--markout--monospace: Iosevka, markout-monospace, monospace;
 
 	--markout--body-font-family: var(--markout--sans-serif, cursive);
@@ -38,8 +38,8 @@
 
 :root {
 	--markout\resolution: normal;
-	--markout--microline: 0.5px;
-	--markout--microline: 0.06vmax;
+	--markout--microline: thin;
+	/* --markout--microline: 0.06vmax; */
 	--markout--hairline: 1px;
 	--markout--thinline: 1px;
 	--markout--thickline: 2px;

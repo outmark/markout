@@ -34,6 +34,14 @@ pre.markup > .markup-line {
 }
 
 @media screen and (prefers-color-scheme: dark) {
+	mark {
+		background-blend-mode: luminosity;
+		background-image: linear-gradient(45deg, #9999, #9999);
+		text-rendering: optimizeLegibility;
+		/* text-shadow: 0 0 6px #333; */
+		/* opacity: 0.5; */
+	}
+
 	li[type='checkbox']::before {
 		box-shadow: none;
 		box-shadow: 0 0 0 1px var(--shade, #999);

@@ -220,7 +220,7 @@ document.currentScript.before(
 
 ---
 
-<div style:=fence border-radius:=0.25ex padding-block-start:=0><div max-height:=10em overflow-y:=scroll mask-image:="linear-gradient(black 75%, transparent)" padding:="0 1rem 2rem 1rem">
+<div style:=fence border-radius:=0.25ex padding-block-start:=0><div max-height:=10em overflow-y:=scroll mask-image:="linear-gradient(black 75%, transparent)" padding:="0 1rem 2rem 1rem"><span>
 
 **How about more serious attributes… say `type`?!** It's just too early to lock up the design space around attributes, and so expect those to be very intentionally awkward hacks for now.
 
@@ -236,7 +236,7 @@ So we will punt on having to deal with such complexities until there is better c
 
 Good to keep that in mind before the next bit!
 
-</div></div>
+</span></div></div>
 
 ---
 
@@ -252,7 +252,7 @@ With modules, we hit the scenario pointed out above, which in `html` looks somet
 </script>
 ```
 
-Fun fact to consider here is that while `<script type=text/javascript>` **unambiguously means** it is _classic_ script and **not** _module_ code, in reality, and aside of how blizzard you may find it, all javascript code irrespective of flavor (ie parsing goal) is of the same content/mime type `text/javascript`.
+Fun fact to consider here is that while `<script type=text/javascript>` **unambiguously means** it is _classic_ script and **not** _module_ code, in reality, and aside of how bizarre you may find it, all javascript code irrespective of flavor (ie parsing goal) is of the same content/mime type `text/javascript`.
 
 And so at lease for now and just to pair nicely with those smelly and somewhat distasteful specifications, we will use <code>\`\`\`js script=module</code> for module blocks, thusly and intuitively (not), coercing onto them in the playground the `type=module` attribute they would require.
 

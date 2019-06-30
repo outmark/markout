@@ -587,8 +587,8 @@ class ComposableList extends Array {
 						checked
 							? `${listInset}\t<li type=checkbox ${
 									checked === ' ' ? '' : checked === '-' ? 'indeterminate' : ' checked'
-							  }>${content}</li>`
-							: `${listInset}\t<li>${content}</li>`,
+							  }> ${content} </li>`
+							: `${listInset}\t<li> ${content} </li>`,
 					);
 			}
 		}
@@ -928,7 +928,7 @@ class MarkoutBlockNormalizer {
 			import.meta['debug:markout:paragraph-normalization'] &&
 				console.log('normalizeParagraphs:', {m, feed, inset, body, paragraphs});
 
-			body = `${feed}<p>${paragraphs.join(`</p>\n${inset}<p>`)}</p>\n`;
+			body = `${feed}<p> ${paragraphs.join(` </p>\n${inset}<p> `)} </p>\n`;
 
 			COMMENT_STASHING && (body = recomment(body, comments));
 
@@ -1373,10 +1373,10 @@ const {
 
 	/** @param {string} sourceText @returns {DocumentFragment}*/
 	const createRenderedFragment = sourceText => {
-		let fragment, normalizedText, tokens;
+		let fragment, normalizedText, tokens, renderedText;
 		template || (template = document.createElement('template'));
 
-		template.innerHTML = render(
+		template.innerHTML = renderedText = render(
 			(tokens = tokenize((normalizedText = normalize(sourceText)))),
 		);
 
@@ -1387,6 +1387,7 @@ const {
 		fragment.sourceText = sourceText;
 		fragment.normalizedText = normalizedText;
 		fragment.tokens = tokens;
+		fragment.renderedText = renderedText;
 
 		return fragment;
 	};
@@ -1501,11 +1502,7 @@ const {
 	};
 
 	const normalizeParagraphsInFragment = fragment => {
-		let empty, span;
-		if ((empty = fragment.querySelectorAll('p:empty')).length) {
-			(span = document.createElement('span')).append(...empty);
-			// console.log({empty, content: span.innerHTML});
-		}
+		for (const empty of fragment.querySelectorAll('p:empty')) empty.remove();
 	};
 
 	const flattenTokensInFragment = fragment => {
