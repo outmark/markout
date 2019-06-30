@@ -119,7 +119,6 @@ First html content fragment!
 <script>
 	console.trace(document.currentScript);
 </script>
-
 ```
 
 > **Note**: For easier viewing, all blocks which will be rendered in the playground are additionally decorated with the fencing from the source text, and alternatively those decorations will show the open and close tags on clicking and holding anywhere inside the margins of the block.
@@ -213,7 +212,7 @@ console.trace(document.currentScript);
 
 // This is to know it works as expected
 document.currentScript.before(
-	Object.assign(document.createElement('p'), {textContent: 'First <i>classic</i> <script> tag… works!'}),
+	Object.assign(document.createElement('p'), {textContent: 'First 𝘤𝘭𝘢𝘴𝘴𝘪𝘤 <script> tag… works!'}),
 );
 ```
 
@@ -263,7 +262,7 @@ console.trace(
 	// This is to know it works as expected
 	document.body.querySelector('script[type=module],:last-child').after(
 		Object.assign(document.createElement('p'), {
-			textContent: 'First <script type=module> tag… works!',
+			textContent: 'First 𝘮𝘰𝘥𝘶𝘭𝘦 <script> tag… works!',
 		}),
 	),
 );
