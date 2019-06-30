@@ -1,6 +1,5 @@
-﻿// import {dynamicImport} from '../pholio/lib/import.js';
-import dynamicImport from '/browser/dynamic-import.js';
-// import {darkMode} from '/browser/dark-mode.js';
+﻿import dynamicImport from '/browser/dynamic-import.js';
+import {resizeFrameElement} from '/browser/markout-frame.js';
 // import {darkMode} from '/browser/dark-mode.js#autoOnly';
 
 // console.log({darkMode});
@@ -22,6 +21,8 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 		const base = new URL('../markout/', import.meta.url);
 
 		const defined = customElements.whenDefined(section.localName);
+
+		// const {frameElement} = globalThis;
 
 		// Only promote to preview shell if src is not present
 		if (!section.hasAttribute('src')) {
@@ -98,6 +99,8 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 				if (href === section.sourceURL) return;
 
 				await (section.load ? section.load(href) : section.setAttribute('src', href));
+
+				await resizeFrameElement();
 
 				fragment && scrollToFragment(fragment);
 			};

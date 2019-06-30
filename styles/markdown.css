@@ -483,7 +483,7 @@ dt {
 iframe {
 	border: var(--fence--border--);
 	background-color: var(--fence--background--);
-	box-sizing: border-box;
+	/* box-sizing: border-box; */
 }
 
 pre,

@@ -183,6 +183,7 @@ export const MarkoutPlayground = (() => {
 					`<script type=module src="/markout/playground.js${
 						/\?.*?\bdev\b/i.test(location.href) ? '?dev' : ''
 					}"></script>`,
+					// `<script type=module src="/browser/markout-frame.js?resize"></script>`,
 				);
 
 			'head' in playground.fragments &&
@@ -196,13 +197,13 @@ export const MarkoutPlayground = (() => {
 			// We really need just the one frame here
 			await new Promise(requestAnimationFrame);
 			// await new Promise(resolve => playground.frame.requestAnimationFrame(resolve));
-			playground.document.body.style.minHeight = 'max-content';
-			setTimeout(() => {
-				playground.target.height = `${playground.document.body.scrollHeight}`;
-				playground.target.style.opacity = '';
-			}, 500);
-			playground.target.style.opacity = 0;
-			// playground.target.style.transition = '0.25s';
+			// playground.document.body.style.minHeight = 'max-content';
+			// setTimeout(() => {
+			// 	playground.target.height = `${playground.document.body.scrollHeight}`;
+			// 	playground.target.style.opacity = '';
+			// }, 500);
+			// playground.target.style.opacity = 0;
+			// // playground.target.style.transition = '0.25s';
 			playground.target.hidden = false;
 
 			return playground;

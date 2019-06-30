@@ -1,4 +1,6 @@
 ﻿{
+	import('/browser/markout-frame.js?resize');
+
 	const inDevelopment = /\?.*?\bdev\b/i.test(import.meta.url);
 	const markoutURL = inDevelopment ? './lib/browser.js' : './dist/browser.js';
 	const stylesURL = '/markout/styles/styles.css';

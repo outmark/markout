@@ -1,27 +1,10 @@
-﻿@media print {
-	markout-playground.primer figure,
-	markout-playground.primer code,
-	markout-playground.primer pre {
-		overflow-x: hidden !important;
-		white-space: pre-wrap !important;
-		/* border-width: 0 !important; */
-		color-adjust: exact;
-	}
-
-	markout-playground.primer * {
-		overflow-y: unset !important;
-		max-width: unset !important;
-		max-height: unset !important;
-		min-width: unset !important;
-		min-height: unset !important;
-		-webkit-mask-image: unset !important;
-		/* filter: unset !important; */
-	}
-}
-
-markout-playground.primer * {
+﻿markout-playground.primer * {
 	--inline-margin: 1rem;
 }
+
+/* markout-playground.primer :not(.markup) > br[for-scrolling] {
+	display: none;
+} */
 
 markout-playground.primer {
 	--body-spacing-size: 2;
@@ -237,6 +220,11 @@ markout-playground.primer pre[data-markout-close-tag]::after {
 }
 
 @media print {
+	/* prettier-ignore */
+	[media~=screen]:not([media~=print]) { display: none; }
+	/* prettier-ignore */
+	[media~=print][hidden]:not([media~=screen]) { display: initial; }
+
 	markout-playground.primer {
 		--body-spacing-size: 2;
 		--body-offset-size: 2;
@@ -245,9 +233,6 @@ markout-playground.primer pre[data-markout-close-tag]::after {
 		--body--offset--: 0.75rem;
 	}
 
-	[screen-only] {
-		display: none;
-	}
 	/* :first-child, */
 	/* :last-child, */
 	markout-playground.primer section > :first-child:not(:last-child),
@@ -315,12 +300,30 @@ markout-playground.primer pre[data-markout-close-tag]::after {
 		margin-block-start: 1em;
 	}
 
-	markout-playground.primer :not(.markup) > br[for-scrolling] {
-		display: none;
+	markout-playground.primer figure,
+	markout-playground.primer code,
+	markout-playground.primer pre {
+		overflow-x: hidden !important;
+		white-space: pre-wrap !important;
+		/* border-width: 0 !important; */
+		color-adjust: exact;
+	}
+
+	markout-playground.primer * {
+		overflow-y: unset !important;
+		max-width: unset !important;
+		max-height: unset !important;
+		min-width: unset !important;
+		min-height: unset !important;
+		-webkit-mask-image: unset !important;
+		/* filter: unset !important; */
 	}
 }
 
 @media screen {
+	/* prettier-ignore */
+	[media~=print]:not([media~=screen]) { display: none; }
+
 	markout-playground.primer iframe:not(:hover) + blockquote:not(:hover),
 	markout-playground.primer pre:not(:hover) + blockquote:not(:hover) {
 		opacity: 0.5;
