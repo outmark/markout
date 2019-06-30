@@ -285,7 +285,7 @@ console.trace(
 
 Aside from the usual HTML things, sometimes you want to incorporate things that are not quite HTML fragments and yet they are a cohesive fragment that is handled by special extensions.
 
-> **Note**: We'll call those content for stipulation — as in fragments, tags, and tags of fragments which we call content.
+> **Note**: We'll call those content for stipulation — as in fragments, tags, and tag-wrapped-fragments which we call content with little in way of justifying this choice.
 
 One example is the Markout content renderer upon which this all works. Other examples to consider here would be content for browser handlers, and those might be a little trickier to pull off.
 
