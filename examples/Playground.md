@@ -4,9 +4,12 @@
 
 Playgrounds in Markout are as straightforward as it gets, and this is a walk-through of the underlying concepts behind Markout's Playgrounds. Here we are throwing everything together in a single playground, mainly to show how it holds up together. <!-- Consider [this walk-through](./Playgrounds.md) for more granular examples. -->
 
-<div style:=fence border-radius:=0.25ex padding-block-start:=0><div max-height:=10em overflow-y:=scroll mask-image:="linear-gradient(black 75%, transparent)" padding:="0 1rem 1rem">
+<center media=print hidden>
 
-<small>
+_See it in action and read the full story at <u>smotaal.io/markout/examples/Playground</u>._
+
+</center>
+<div media=screen style:=fence border-radius:=0.25ex padding-block-start:=0><div max-height:=10em overflow-y:=scroll mask-image:="linear-gradient(black 75%, transparent)" padding:="0 1rem 2rem 1rem">
 
 ## The Backstory
 
@@ -24,11 +27,7 @@ What was elusive was a more vivid way to actually capture those things, not that
 
 So, let's dig into it, the first narrative that evolved while hacking at the first Playground… enjoy!
 
-</small>
-
-<br for-scrolling />
-
-</div></div>
+</small></div></div>
 
 <section>
 
@@ -36,7 +35,9 @@ So, let's dig into it, the first narrative that evolved while hacking at the fir
 
 When you create a `<markout-playground>` element, think `<iframe>`, the contents of which will be populated from the fenced code blocks within your narrative. This means that the narrative and its playground will each get their own DOM, and this divide will actually feel a lot more intuitive as your narrative and what it captures begin to flow in their own ways.
 
-Everything inside a `<markout-playground>` element is considered a single playground. And normally, the actual playground will be appended in the end of the element.
+Everything inside a `<markout-playground>` element is considered a single playground, with its own narrative consisting of all the content enclosed between the opening `<markout-playground>` and closing `</markout-playground>` tags.
+
+Normally, the actual playground will be appended in the end of the element. Alternatively, you can use the `<output here></output>` placeholder as shown immediately below, to better frame it within the context of your narrative.
 
 <output here><aside align=center>
 
@@ -51,7 +52,7 @@ Playgrounds uses this approach, but instead of loading a document from `‹some 
 
 </details></blockquote>
 
-Alternatively, you can use the `<output here><!--and you can leave some just-in-case markup here--></output>` placeholder as shown here, and your narrative for can give the necessary context, ie to make this point.
+Let's look at the narrative behind this rendered playground below.
 
 </section>
 
@@ -59,7 +60,7 @@ Alternatively, you can use the `<output here><!--and you can leave some just-in-
 
 <!--prettier-ignore-start-->
 ## The Narrative
-### 1. Fragments
+### 1.  Fragments
 <!--prettier-ignore-end-->
 
 ---
@@ -166,7 +167,7 @@ So let's see how other fenced blocks can be used to make a good narrative.
 
 <!--prettier-ignore-start-->
 ## The Narrative
-### 2. Blocks
+### 2.  Tags
 <!--prettier-ignore-end-->
 
 ---
@@ -183,7 +184,7 @@ So for starters, the right amount of mojo will be needed here at least to proper
 
 ---
 
-### Cascading Styles
+### Styles
 
 You define a `<style>` tag using <code>\`\`\`css style</code> block.
 
@@ -202,7 +203,7 @@ body > style:first-of-type {
 
 ---
 
-### Classic Scripts
+### Scripts
 
 You define a `<script>` tag using <code>\`\`\`js script</code> block.
 
@@ -212,17 +213,49 @@ console.trace(document.currentScript);
 
 // This is to know it works as expected
 document.currentScript.before(
-	Object.assign(document.createElement('p'), {textContent: 'First classic <script> tag… works!'}),
+	Object.assign(document.createElement('p'), {textContent: 'First <i>classic</i> <script> tag… works!'}),
 );
 ```
 
-You can further specify simple attributes of well-defined intent by appending them to the header — like `async` or `defer` for a `<script>` using <code>\`\`\`js script async defer</code>.
+> **Note**: You can specify simple attributes of well-defined intent by appending them to the header — like `async` or `defer` for a `<script>` using <code>\`\`\`js script async defer</code>… details below.
+
+---
+
+<div style:=fence border-radius:=0.25ex padding-block-start:=0><div max-height:=10em overflow-y:=scroll mask-image:="linear-gradient(black 75%, transparent)" padding:="0 1rem 2rem 1rem">
+
+**How about more serious attributes… say `type`?!** It's just too early to lock up the design space around attributes, and so expect those to be very intentionally awkward hacks for now.
+
+But as we move into places where such attributes become necessary, we will need ways to achieve the intended outcomes. And we need to do that without closing the door for more intuitive ways to be explored later on. And so to play it safe, we will mostly opt for things with very minimalistic and hard-coded logic, smelly enough, easy to find, and more importantly, not cause unintentionally side-effects today or in the future where we didn't expect.
+
+Sounds reasonable enough, at least for now… right? Maybe it help's to reflect on this more concretely…
+
+If we consider the possible implications of appending `async` or `defer` directly into the opening fence of a <code>\`\`\`js script async defer</code> block, specifically once they are rendered by Markout or another engine with similar semantics, this code will likely result in a `<pre async defer markup-syntax="js">`, and they will not go any further without a parent `<markout-playground>` or similar giving those useless attributes additional meaning.
+
+However, to be fair, `markup-syntax` which is what Markout chooses to reflect the syntax of the fenced code is just one opinion on how to retain that detail. Another one could just as well be `type` with a seemingly good assumption that the name is spec-conforming and that it historically bares no significance to the semantics of a `pre` tag in an `html` document. And so the risks are not equal across all attributes, and it is too early to make those kinds of commitments design-wise.
+
+So we will punt on having to deal with such complexities until there is better clarity, and specifically for `type` we'll simply repurpose our intentionally non-conforming `script` or `style` attributes to override the default inferred `type` of the resulting playground tags.
+
+Good to keep that in mind before the next bit!
+
+</div></div>
 
 ---
 
 ### Modules
 
-And equally unexpected as it is goes for a `<script type=module>` tag, you use a <code>\`\`\`js script=module</code> block, and that's simply because the type of the tag will picked up from the attribute.
+With modules, we hit the scenario pointed out above, which in `html` looks something like:
+
+<!--prettier-ignore-->
+```html
+<script type=module>
+	// NOTE: module code works here BUT throws elsewhere… for example:
+	import something from 'somewhere';
+</script>
+```
+
+Fun fact to consider here is that while `<script type=text/javascript>` **unambiguously means** it is _classic_ script and **not** _module_ code, in reality, and aside of how blizzard you may find it, all javascript code irrespective of flavor (ie parsing goal) is of the same content/mime type `text/javascript`.
+
+And so at lease for now and just to pair nicely with those smelly and somewhat distasteful specifications, we will use <code>\`\`\`js script=module</code> for module blocks, thusly and intuitively (not), coercing onto them in the playground the `type=module` attribute they would require.
 
 ```js script=module
 // This is to trace when it works
@@ -236,24 +269,28 @@ console.trace(
 );
 ```
 
+> **Note**: This is all just work-in-progress intended to evolve while keeping with to standards, all of which is subject to change (let's hope).
+
 </section>
 
 <section>
 
 <!--prettier-ignore-start-->
 ## The Narrative
-### 3. Fragment Blocks
+### 3. Content
 <!--prettier-ignore-end-->
 
 ---
 
-Aside from the usual HTML things, sometimes you want to incorporate things that are not quite HTML fragments and yet they are a cohesive fragment that is either intended for rendering via extensions.
+Aside from the usual HTML things, sometimes you want to incorporate things that are not quite HTML fragments and yet they are a cohesive fragment that is handled by special extensions.
+
+> **Note**: We'll call those content for stipulation — as in fragments, tags, and tags of fragments which we call content.
 
 One example is the Markout content renderer upon which this all works. Other examples to consider here would be content for browser handlers, and those might be a little trickier to pull off.
 
 ---
 
-### Markout Fragment Blocks
+### Markout Content
 
 To turn your <code>\`\`\`md</code> block into actual content, simply change it to <code>\`\`\`md fragment</code>, and the way this works is that it will wrap the fragment inside a `<markout-content>` element.
 
@@ -265,7 +302,7 @@ This is still considered a fragment because what lies within it is content and n
 
 ---
 
-### Weird Fragment Blocks
+### Weird Content
 
 If you're just too weird or simply `fragment` weirdly, that's more than okay… you will likely get an `object`-wrapped fragment that will be escaped as needed unless you throw `preserve-entities` in the mix.
 
