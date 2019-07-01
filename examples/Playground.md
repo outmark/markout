@@ -6,10 +6,10 @@ Playgrounds in Markout are as straightforward as it gets, and this is a walk-thr
 
 <center media=print hidden>
 
-_See it in action and read the full story at <u>smotaal.io/markout/examples/Playground</u>._
+_See it in action and read the full story at [smotaal.io/#/markout/examples/Playground](smotaal.io/#/markout/examples/Playground)._
 
 </center>
-<div media=screen style:=fence border-radius:=0.25ex padding-block-start:=0><div max-height:=10em overflow-y:=scroll mask-image:="linear-gradient(black 75%, transparent)" padding:="0 1rem 2rem 1rem">
+<div media=screen style:=fence border-radius:=0.25ex padding-block-start:=0><div max-height:=10em overflow-y:=scroll mask-image:="linear-gradient(black 75%, transparent)" padding:="0 1rem"><small>
 
 ## The Backstory
 
@@ -27,7 +27,7 @@ What was elusive was a more vivid way to actually capture those things, not that
 
 So, let's dig into it, the first narrative that evolved while hacking at the first Playground… enjoy!
 
-</small></div></div>
+<br media=screen/></small></div></div>
 
 <section>
 
@@ -92,12 +92,14 @@ Historically was complicated but Markdown's clean and simplistic notation revolu
 ```md
   In Markdown you can:
 
-    1. Fence \`code\` inline.
+    1. Fence `code` inline to treat it as literal string characters.
 	  2. Or in blocks where you can also indicate its syntax:
 
-       ```syntax
-       code
+       ```html
+       <html> is awesome but that's besides the point!
        ```
+
+			 The cool thing is that this is fenced html in fenced markdown in html… and so on!
 ```
 <!--prettier-ignore-end-->
 
@@ -109,7 +111,7 @@ You don't want the above fragment to be in the playground, and besides of it bei
 
 With this in mind, it is reasonable to say that if fragments needed to be differentiated, it is safer to rely on very explicit indicators to distinguish a playground fragment from narrative or otherwise ones.
 
-So in order to indicate a playground fragment, you would change the opening fence <code>\`\`\`html</code> block into actual content, we <code>\`\`\`html fragment</code>.
+So in order to indicate a playground fragment, you would change the opening fence <code>\`\`\`html</code> block into actual content, we'll use <code>\`\`\`html fragment</code> instead, and this will still show it in the narrative as well as output its content into the playground.
 
 <!--prettier-ignore-->
 ```html fragment
@@ -220,7 +222,7 @@ document.currentScript.before(
 
 ---
 
-<div style:=fence border-radius:=0.25ex padding-block-start:=0><div max-height:=10em overflow-y:=scroll mask-image:="linear-gradient(black 75%, transparent)" padding:="0 1rem 2rem 1rem"><span>
+<div style:=fence border-radius:=0.25ex padding-block-start:=0><div max-height:=10em overflow-y:=scroll mask-image:="linear-gradient(black 75%, transparent)" padding:="0 1rem"><span>
 
 **How about more serious attributes… say `type`?!** It's just too early to lock up the design space around attributes, and so expect those to be very intentionally awkward hacks for now.
 
@@ -230,13 +232,15 @@ Sounds reasonable enough, at least for now… right? Maybe it help's to reflect 
 
 If we consider the possible implications of appending `async` or `defer` directly into the opening fence of a <code>\`\`\`js script async defer</code> block, specifically once they are rendered by Markout or another engine with similar semantics, this code will likely result in a `<pre async defer markup-syntax="js">`, and they will not go any further without a parent `<markout-playground>` or similar giving those useless attributes additional meaning.
 
-However, to be fair, `markup-syntax` which is what Markout chooses to reflect the syntax of the fenced code is just one opinion on how to retain that detail. Another one could just as well be `type` with a seemingly good assumption that the name is spec-conforming and that it historically bares no significance to the semantics of a `pre` tag in an `html` document. And so the risks are not equal across all attributes, and it is too early to make those kinds of commitments design-wise.
+However, to be fair, `markup-syntax` which is what Markout chooses to reflect the syntax of the fenced code is just one opinion on how to retain that detail. Another one could just as well be `type` with a seemingly good assumption that the name is spec-conforming and that it historically bares no significance to the semantics of a `pre` tag in an `html` document.
 
-So we will punt on having to deal with such complexities until there is better clarity, and specifically for `type` we'll simply repurpose our intentionally non-conforming `script` or `style` attributes to override the default inferred `type` of the resulting playground tags.
+From this, it is clear that some attributes are not like the others, they are risky and cannot be just blissfully opinionated to our liking, and so it is too early to make those kinds of commitments design-wise.
+
+Meanwhile, specifically for `type` we can simply repurpose our intentionally non-conforming `script` or `style` attributes to override the default inferred `type` of the resulting playground tags, so `script=module` in the opening fence would translate to `type=module` in the opening tag… etc.
 
 Good to keep that in mind before the next bit!
 
-</span></div></div>
+<br media=screen/></span></div></div>
 
 ---
 

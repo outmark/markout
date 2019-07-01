@@ -100,6 +100,7 @@ markout-playground.primer pre + blockquote {
 	margin-block-start: 0.5em;
 	margin-block-end: calc(var(--body--offset--) * 2);
 	font-size: calc(100% * var(--ß));
+	break-before: avoid;
 }
 
 markout-playground.primer blockquote > :first-child:last-child {
