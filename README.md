@@ -56,7 +56,8 @@ Current experimental efforts divide the rendering into two phases, the first por
 
   - [x] _Syntaxes_
 
-        > one of `md`/`markdown`, `html`, `css`, `json`, `js`/`javascript`, `es`/`ecmascript` — defaults to `markup`.
+        > one of `md`/`markdown`, `html`, `css`, `json`, `js`/`javascript`, `es`/`ecmascript`
+        > defaults to `markup`
 
 - [ ] <details><summary>Block Quotes</summary>
 

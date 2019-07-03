@@ -178,6 +178,7 @@ const {
 		return source => /[\\^$*+?.()|[\]{}]/g[replace](source, '\\$&');
 	})())),
 	sequence,
+	join,
 	matchAll = (Matcher.matchAll =
 		/**
 		 * @template {RegExp} T
@@ -213,6 +214,82 @@ const {
 			))()),
 } = Matcher;
 
+//@ts-check
+
+const {atoms, range} = (() => {
+	const {freeze} = Object;
+
+	/** @template {string} T @param {...T} strings */
+	const atoms = (...strings) => freeze(strings); // .filter(atoms.filter).sort()
+
+	atoms.filter = string => typeof string === 'string' && string.length;
+
+	/** @param {string} string @param {string} [delimiter] */
+	atoms.split = (string, delimiter = '') => freeze(string.split(delimiter));
+	/**
+	 * Splits a string into case-distinct subsets as applicable.
+	 *
+	 * NOTE: A non-case-senstive string yields the single
+	 *       subset instance for all its cases. A fully cased
+	 *       string yields separate upper and lower case subsets
+	 *       and a single subset for both initial and any cases.
+	 *
+	 * @param {string} string @param {string} [delimiter]
+	 */
+	atoms.split.cases = (string, delimiter = '') => {
+		/** Ordered array of every unique original cased atom in the original string */
+		const initialCase = freeze(atoms.union(...atoms.split(string, delimiter)));
+
+		const lowerCaseString = string.toLowerCase();
+		const upperCaseString = string.toUpperCase();
+
+		if (lowerCaseString === upperCaseString) return [initialCase, initialCase, initialCase, initialCase];
+
+		/** Ordered array of every unique original and transformed cased atom in the original string */
+		const everyCase = freeze(
+			atoms.union(...atoms.split(`${string}${delimiter}${lowerCaseString}${delimiter}${upperCaseString}`, delimiter)),
+		);
+
+		/** Ordered array of every unique lower cased atom in the original string */
+		const lowerCase = freeze(atoms.union(...atoms.split(lowerCaseString, delimiter)));
+
+		/** Ordered array of every unique upper cased atom in the original string */
+		const upperCase = freeze(atoms.union(...atoms.split(upperCaseString, delimiter)));
+
+		return everyCase.length === initialCase.length
+			? [initialCase, lowerCase, upperCase, initialCase]
+			: [everyCase, lowerCase, upperCase, initialCase];
+	};
+
+	/** @template {string} T @param {...T} atoms @returns T[] */
+	atoms.union = (...atoms) => [...new Set(atoms)];
+
+	/** @template {string} T @param {...T} atoms @returns {string} */
+	const range = (...atoms) => `[${atoms.map(range.escape).join('')}]`;
+	range.escape = (atom, index) =>
+		atom === ']' ? '\\]' : atom === '\\' ? '\\\\' : atom === '-' && index !== 0 ? '\\-' : atom;
+
+	return {freeze, atoms, range};
+})();
+
+/** @param {string} inset */
+const countInsetQuotes = inset => {
+	/** @type {number} */
+	let quotes, position;
+	position = -1;
+	quotes = 0;
+	while (position++ < (position = inset.indexOf('>', position))) quotes++;
+	return quotes;
+};
+
+
+// /** @param {string} string */
+// const upper = string => string.toUpperCase();
+// /** @param {string} string */
+// const lower = string => string.toLowerCase();
+
+//@ts-check
+
 /** Arrays of isolated characters */
 const ranges = {};
 
@@ -229,96 +306,44 @@ const patterns = {};
 const partials = {};
 
 {
-	const {freeze} = Object;
-	const {sequence, escape, join} = Matcher;
+	Insets: {
+		ranges.Inseter = atoms.split('\t >'); // 0=tab 1=space 2=quote
+		partials.Inset = range(...ranges.Inseter);
+	}
 
-	/** @param {string} string */
-	const upper = string => string.toUpperCase();
-	/** @param {string} string */
-	const lower = string => string.toLowerCase();
-	/** @param {string} string @param {string} [delimiter] */
-	const split = (string, delimiter = '') => string.split(delimiter);
-	/**
-	 * Splits a string into case-distinct subsets as applicable.
-	 *
-	 * NOTE: A non-case-senstive string yields the single
-	 *       subset instance for all its cases. A fully cased
-	 *       string yields separate upper and lower case subsets
-	 *       and a single subset for both initial and any cases.
-	 *
-	 * @param {string} string @param {string} [delimiter]
-	 */
-	split.cases = (string, delimiter = '') => {
-		/** Ordered array of every unique original cased atom in the original string */
-		const initialCase = freeze(union(...split(string, delimiter)));
+	Fences: {
+		// NOTE: Ambiguities when testing if `~` is meant for
+		//			 fencing or strikethrough here make it harder
+		//			 to retain intent and traceablility.
+		ranges.FenceMarks = atoms.split('`'); // 0=grave 1=tilde
+		partials.BlockFence = join(...ranges.FenceMarks.map(fence => escape$1(fence.repeat(3))));
+	}
 
-		const lowerCaseString = lower(string);
-		const upperCaseString = upper(string);
-
-		if (lowerCaseString === upperCaseString) return [initialCase, initialCase, initialCase, initialCase];
-
-		/** Ordered array of every unique original and transformed cased atom in the original string */
-		const everyCase = freeze(
-			union(...split(`${string}${delimiter}${lowerCaseString}${delimiter}${upperCaseString}`, delimiter)),
-		);
-
-		/** Ordered array of every unique lower cased atom in the original string */
-		const lowerCase = freeze(union(...split(lowerCaseString, delimiter)));
-
-		/** Ordered array of every unique upper cased atom in the original string */
-		const upperCase = freeze(union(...split(upperCaseString, delimiter)));
-
-		return everyCase.length === initialCase.length
-			? [initialCase, lowerCase, upperCase, initialCase]
-			: [everyCase, lowerCase, upperCase, initialCase];
-	};
-
-	/** @template T @param {...T} values @returns T[] */
-	const union = (...values) => [...new Set(values)];
-
-	const range = (...atoms) => `[${atoms.map(range.escape).join('')}]`;
-	range.escape = (atom, index) =>
-		atom === ']' ? '\\]' : atom === '\\' ? '\\\\' : atom === '-' && index !== 0 ? '\\-' : atom;
-
-	Ranges: {
-		const FENCE_MARKS = '`~';
-		const LIST_MARKERS = '-*'; // 0=square 1=disc
-		const CHECK_MARKS = ' x-'; // 0=unchecked 1=checked 2=indeterminate
+	Lists: {
+		ranges.ListMarkers = atoms.split('-*'); // 0=square 1=disc
+		[ranges.CheckMarks, ranges.LowerCheckMarks, ranges.UpperCheckMarks] = atoms.split.cases(' x-'); // 0=unchecked 1=checked 2=indeterminate
+		ranges.NumberingSeparators = atoms.split('.)');
+		ranges.ArabicNumbers = atoms.split('0123456789');
 		// NOTE: Ambiguities when testing if `i.` is roman or
 		//       latin require temporary restrictions in favor
 		//       of the more popular latin form.
 		//
 		//       Only the subset of ['i', 'v', 'x', 'l'] is
 		//       used which excludes ['c', 'd', 'm'].
-		const ARABIC_NUMBERS = '0123456789';
-		const LATIN_LETTERS = 'abcdefghijklmnopqrstuvwxyz';
-		const ROMAN_NUMERALS = 'ivxl';
-		const NUMBERING_SEPARATORS = '.)';
-
-		ranges.FenceMarks = freeze(split(FENCE_MARKS));
-
-		ranges.ListMarkers = freeze(split(LIST_MARKERS));
-		[ranges.CheckMarks, ranges.LowerCheckMarks, ranges.UpperCheckMarks] = split.cases(CHECK_MARKS);
-		ranges.ArabicNumbers = freeze(split(ARABIC_NUMBERS));
-		[ranges.LatinLetters, ranges.LowerLatinLetters, ranges.UpperLatinLetters] = split.cases(LATIN_LETTERS);
-		[ranges.RomanNumerals, ranges.LowerRomanNumerals, ranges.UpperRomanNumerals] = split.cases(ROMAN_NUMERALS);
-		ranges.NumberingSeparators = freeze(split(NUMBERING_SEPARATORS));
-	}
-
-	// TODO: Document partials and sequences
-
-	Partials: {
-		partials.BlockFence = join(...ranges.FenceMarks.map(fence => escape(fence.repeat(3))));
+		[ranges.RomanNumerals, ranges.LowerRomanNumerals, ranges.UpperRomanNumerals] = atoms.split.cases('ivxl');
+		[ranges.LatinLetters, ranges.LowerLatinLetters, ranges.UpperLatinLetters] = atoms.split.cases(
+			'abcdefghijklmnopqrstuvwxyz',
+		);
 
 		// Unordered lists are broken into two distinct classes:
 		//
-		//   NOTE: Markout differs here in that markers are not semantically interchangeable
+		//   NOTE: Markers are not semantically interchangeable
 		//
 		//   1. Matching Square character (ie `-` per popular notation):
-		partials.SquareMark = escape(ranges.ListMarkers[0]);
+		partials.SquareMark = escape$1(ranges.ListMarkers[0]);
 		//
 		//   2. Matching Disc character (ie `*` per lesser popular notation):
-		partials.DiscMark = escape(ranges.ListMarkers[1]);
+		partials.DiscMark = escape$1(ranges.ListMarkers[1]);
 		//
 		//   Unordered mark is the range of Square/Disc characters:
 		partials.UnorderedMark = range(...ranges.ListMarkers);
@@ -327,16 +352,16 @@ const partials = {};
 
 		// Ordered lists are broken into three distinct classes:
 		//
-		//   NOTE: Ordered markers include both the numbering and trailing sparator.
+		//   NOTE: Ordered markers include both numbering and trailing sparator.
 		//
 		//   1. Matching Decimal characters (one or more with leading zeros)
-		//        NOTE: lookahead here is necessary to exclude matching just zero(s)
+		//        NOTE: lookahead is necessary to exclude matching just zero(s)
 		partials.ArabicNumbering = sequence`(?=${ranges.ArabicNumbers[0]}*${range(
 			...ranges.ArabicNumbers.slice(1),
 		)})${range(...ranges.ArabicNumbers)}+`;
 		//
 		//      Matching Zero-leading Decimal characters (two or more):
-		//        NOTE: lookahead here is necessary to exclude matching just zero(s)
+		//        NOTE: lookahead is necessary to exclude matching just zero(s)
 		partials.ZeroLeadingArabicNumbering = sequence`(?=${ranges.ArabicNumbers[0]}*${range(
 			...ranges.ArabicNumbers.slice(1),
 		)})${range(...ranges.ArabicNumbers)}{2,}`;
@@ -399,41 +424,47 @@ const partials = {};
 		patterns.RomanMarker = sequence`^${partials.RomanMarker}(?= |$)`;
 		patterns.OrderedMarker = sequence`^${partials.OrderedMarker}(?= |$)`;
 		patterns.ChecklistMarker = sequence`^${partials.ChecklistMarker}(?= |$)`;
-	}
-
-	Sequences: {
-		sequences.DiscMarker = sequence`(?:${partials.DiscMark} )(?!${partials.Checkbox})`;
-		sequences.SquareMarker = sequence`(?:${partials.SquareMark} )(?!${partials.Checkbox})`;
-		sequences.UnorderedMarker = sequence`(?:${partials.UnorderedMark} )(?!${partials.Checkbox})`;
-		sequences.ArabicMarker = `(?:${partials.ArabicMarker} )`;
-		sequences.LatinMarker = sequence`(?:${partials.LatinMarker} )`;
-		sequences.RomanMarker = sequence`(?:${partials.RomanMarker} )`;
-		sequences.OrderedMarker = sequence`(?:${partials.OrderedMarker} )`;
-		sequences.ChecklistMarker = sequence`(?:${partials.ChecklistMarker} )`;
 
 		// There are two groups of list marker expressions:
 		sequences.ListMarkerHead = sequence`(?:${partials.ListMarkerHead})(?: )`;
 		sequences.ListMarker = sequence`(?:${join(
-			sequences.ChecklistMarker,
-			sequences.UnorderedMarker,
-			sequences.OrderedMarker,
+			sequence`(?:${partials.ChecklistMarker} )`,
+			sequence`(?:${partials.UnorderedMark} )(?!${partials.Checkbox})`,
+			sequence`(?:${partials.OrderedMarker} )`,
 		)})`;
 
-		// console.log({sequences, ranges, partials});
+		sequences.NormalizableLists = sequence/* fsharp */ `
+			(?=\n?^(${partials.Inset}*)(?:${sequences.ListMarker}))
+			((?:\n?\1
+				(?:${sequences.ListMarker}|   ?)+
+				[^\n]+
+				(?:\n${partials.Inset}*)*
+				(?=\n\1|$)
+			)+)
+		`;
+
+		sequences.NormalizableListItem = sequence/* fsharp */ `
+			^
+			(${partials.Inset}*)
+			((?:${sequences.ListMarkerHead})|)
+			([^\n]+(?:\n\1(?:   ?|\t ?)(?![ \t]|${sequences.ListMarker}).*)*)$
+		`;
+		matchers.NormalizableLists = new RegExp(sequences.NormalizableLists, 'gmu');
+		matchers.NormalizableListItem = new RegExp(sequences.NormalizableListItem, 'gmu');
 	}
 
-	Matchers: {
-		const INSET = sequence`[> \t]*`;
-		// const ListMarker = sequence`[-*](?: |$)|[1-9]+\d*[.)](?: |$)|[a-z][.)](?: |$)|[ivx]+\.(?: |$)`;
+	// console.log({sequences, ranges, partials});
+	// TODO: Document partials and sequences
 
+	Matchers: {
 		sequences.NormalizableBlocks = sequence/* fsharp */ `
-      (?:^|\n)(${INSET}(?:${partials.BlockFence}))[^]+?(?:(?:\n\1[ \t]*)+\n?|$)
-      |(?:^|\n)(${INSET})(?:
+      (?:^|\n)(${partials.Inset}*(?:${partials.BlockFence}))[^]+?(?:(?:\n\1[ \t]*)+\n?|$)
+      |(?:^|\n)(${partials.Inset}*)(?:
 				<style>[^]+?(?:(?:\n\2</style>[ \t]*)+\n?|$)
 				|<script type=module>[^]+?(?:(?:\n\2</script>[ \t]*)+\n?|$)
 				|<script>[^]+?(?:(?:\n\2</script>[ \t]*)+\n?|$)
 			)
-      |([^]+?(?:(?=\n${INSET}(?:${partials.BlockFence}|<script>|<style>|<script type=module>))|$))
+      |([^]+?(?:(?=\n${partials.Inset}*(?:${partials.BlockFence}|<script>|<style>|<script type=module>))|$))
     `;
 		matchers.NormalizableBlocks = new RegExp(sequences.NormalizableBlocks, 'g');
 
@@ -450,7 +481,7 @@ const partials = {};
 
 		sequences.NormalizableParagraphs = sequence/* fsharp */ `
       ^
-      ((?:[ \t]*\n(${INSET}))+)
+      ((?:[ \t]*\n(${partials.Inset}*))+)
       ($|(?:
 				(?:
 					</?(?:span|small|big|kbd)\b${partials.HTMLTagBody}*?>
@@ -460,7 +491,7 @@ const partials = {};
 					)}))
 				)
 				[^-#>|~\n].*
-        (?:\n${INSET}$)+
+        (?:\n${partials.Inset}*$)+
       )+)
     `;
 		matchers.NormalizableParagraphs = new RegExp(sequences.NormalizableParagraphs, 'gmu');
@@ -473,38 +504,35 @@ const partials = {};
       (?=(
 				</?(?:span|small|big|kbd)\b${partials.HTMLTagBody}*?>[^-#>|~\n].*
         |\b(?!(?:${sequences.HTMLTags}))
-        |${escape('[')}.*?${escape(']')}[^:\n]?
-        |[^#${'`'}${escape('[')}\n]
+        |${escape$1('[')}.*?${escape$1(']')}[^:\n]?
+        |[^#${'`'}${escape$1('[')}\n]
       ))
     `;
 
 		matchers.RewritableParagraphs = new RegExp(sequences.RewritableParagraphs, 'gmu');
 
-		sequences.NormalizableLists = sequence/* fsharp */ `
-			(?=\n?^(${INSET})(?:${sequences.ListMarker}))
-      ((?:\n?\1
-        (?:${sequences.ListMarker}|   ?)+
-        [^\n]+
-        (?:\n${INSET})*
-        (?=\n\1|$)
-      )+)
-    `;
-		matchers.NormalizableLists = new RegExp(sequences.NormalizableLists, 'gmu');
+		partials.BlockQuote = sequence/* fsharp */ `(?:  ?|\t)*>(?:  ?>|\t>)`;
 
-		sequences.NormalizableListItem = sequence/* fsharp */ `
-      ^
-      (${INSET})
-      ((?:${sequences.ListMarkerHead})|)
-      ([^\n]+(?:\n\1(?:   ?|\t ?)(?![ \t]|${sequences.ListMarker}).*)*)$
-    `;
-		matchers.NormalizableListItem = new RegExp(sequences.NormalizableListItem, 'gmu');
+		sequences.NormalizableBlockquotes = sequence/* fsharp */ `
+			(?:((?:^|\n)[ \t]*\n|^)|\n)
+			(${partials.BlockQuote}*)
+			([ \t]*(?!>).*)
+			(?=
+				(\n\2${partials.BlockQuote}*)
+				|(\n\2)
+				|(\n${partials.BlockQuote}*)
+				|(\n|$)
+			)
+		`;
+
+		matchers.NormalizableBlockquotes = new RegExp(sequences.NormalizableBlockquotes, 'g');
 
 		sequences.NormalizableReferences = sequence/* fsharp */ `
-      \!?
-      ${escape('[')}(\S.*?\S)${escape(']')}
+      !?
+      ${escape$1('[')}(\S.*?\S)${escape$1(']')}
       (?:
-        ${escape('(')}(\S[^\n${escape('()[]')}]*?\S)${escape(')')}
-        |${escape('[')}(\S[^\n${escape('()[]')}]*\S)${escape(']')}
+        ${escape$1('(')}(\S[^\n${escape$1('()[]')}]*?\S)${escape$1(')')}
+        |${escape$1('[')}(\S[^\n${escape$1('()[]')}]*\S)${escape$1(']')}
       )
 		`;
 		// NOTE: Safari seems to struggle with /\S|\s/gmu
@@ -512,8 +540,8 @@ const partials = {};
 
 		sequences.RewritableAliases = sequence/* fsharp */ `
       ^
-      (${INSET})
-      ${escape('[')}(\S.*?\S)${escape(']')}:\s+
+      (${partials.Inset}*)
+      ${escape$1('[')}(\S.*?\S)${escape$1(']')}:\s+
       (\S+)(?:
         \s+${'"'}([^\n]*)${'"'}
         |\s+${"'"}([^\n]*)${"'"}
@@ -524,7 +552,7 @@ const partials = {};
 		matchers.RewritableAliases = new RegExp(sequences.RewritableAliases, 'gm');
 
 		sequences.NormalizableLink = sequence/* fsharp */ `
-      \s*((?:\s?[^${`'"`}${escape('()[]')}}\s\n]+)*)
+      \s*((?:\s?[^${`'"`}${escape$1('()[]')}}\s\n]+)*)
       (?:\s+[${`'"`}]([^\n]*)[${`'"`}]|)
 		`;
 		// NOTE: Safari seems to struggle with /\S|\s/gmu
@@ -702,35 +730,21 @@ const {
 	'markout-render-paragraph-trimming': PARAGRAPH_TRIMMING = true,
 } = import.meta;
 
-const MATCHES = Symbol('matches');
-const ALIASES = 'aliases';
-const BLOCKS = 'blocks';
+const generateBlockquotes = (quotesAfter, quotesBefore = 0) => {
+	let blockquotes, steps;
 
-const {
-	NormalizableBlocks,
-	NormalizableParagraphs,
-	RewritableParagraphs,
-	NormalizableLists,
-	NormalizableListItem,
-	NormalizableReferences,
-	RewritableAliases,
-	NormalizableLink,
-} = matchers;
+	steps = quotesAfter - (quotesBefore || 0);
 
-const decomment = body => {
-	const comments = [];
-	body = body.replace(/<!--[^]+-->/g, comment => `<!--${comments.push(comment)}!-->`);
-	return {body, comments};
+	if (steps < 0) {
+		return '</p></blockquote>'.repeat(-steps);
+	} else if (steps > 0) {
+		blockquotes = new Array(steps);
+		for (let level = quotesAfter; steps; blockquotes[steps--] = `<blockquote blockquote-level=${level--}><p>`);
+		return blockquotes.join('');
+	} else {
+		return '';
+	}
 };
-
-const recomment = (body, comments) => {
-	return body.replace(
-		new RegExp(`<!--(${comments.map((comment, i) => comments.length - i).join('|')})!-->`, 'g'),
-		(comment, index) => comments[index] || '<!---->',
-	);
-};
-
-const isNotBlank = text => typeof text === 'string' && !(text === '' || text.trim() === '');
 
 class MarkoutBlockNormalizer {
 	/**
@@ -763,7 +777,7 @@ class MarkoutBlockNormalizer {
 					[MATCHES]: {aliased = (matchedAliases.aliased = []), unaliased = (matchedAliases.unaliased = [])},
 				},
 			} = source;
-			let match = (NormalizableBlocks.lastIndex = null);
+			let match = (matchers.NormalizableBlocks.lastIndex = null);
 
 			const replaceAlias = (text, indent, alias, href, title, index) => {
 				const match = {text, indent, alias, href, title, index};
@@ -775,7 +789,7 @@ class MarkoutBlockNormalizer {
 					: (unaliased.push(match), text);
 			};
 
-			while ((match = NormalizableBlocks.exec(sourceText))) {
+			while ((match = matchers.NormalizableBlocks.exec(sourceText))) {
 				matchedBlocks.push(([match.text, match.fence, match.inset, match.unfenced] = match));
 				if (match.fence) {
 					fenced.push(match);
@@ -783,7 +797,7 @@ class MarkoutBlockNormalizer {
 					embedded.push(match);
 				} else {
 					unfenced.push(match);
-					match.text = match.text.replace(RewritableAliases, replaceAlias);
+					match.text = match.text.replace(matchers.RewritableAliases, replaceAlias);
 				}
 			}
 
@@ -791,13 +805,28 @@ class MarkoutBlockNormalizer {
 		}
 
 		Normalization: {
+			/** @type {{[BLOCKS]: {[MATCHES]: MatchedBlock[]}}} */
 			const {[BLOCKS]: sourceBlocks} = source;
-			for (const {text, fence, inset, unfenced} of sourceBlocks[MATCHES]) {
+			for (const matchedBlock of sourceBlocks[MATCHES]) {
 				sourceBlocks.push(
-					fence || inset !== undefined
-						? text
+					matchedBlock.fence !== undefined
+						? this.normalizeFencing(
+								matchedBlock.text,
+								// Provides the fence
+								matchedBlock,
+						  )
+						: matchedBlock.inset !== undefined
+						? matchedBlock.text
 						: this.normalizeParagraphs(
-								this.normalizeBreaks(this.normalizeLists(this.normalizeReferences(text, state))),
+								this.normalizeBreaks(
+									this.normalizeLists(
+										this.normalizeBlockquotes(
+											this.normalizeReferences(matchedBlock.text, state),
+											// Provides the inset
+											matchedBlock,
+										),
+									),
+								),
 						  ),
 				);
 			}
@@ -810,6 +839,54 @@ class MarkoutBlockNormalizer {
 		return source.normalizedText;
 	}
 
+	/** @param {string} sourceText @param {MatchedBlock} matchedBlock */
+	normalizeFencing(sourceText, matchedBlock) {
+		// const debugging = true;
+		const inset = sourceText.slice(0, sourceText.indexOf('```'));
+		// debugging && console.log('normalizeFencing', {sourceText, inset, matchedBlock});
+		if (inset.trim() === '') return sourceText;
+		const quotesBefore = countInsetQuotes(inset);
+		const Inset = new RegExp(`${escape$1(inset.trimRight())}(?:  ?|\t|(?=\n|$))`, 'g');
+		// debugging && console.log('normalizeFencing', {sourceText, inset, matchedBlock});
+		const normalized = sourceText.replace(/```\S*/, `$& blockquote-level=${quotesBefore}`).replace(Inset, '\n');
+		return normalized;
+	}
+
+	/** @param {string} sourceText @param {MatchedBlock} matchedBlock */
+	normalizeBlockquotes(sourceText, matchedBlock) {
+
+		matchers.NormalizableBlockquotes.lastIndex = 0;
+		sourceText = sourceText.replace(
+			matchers.NormalizableBlockquotes,
+			(matched, leader, quote, quoted, inquote, requote, dequote, unquote, index, sourceText) => {
+				let before, after;
+				if (quote === undefined) return matched;
+
+				const quotesBefore = countInsetQuotes(quote);
+				const indent = quote.slice(0, quote.indexOf('>'));
+				const quotesAfter =
+					unquote !== undefined
+						? 0
+						: requote !== undefined
+						? quotesBefore
+						: inquote !== undefined
+						? countInsetQuotes(inquote)
+						: dequote !== undefined
+						? countInsetQuotes(dequote)
+						: quotesBefore;
+
+				before = leader !== undefined ? `${leader}${indent}${generateBlockquotes(quotesBefore, 0)}` : `\n${indent}`;
+
+				after = generateBlockquotes(quotesAfter, quotesBefore);
+
+				const replaced = `${before}${quoted.trimLeft()}${after ? `\n${indent}${after}` : ''}`;
+				return replaced;
+			},
+		);
+
+		return sourceText;
+	}
+
 	/**
 	 * @param {string} sourceText
 	 * @param {{ aliases?: { [name: string]: alias } }} [state]
@@ -817,14 +894,14 @@ class MarkoutBlockNormalizer {
 	normalizeReferences(sourceText, state = {}) {
 		const {aliases = (state.aliases = {})} = state;
 
-		return sourceText.replace(NormalizableReferences, (m, text, link, alias, index) => {
+		return sourceText.replace(matchers.NormalizableReferences, (m, text, link, alias, index) => {
 			const reference = (alias && (alias = alias.trim())) || (link && (link = link.trim()));
 
 			if (reference) {
 				let href, title;
 				// debugging && console.log(m, {text, link, alias, reference, index});
 				if (link) {
-					[, href, title] = NormalizableLink.exec(link);
+					[, href, title] = matchers.NormalizableLink.exec(link);
 				} else if (alias && alias in aliases) {
 					({href, title} = aliases[alias]);
 				}
@@ -842,23 +919,16 @@ class MarkoutBlockNormalizer {
 		});
 	}
 
-	normalizeBlockquotes(sourceText) {
-		// TODO: Normalize block quotes
-		return sourceText;
-	}
-
-	/**
-	 * @param {string} sourceText
-	 */
+	/** @param {string} sourceText */
 	normalizeLists(sourceText) {
-		return sourceText.replace(NormalizableLists, (m, feed, body) => {
+		return sourceText.replace(matchers.NormalizableLists, (m, feed, body) => {
 			let match, indent;
 			indent = feed.slice(1);
 			let top = new ComposableList();
 			let list = top;
 			const lists = [top];
-			NormalizableListItem.lastIndex = 0;
-			while ((match = NormalizableListItem.exec(m))) {
+			matchers.NormalizableListItem.lastIndex = 0;
+			while ((match = matchers.NormalizableListItem.exec(m))) {
 				let [text, matchedInset, matchedMarker, matchedLine] = match;
 				let like;
 				if (!matchedLine.trim()) continue;
@@ -911,11 +981,9 @@ class MarkoutBlockNormalizer {
 		});
 	}
 
-	/**
-	 * @param {string} sourceText
-	 */
+	/** @param {string} sourceText */
 	normalizeParagraphs(sourceText) {
-		sourceText = sourceText.replace(NormalizableParagraphs, (m, feed, inset, body) => {
+		sourceText = sourceText.replace(matchers.NormalizableParagraphs, (m, feed, inset, body) => {
 			let paragraphs, comments;
 
 			COMMENT_STASHING && ({body, comments} = decomment(body));
@@ -941,13 +1009,36 @@ class MarkoutBlockNormalizer {
 	}
 
 	normalizeBreaks(sourceText) {
-		return sourceText.replace(RewritableParagraphs, (m, a, b, c, index, sourceText) => {
+		return sourceText.replace(matchers.RewritableParagraphs, (m, a, b, c, index, sourceText) => {
 			import.meta['debug:markout:break-normalization'] &&
 				console.log('normalizeBreaks:\n\t%o%o\u23CE%o [%o]', a, b, c, index);
 			return `${a}${b}${MERGED_MARKING ? '<tt class="normalized-break"> \u{035C}</tt>' : ' '}`;
 		});
 	}
 }
+
+const MATCHES = Symbol('matches');
+const ALIASES = 'aliases';
+const BLOCKS = 'blocks';
+
+const decomment = body => {
+	const comments = [];
+	body = body.replace(/<!--[^]+-->/g, comment => `<!--${comments.push(comment)}!-->`);
+	return {body, comments};
+};
+
+const recomment = (body, comments) => {
+	return body.replace(
+		new RegExp(`<!--(${comments.map((comment, i) => comments.length - i).join('|')})!-->`, 'g'),
+		(comment, index) => comments[index] || '<!---->',
+	);
+};
+
+const isNotBlank = text => typeof text === 'string' && !(text === '' || text.trim() === '');
+
+/** @template {string} T @typedef {Partial<Record<T, string>>} MatchedRecord */
+/** @typedef {MatchedRecord<'text'|'fence'|'inset'|'unfenced'>} MatchedBlockRecord */
+/** @typedef {RegExpExecArray & MatchedBlockRecord} MatchedBlock */
 
 class Segmenter extends RegExp {
 	/**
@@ -1357,8 +1448,12 @@ const matchAll$1 = Function.call.bind(
 // 	}
 // }
 
+// export const MarkoutContentFlags = '(markout content flags)';
+
 const {
+	defaults,
 	createRenderedFragment,
+	normalizeRenderedFragment,
 	populateAssetsInFragment,
 	normalizeBreaksInFragment,
 	normalizeHeadingsInFragment,
@@ -1370,6 +1465,22 @@ const {
 } = (() => {
 	/** @type {HTMLTemplateElement} */
 	let template;
+
+	const defaults = Object.freeze({
+		flags: Object.freeze({
+			DOM_MUTATIONS: undefined,
+			BREAK_NORMALIZATION: undefined,
+			HEADING_NORMALIZATION: true,
+			PARAGRAPH_NORMALIZATION: true,
+			CHECKLIST_NORMALIZATION: true,
+			BLOCKQUOTE_NORMALIZATION: true,
+			TOKEN_FLATTENING: true,
+			DECLARATIVE_STYLING: true,
+			SOURCE_TEXT_RENDERING: true,
+			ASSET_REMAPPING: true,
+			ASSET_INITIALIZATION: true,
+		}),
+	});
 
 	/** @param {string} sourceText @returns {DocumentFragment}*/
 	const createRenderedFragment = sourceText => {
@@ -1392,7 +1503,44 @@ const {
 		return fragment;
 	};
 
-	/** Populate remappable elements  */
+	/** @param {DocumentFragment} fragment @param {Record<string, boolean>} [flags] */
+	const normalizeRenderedFragment = (fragment, flags) => {
+		flags = {
+			DOM_MUTATIONS: fragment.markoutContentFlags.DOM_MUTATIONS = defaults.DOM_MUTATIONS,
+			BREAK_NORMALIZATION: fragment.markoutContentFlags.BREAK_NORMALIZATION = defaults.BREAK_NORMALIZATION,
+			HEADING_NORMALIZATION: fragment.markoutContentFlags.HEADING_NORMALIZATION = defaults.HEADING_NORMALIZATION,
+			PARAGRAPH_NORMALIZATION: fragment.markoutContentFlags.PARAGRAPH_NORMALIZATION = defaults.PARAGRAPH_NORMALIZATION,
+			CHECKLIST_NORMALIZATION: fragment.markoutContentFlags.CHECKLIST_NORMALIZATION = defaults.CHECKLIST_NORMALIZATION,
+			BLOCKQUOTE_NORMALIZATION: fragment.markoutContentFlags
+				.BLOCKQUOTE_NORMALIZATION = defaults.BLOCKQUOTE_NORMALIZATION,
+			TOKEN_FLATTENING: fragment.markoutContentFlags.TOKEN_FLATTENING = defaults.TOKEN_FLATTENING,
+			DECLARATIVE_STYLING: fragment.markoutContentFlags.DECLARATIVE_STYLING = defaults.DECLARATIVE_STYLING,
+			SOURCE_TEXT_RENDERING: fragment.markoutContentFlags.SOURCE_TEXT_RENDERING = defaults.SOURCE_TEXT_RENDERING,
+			ASSET_REMAPPING: fragment.markoutContentFlags.ASSET_REMAPPING = defaults.ASSET_REMAPPING,
+			ASSET_INITIALIZATION: fragment.markoutContentFlags.ASSET_INITIALIZATION = defaults.ASSET_INITIALIZATION,
+		} = {
+			...defaults.flags,
+			...(fragment.markoutContentFlags || (fragment.markoutContentFlags = {})),
+			...flags,
+		};
+
+		flags.DOM_MUTATIONS !== false &&
+			((flags.BREAK_NORMALIZATION === true || flags.DOM_MUTATIONS === true) && normalizeBreaksInFragment(fragment),
+			(flags.HEADING_NORMALIZATION === true || flags.DOM_MUTATIONS === true) && normalizeHeadingsInFragment(fragment),
+			(flags.PARAGRAPH_NORMALIZATION === true || flags.DOM_MUTATIONS === true) &&
+				normalizeParagraphsInFragment(fragment),
+			(flags.BLOCKQUOTE_NORMALIZATION === true || flags.DOM_MUTATIONS === true) &&
+				normalizeBlockquotesInFragment(fragment),
+			(flags.CHECKLIST_NORMALIZATION === true || flags.DOM_MUTATIONS === true) &&
+				normalizeChecklistsInFragment(fragment),
+			(flags.DECLARATIVE_STYLING === true || flags.DOM_MUTATIONS === true) &&
+				applyDeclarativeStylingInFragment(fragment));
+
+		(flags.TOKEN_FLATTENING === true || (flags.TOKEN_FLATTENING !== false && DOM_MUTATIONS !== false)) &&
+			flattenTokensInFragment(fragment);
+	};
+
+	/** Populate remappable elements @param {DocumentFragment} fragment */
 	const populateAssetsInFragment = fragment => {
 		if (!fragment || fragment.assets) return;
 		fragment.assets = [];
@@ -1419,6 +1567,7 @@ const {
 		return fragment;
 	};
 
+	/** @param {DocumentFragment} fragment */
 	const normalizeBreaksInFragment = fragment => {
 		for (const br of fragment.querySelectorAll('br')) {
 			const {previousSibling, nextSibling, parentElement} = br;
@@ -1431,6 +1580,7 @@ const {
 		}
 	};
 
+	/** @param {DocumentFragment} fragment */
 	const normalizeHeadingsInFragment = fragment => {
 		const {MarkdownIdentity: Identity, MarkdownIdentityPrefixer: Prefixer, MarkdownIdentityJoiner: Joiner} = entities;
 		const {headings = (fragment.headings = {}), TEXT_NODE} = fragment;
@@ -1486,6 +1636,123 @@ const {
 			// Unique mappings are prioritized by heading level
 			(anchor.id in headings && headings[anchor.id].level > level) || (headings[anchor.id] = heading.anchor);
 		}
+	};
+
+	/** @param {DocumentFragment} fragment */
+	const normalizeBlockquotesInFragment = fragment => {
+		/** @type {HTMLQuoteElement} */
+		let previousBlockquote, nextBlockquote;
+		/** @type {Node | Element} */
+		let node, previousNode;
+		const {COMMENT_NODE, TEXT_NODE, ELEMENT_NODE} = fragment;
+		/** @type {IterableIterator<HTMLQuoteElement>} */
+		const matchedBlockquotes = fragment.querySelectorAll(
+			// 'blockquote[blockquote-level]+:not(blockquote)[blockquote-level]')
+			':not(blockquote)[blockquote-level]+blockquote[blockquote-level]',
+		);
+
+		// return;
+		for (const lastBlockquote of matchedBlockquotes) {
+			nextBlockquote = lastBlockquote;
+
+			(previousNode = undefined);
+
+			lastBlockquote.blockquoteLevel = parseFloat(lastBlockquote.getAttribute('blockquote-level'));
+
+			node = lastBlockquote.previousSibling;
+
+			if (
+				!(lastBlockquote.blockquoteLevel > 0) ||
+				!(
+					lastBlockquote.previousElementSibling === node ||
+					node.nodeType === COMMENT_NODE ||
+					node.textContent.trim() === ''
+				)
+			) {
+				normalizeBlockquotesInFragment.log({node, lastBlockquote, nextBlockquote, previousBlockquote});
+				// debugger;
+				continue;
+			}
+
+			while (node != null && (node.nodeName !== 'BLOCKQUOTE' || !(previousBlockquote = node))) {
+				node.blockquoteLevel =
+					node.nodeType === ELEMENT_NODE
+						? parseFloat(node.getAttribute('blockquote-level'))
+						: nextBlockquote.blockquoteLevel;
+				previousNode = node.previousSibling;
+				if (node.blockquoteLevel === nextBlockquote.blockquoteLevel) ; else if (node.blockquoteLevel > nextBlockquote.blockquoteLevel) {
+					previousBlockquote = nextBlockquote;
+					nextBlockquote = document.createElement('blockquote');
+					nextBlockquote.setAttribute('blockquote-level', (nextBlockquote.blockquoteLevel = node.blockquoteLevel));
+					// debugger;
+					previousBlockquote.prepend(nextBlockquote);
+				} else if (node.blockquoteLevel < nextBlockquote.blockquoteLevel) {
+					if (node.blockquoteLevel < lastBlockquote.blockquoteLevel) {
+						// TODO: Is it safer to coerce or superseede?!
+						// debugger;
+						node.blockquoteLevel = lastBlockquote.blockquoteLevel;
+					}
+					while (
+						nextBlockquote.blockquoteLevel >= lastBlockquote.blockquoteLevel &&
+						node.blockquoteLevel <
+							nextBlockquote.blockquoteLevel(
+								nextBlockquote.parentElement.blockquoteLevel < nextBlockquote.blockquoteLevel,
+							)
+					) {
+						nextBlockquote = nextBlockquote.parentElement;
+					}
+				}
+				nextBlockquote.prepend(node);
+				node = previousNode;
+			}
+
+			if (lastBlockquote.previousSibling === previousNode && previousBlockquote === previousNode) {
+				if (
+					('blockquoteLevel' in previousBlockquote
+						? previousBlockquote.blockquoteLevel
+						: (previousBlockquote.blockquoteLevel = parseFloat(previousBlockquote.getAttribute('blockquote-level')))) >
+					0
+				) {
+					if (previousBlockquote.blockquoteLevel < lastBlockquote.blockquoteLevel) {
+						// TODO: Is it safer to coerce or superseede?!
+						// debugger;
+						continue;
+					}
+
+					if (previousBlockquote.blockquoteLevel === lastBlockquote.blockquoteLevel) {
+						if (
+							previousBlockquote.childElementCount === 1 &&
+							previousBlockquote.firstElementChild.nodeName === 'DETAILS'
+						) {
+							previousBlockquote.firstElementChild.append(...lastBlockquote.childNodes);
+						} else {
+							previousBlockquote.append(...lastBlockquote.childNodes);
+						}
+						lastBlockquote.remove();
+					}
+				} else if (!previousBlockquote.hasAttribute('blockquote-level')) {
+					previousBlockquote.setAttribute(
+						'blockquote-level',
+						(previousBlockquote.blockquoteLevel = lastBlockquote.blockquoteLevel),
+					);
+					// TODO: Figure out if we can merge!
+					// debugger;
+				}
+			}
+		}
+	};
+
+	/** @param {{node: Node | Element, lastBlockquote: HTMLQuoteElement, nextBlockquote?: HTMLQuoteElement,  previousBlockquote?:HTMLQuoteElement} } nodes */
+	normalizeBlockquotesInFragment.log = nodes => {
+		const format = [];
+		const values = [];
+		for (const name of ['node', 'lastBlockquote', 'nextBlockquote', 'previousBlockquote']) {
+			const node = nodes[name];
+			if (node == null || typeof node !== 'object') continue;
+			format.push('%s [%d] — %O');
+			values.push(name, node.blockquoteLevel || (node.getAttribute && node.getAttribute('blockquote-level')), node);
+		}
+		format.length && console.log(format.join('\n'), ...values);
 	};
 
 	const normalizeChecklistsInFragment = fragment => {
@@ -1582,7 +1849,9 @@ const {
 	};
 
 	return {
+		defaults,
 		createRenderedFragment,
+		normalizeRenderedFragment,
 		populateAssetsInFragment,
 		normalizeBreaksInFragment,
 		normalizeHeadingsInFragment,
@@ -2002,5 +2271,5 @@ debugging('markout', import.meta, [
 	'fenced-block-header-rendering',
 ]);
 
-export { MarkupSyntaxAttribute as M, SourceTypeAttribute as S, normalizeBreaksInFragment as a, normalizeHeadingsInFragment as b, createRenderedFragment as c, normalizeParagraphsInFragment as d, normalizeChecklistsInFragment as e, applyDeclarativeStylingInFragment as f, flattenTokensInFragment as g, renderSourceTextsInFragment as h, MarkupModeAttribute as i, normalize as n, populateAssetsInFragment as p, render as r, tokenize as t };
+export { MarkupSyntaxAttribute as M, SourceTypeAttribute as S, normalizeRenderedFragment as a, renderSourceTextsInFragment as b, createRenderedFragment as c, defaults as d, MarkupModeAttribute as e, normalize as n, populateAssetsInFragment as p, render as r, tokenize as t };
 //# sourceMappingURL=common.js.map

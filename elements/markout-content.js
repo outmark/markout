@@ -2,22 +2,23 @@
 import * as content from '../lib/content.js';
 import {Component} from '../lib/components.js';
 
-const {
-	'markout-content-dom-mutations': DOM_MUTATIONS = undefined,
-	'markout-content-break-normalization': BREAK_NORMALIZATION = undefined,
-	'markout-content-heading-normalization': HEADING_NORMALIZATION = true,
-	'markout-content-paragraph-normalization': PARAGRAPH_NORMALIZATION = true,
-	'markout-content-checklist-normalization': CHECKLIST_NORMALIZATION = true,
-	'markout-content-token-flattening': TOKEN_FLATTENING = true,
-	'markout-content-declarative-styling': DECLARATIVE_STYLING = true,
-	'markout-content-source-text-rendering': SOURCE_TEXT_RENDERING = true,
-	'markout-content-asset-remapping': ASSET_REMAPPING = true,
-	'markout-content-asset-initialization': ASSET_INITIALIZATION = true,
-} = import.meta;
+// const defaults = import.meta['markout-content-defaults'] || (import.meta['markout-content-normalization'] = {});
 
 // console.log({...components}, {...components.Component});
 
 export class MarkoutContent extends Component {
+	/** @type {{[name: string]: boolean | undefined}} */
+	static get flags() {
+		const flags = Object.create(super.flags || null);
+
+		for (const flag in content.defaults.flags) {
+			const value = import.meta[`markout-content-${flag.replace(/-/g, '_').toLowerCase}`];
+			value === undefined || (flags[flag] = value);
+		}
+
+		return super.set('flags', Object.freeze(flags));
+	}
+
 	static get template() {
 		return super.set(
 			'template',
@@ -98,6 +99,7 @@ export class MarkoutContent extends Component {
 	constructor() {
 		super();
 
+		this.flags = new.target.flags;
 		this.name = `${this.tagName}-${++new.target.instance}`.toLocaleLowerCase();
 
 		/** @type {HTMLSlotElement} */ const slot = this['::'];
@@ -166,7 +168,8 @@ export class MarkoutContent extends Component {
 
 		const timeout = new Promise(resolve => setTimeout(resolve, 150));
 
-		(ASSET_INITIALIZATION === true || (ASSET_INITIALIZATION !== false && DOM_MUTATIONS !== false)) &&
+		(fragment.markoutContentFlags.ASSET_INITIALIZATION === true ||
+			(fragment.markoutContentFlags.ASSET_INITIALIZATION !== false && fragment.markoutContentFlags.DOM_MUTATIONS !== false)) &&
 			(fragment.assets.modules && fragment.assets.modules.forEach(this.instantiateLinkedModule, this),
 			fragment.assets.scripts && fragment.assets.scripts.forEach(this.instantiateLinkedScript, this));
 
@@ -187,8 +190,12 @@ export class MarkoutContent extends Component {
 	async appendMarkoutContent(sourceText = this.sourceText, contentSlot = this['::content'], baseURL = this.baseURI) {
 		const {fragment} = content.createRenderedFragment(sourceText);
 
+		// fragment.markoutContentFlags = {...MarkoutContent.flags};
 		fragment.baseURL = baseURL;
-		DOM_MUTATIONS === false || this.normalizeMarkoutFragment(fragment);
+
+		// fragment.markoutContentFlags.DOM_MUTATIONS === false ||
+		content.normalizeRenderedFragment(fragment, MarkoutContent.flags);
+		// DOM_MUTATIONS === false || this.normalizeMarkoutFragment(fragment);
 
 		contentSlot.appendChild(
 			await (fragment.instantiated || (fragment.instantiated = this.instantiateMarkoutFragment(fragment))),
@@ -197,30 +204,33 @@ export class MarkoutContent extends Component {
 		return {slot: contentSlot, sourceText, fragment, ...fragment};
 	}
 
-	/** @param {DocumentFragment} fragment */
-	normalizeMarkoutFragment(fragment) {
-		DOM_MUTATIONS !== false &&
-			((BREAK_NORMALIZATION === true || DOM_MUTATIONS === true) && content.normalizeBreaksInFragment(fragment),
-			(HEADING_NORMALIZATION === true || DOM_MUTATIONS === true) && content.normalizeHeadingsInFragment(fragment),
-			(PARAGRAPH_NORMALIZATION === true || DOM_MUTATIONS === true) && content.normalizeParagraphsInFragment(fragment),
-			(CHECKLIST_NORMALIZATION === true || DOM_MUTATIONS === true) && content.normalizeChecklistsInFragment(fragment),
-			(DECLARATIVE_STYLING === true || DOM_MUTATIONS === true) && content.applyDeclarativeStylingInFragment(fragment));
+	// /** @param {DocumentFragment} fragment */
+	// normalizeMarkoutFragment(fragment) {
+	// 	// fragment.markoutContentFlags || (fragment.markoutContentFlags = {...MarkoutContent.flags});
 
-		(TOKEN_FLATTENING === true || (TOKEN_FLATTENING !== false && DOM_MUTATIONS !== false)) &&
-			content.flattenTokensInFragment(fragment);
+	// 	content.normalizeMarkoutFragment(fragment);
+	// 	// DOM_MUTATIONS !== false &&
+	// 	// 	((BREAK_NORMALIZATION === true || DOM_MUTATIONS === true) && content.normalizeBreaksInFragment(fragment),
+	// 	// 	(HEADING_NORMALIZATION === true || DOM_MUTATIONS === true) && content.normalizeHeadingsInFragment(fragment),
+	// 	// 	(PARAGRAPH_NORMALIZATION === true || DOM_MUTATIONS === true) && content.normalizeParagraphsInFragment(fragment),
+	// 	// 	(CHECKLIST_NORMALIZATION === true || DOM_MUTATIONS === true) && content.normalizeChecklistsInFragment(fragment),
+	// 	// 	(DECLARATIVE_STYLING === true || DOM_MUTATIONS === true) && content.applyDeclarativeStylingInFragment(fragment));
 
-		return fragment;
-	}
+	// 	// (TOKEN_FLATTENING === true || (TOKEN_FLATTENING !== false && DOM_MUTATIONS !== false)) &&
+	// 	// 	content.flattenTokensInFragment(fragment);
+
+	// 	return fragment;
+	// }
 
 	async instantiateMarkoutFragment(fragment) {
 		if (fragment.instantiated) return fragment.instantiated;
 
 		const promises = [];
 
-		(SOURCE_TEXT_RENDERING === true || (SOURCE_TEXT_RENDERING !== false && DOM_MUTATIONS !== false)) &&
+		(fragment.markoutContentFlags.SOURCE_TEXT_RENDERING === true || (fragment.markoutContentFlags.SOURCE_TEXT_RENDERING !== false && fragment.markoutContentFlags.DOM_MUTATIONS !== false)) &&
 			promises.push(content.renderSourceTextsInFragment(fragment));
 
-		(ASSET_REMAPPING === true || (ASSET_REMAPPING !== false && DOM_MUTATIONS !== false)) &&
+		(fragment.markoutContentFlags.ASSET_REMAPPING === true || (fragment.markoutContentFlags.ASSET_REMAPPING !== false && fragment.markoutContentFlags.DOM_MUTATIONS !== false)) &&
 			promises.push(this.linkMarkoutFragment(fragment));
 
 		promises.length && (await Promise.all(promises));
@@ -231,7 +241,7 @@ export class MarkoutContent extends Component {
 	async linkMarkoutFragment(fragment) {
 		if (fragment.instantiated) return fragment.instantiated;
 
-		if (ASSET_REMAPPING) {
+		if (fragment.markoutContentFlags.ASSET_REMAPPING) {
 			content.populateAssetsInFragment(fragment);
 
 			const baseURL = fragment.baseURL || fragment.baseURI;
@@ -329,3 +339,44 @@ try {
 } catch (exception) {
 	console.warn(exception);
 }
+
+// 'DOM_MUTATIONS'
+// 'BREAK_NORMALIZATION'
+// 'HEADING_NORMALIZATION'
+// 'PARAGRAPH_NORMALIZATION'
+// 'CHECKLIST_NORMALIZATION'
+// 'BLOCKQUOTE_NORMALIZATION'
+// 'TOKEN_FLATTENING'
+// 'DECLARATIVE_STYLING'
+// 'SOURCE_TEXT_RENDERING'
+// 'ASSET_REMAPPING'
+// 'ASSET_INITIALIZATION'
+
+// 	import.meta['markout-content-flags'] ||
+// 	(import.meta['markout-content-flags'] = {
+// 		DOM_MUTATIONS: import.meta['markout-content-dom-mutations'],
+// 		BREAK_NORMALIZATION: import.meta['markout-content-break-normalization'],
+// 		HEADING_NORMALIZATION: import.meta['markout-content-heading-normalization'],
+// 		PARAGRAPH_NORMALIZATION: import.meta['markout-content-paragraph-normalization'],
+// 		CHECKLIST_NORMALIZATION: import.meta['markout-content-checklist-normalization'],
+// 		BLOCKQUOTE_NORMALIZATION: import.meta['markout-content-blockquote-normalization'],
+// 		TOKEN_FLATTENING: import.meta['markout-content-token-flattening'],
+// 		DECLARATIVE_STYLING: import.meta['markout-content-declarative-styling'],
+// 		SOURCE_TEXT_RENDERING: import.meta['markout-content-source-text-rendering'],
+// 		ASSET_REMAPPING: import.meta['markout-content-asset-remapping'],
+// 		ASSET_INITIALIZATION: import.meta['markout-content-asset-initialization'],
+// 	});
+
+// ({
+// 	DOM_MUTATIONS: flags.DOM_MUTATIONS = undefined,
+// 	BREAK_NORMALIZATION: flags.BREAK_NORMALIZATION = undefined,
+// 	HEADING_NORMALIZATION: flags.HEADING_NORMALIZATION = true,
+// 	PARAGRAPH_NORMALIZATION: flags.PARAGRAPH_NORMALIZATION = true,
+// 	CHECKLIST_NORMALIZATION: flags.CHECKLIST_NORMALIZATION = true,
+// 	BLOCKQUOTE_NORMALIZATION: flags.BLOCKQUOTE_NORMALIZATION = true,
+// 	TOKEN_FLATTENING: flags.TOKEN_FLATTENING = true,
+// 	DECLARATIVE_STYLING: flags.DECLARATIVE_STYLING = true,
+// 	SOURCE_TEXT_RENDERING: flags.SOURCE_TEXT_RENDERING = true,
+// 	ASSET_REMAPPING: flags.ASSET_REMAPPING = true,
+// 	ASSET_INITIALIZATION: flags.ASSET_INITIALIZATION = true,
+// } = flags);

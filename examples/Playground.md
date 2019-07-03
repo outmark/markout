@@ -44,13 +44,14 @@ Normally, the actual playground will be appended in the end of the element. Alte
 **Oops**! Playground should have render here!
 
 </aside></output>
-<blockquote><details><summary><b>Tip</b>: If you are not familiar with HTML inline frames…</summary>
 
-When you author HTML documents, sometimes you want to embed other documents, like ads... etc. The way you do this is by including an `<iframe src="‹some url›"></iframe>` fragment which tells the browser to create a nested container within the current page and use to show another — usually by loading it from `‹some url›`.
-
-Playgrounds uses this approach, but instead of loading a document from `‹some url›`, it will derive the document from content in your narrative — ie what you see above is generated from content that is narrated further down.
-
-</details></blockquote>
+> <details><summary><b>Tip</b>: If you are not familiar with HTML inline frames…</summary>
+>
+> When you author HTML documents, sometimes you want to embed other documents, like ads... etc. The way you do this is by including an `<iframe src="‹some url›"></iframe>` fragment which tells the browser to create a nested container within the current page and use to show another — usually by loading it from `‹some url›`.
+>
+> Playgrounds uses this approach, but instead of loading a document from `‹some url›`, it will derive the document from content in your narrative — ie what you see above is generated from content that is narrated further down.
+>
+> </details>
 
 Let's look at the narrative behind this rendered playground below.
 
@@ -80,32 +81,32 @@ Let's start with an example of narrative-only fragment — those are fragments t
 <html> is awesome but that's besides the point!
 ```
 
-<blockquote>
-
-<details><summary><b>Tip</b>: If you are not familiar with fenced code blocks…</summary>
-
-Fencing is a notation used to indicate to parsers when a fragment of text is of a different syntax than its surrounding.
-
-Historically was complicated but Markdown's clean and simplistic notation revolutionized that problem space.
-
 <!--prettier-ignore-start-->
-```md
-  In Markdown you can:
 
-    1. Fence `code` inline to treat it as literal string characters.
-	  2. Or in blocks where you can also indicate its syntax:
+> <details><summary><b>Tip</b>: If you are not familiar with fenced code blocks…</summary>
+>
+> Fencing is a notation used to indicate to parsers when a fragment of text is of a different syntax than its surrounding.
+>
+> Historically this was complicated, but Markdown's clean and simplistic notation revolutionized that problem space:
+>
+> ```md
+> This is `inline code`.
+> ```
+>
+> ```md
+> This is a fenced code block:
+>
+>    ```html
+>    <html> is awesome but that's besides the point!
+>    ```
+> ```
+>
+> The cool thing is that this is fenced html in fenced markdown in html… and so on!
+>
+>
+> </details>
 
-       ```html
-       <html> is awesome but that's besides the point!
-       ```
-
-			 The cool thing is that this is fenced html in fenced markdown in html… and so on!
-```
 <!--prettier-ignore-end-->
-
-</details>
-
-</blockquote>
 
 You don't want the above fragment to be in the playground, and besides of it being to make a point, this fragment which is actually malformed `html` syntax would likely break everything else you actually wanted in your playground.
 

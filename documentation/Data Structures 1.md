@@ -19,9 +19,7 @@ The simplest form of records is one that has a single row of column headings, fo
      2    >>   60%    |   15.33%   |   3.91%   |   1.00%   |   75%  |
 ```
 
-<blockquote>
-**Note**: For legability we are using <kbd>`>>`</kbd> to indicate the start of respective rows (or columns) of a well-structured range and <kbd>`|`</kbd> to indicate delimiters between individual keys or their respective values.
-</blockquote>
+> **Note**: For legability we are using <kbd>`>>`</kbd> to indicate the start of respective rows (or columns) of a well-structured range and <kbd>`|`</kbd> to indicate delimiters between individual keys or their respective values.
 
 <figcaption>We can expect this dataset:</figcaption>
 
