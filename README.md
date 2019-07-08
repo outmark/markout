@@ -38,35 +38,33 @@ Current experimental efforts divide the rendering into two phases, the first por
 
 <small><blockquote float:=right><details><summary>Compatibility Notes</summary>
 
-- [ ] <details><summary>Headings</summary>
+- [x] <details><summary>Headings</summary>
 
   - [x] HTML Headings
   - [x] ATX Headings
   - [ ] Ruled Headings <kbd>Excluded</kbd>
 
-- [ ] <details><summary>Fenced Blocks</summary>
+- [x] <details><summary>Fenced Blocks</summary>
+
+  - [x] _Syntaxes_
+
+        > one of `md`/`markdown`, `html`, `css`, `json`, `js`/`javascript`, `es`/`ecmascript`
+        >
+        > defaults to `markup`
 
   - [x] Markdown _Triple-Grave-Block_ Notation
 
         > **Note**: Additionally allows annotations after close fence — not recommended for cross-compatibility.
 
   - [ ] Markdown _Triple-Tilde-Block_ <kbd>Excluded</kbd>
-
   - [ ] Markdown _Indented-Block_ <kbd>Excluded</kbd>
-
-  - [x] _Syntaxes_
-
-        > one of `md`/`markdown`, `html`, `css`, `json`, `js`/`javascript`, `es`/`ecmascript`
-        > defaults to `markup`
 
 - [ ] <details><summary>Block Quotes</summary>
 
   - [x] HTML Block/Inline Quotes
-  - [x] Markdown _Single-Line-Block-Quote_ Notation
+  - [-] Markdown Block Quote Notation
 
         > **Note**: Not yet fully implemented in some places, not limited to lists.
-
-  - [ ] Markdown _Multi-Line-Block-Quote_ Notation <kbd>Excluded</kbd>
 
 - [ ] <details><summary>Tables</summary>
 

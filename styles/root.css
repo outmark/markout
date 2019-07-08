@@ -16,7 +16,7 @@
 }
 
 :root {
-	color-scheme: light dark;
+	/* color-scheme: light dark; */
 
 	--markout--cell-padding: 1em;
 	--markout--code-tab-size: 2;
@@ -71,7 +71,7 @@
 }
 
 :host {
-	color-scheme: light;
+	/* color-scheme: light; */
 	color: black;
 }
 
@@ -123,7 +123,7 @@
 
 	:host,
 	body {
-		color-scheme: dark;
+		/* color-scheme: dark; */
 		color: white;
 	}
 }

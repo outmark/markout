@@ -1,8 +1,5 @@
 ﻿//@ts-check
 
-import {Playground} from '../lib/playground.js';
-import {encodeEntities} from '../lib/markup.js';
-
 export const MarkoutPlayground = (() => {
 	/** @type {typeof MarkoutPlayground} */
 	let component;
@@ -196,8 +193,7 @@ export const MarkoutPlayground = (() => {
 			// }, 500);
 			// playground.target.style.opacity = 0;
 			// // playground.target.style.transition = '0.25s';
-			//@ts-ignore
-			playground.target.hidden = playground.target.scrolling = playground.target.frameBorder = false;
+			playground.target.hidden = false;
 
 			return playground;
 		}
@@ -208,14 +204,12 @@ export const MarkoutPlayground = (() => {
 	return component;
 })();
 
-/** @type {any} */
-const {
-	// Attempts to overcome **__**
-	'markout-playground-inject-bootstrap-link': INJECT_BOOTSTRAP_LINK = true,
-	'markout-playground-inject-css-reset-link': INJECT_CSS_RESET_LINK = false,
-	'markout-playground-inline-css-reset': INLINE_CSS_RESET = false,
-} = import.meta;
-
 /** @typedef {HTMLElement['attributes']} HTMLElementAttributes */
 /** @typedef {HTMLElementAttributes & Record<'fragment'|'script'|'style'|import('./markout-content.js')['MarkoutContent']['MARKUP_SYNTAX_ATTRIBUTE'], Attr>} PlaygroundBlockAttributes */
 /** @typedef {HTMLPreElement & {attributes: PlaygroundBlockAttributes}} PlaygroundBlock */
+
+
+/** @type {any} */
+const {
+	// 'markout-playground-inline-css-reset': INLINE_CSS_RESET = false,
+} = import.meta;

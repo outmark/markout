@@ -472,7 +472,7 @@ const partials = {};
 
 		sequences.HTMLTags = sequence/* fsharp */ `
 			<\/?[a-zA-z]\w*${partials.HTMLTagBody}*?>
-			|<%[^]*?%>
+			|<\?[^]*?\?>
 			|<!--[^]*?-->
 			|<!\w[^]>
 		`;
@@ -2010,10 +2010,22 @@ class MarkoutRenderer {
 					}
 					// continue;
 				} else {
-					// Construct body
-					context.passthru += body;
 					// Construct open and close tags
 					if (context.currentTag) {
+						// if (
+						// 	punctuator === 'closer' &&
+						// 	(body === '>' || body === '/>') &&
+						// 	context.currentTag !== undefined &&
+						// 	context.currentTag.opener !== undefined
+						// ) {
+						// 	debugTagOpenerPassthru(token, context, {
+						// 		scope: {text, type, punctuator, lineBreaks, hint, previous, body, tag, classes, before, after, meta},
+						// 	});
+						// }
+
+						// Construct body
+						context.passthru += body;
+
 						if (context.currentTag.nodeName === '') {
 							if (type === 'text' || text === '-' || text === ':') {
 								context.currentTag.construct += text;
@@ -2033,6 +2045,10 @@ class MarkoutRenderer {
 							context.currentTag.construct = text;
 							// console.log(text, {...context});
 						}
+					} else {
+						// console.log(text, {...context});
+						// Construct body
+						context.passthru += body;
 					}
 					if (punctuator === 'closer' || (context.comment && punctuator === 'comment')) {
 						// passthru body rendered
@@ -2082,9 +2098,9 @@ class MarkoutRenderer {
 						} else if (text in lookups.spans) {
 							if (SPAN_RESTACKING && (before = context.stack.open(text, body, classes)) === undefined) continue;
 							before || ((before = `<${lookups.spans[text]}${renderClasses(classes)}>`), classes.push('opener'));
-						} else if (text === '<!' || text === '<%') {
+						} else if (text === '<!' || text === '<?') {
 							let next;
-							const closer = text === '<!' ? /-->$/ : /%>$/;
+							const closer = text === '<!' ? /-->$/ : /\?>$/;
 							while (
 								(next = context.tokens.next().value) &&
 								(body += next.text) &&
@@ -2189,7 +2205,7 @@ const createLookups = (
 	aliases = {'*': ['_'], '**': ['__'], '`': ['``']},
 	blocks = {['-']: 'li', ['>']: 'blockquote', ['#']: 'h*', ['```']: 'pre'},
 	spans = {['*']: 'i', ['**']: 'b', ['~~']: 's', ['`']: 'code'},
-	tags = ['<', '>', '<!--', '-->', '<%', '%>', '</', '/>'],
+	tags = ['<', '>', '<!--', '-->', '<?', '?>', '</', '/>'],
 	elements = {'markout-details': 'details'},
 ) => {
 	const symbols = new Set([...Object.keys(repeats), ...Object.keys(entities)]);

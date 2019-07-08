@@ -116,9 +116,10 @@ So in order to indicate a playground fragment, you would change the opening fenc
 
 <!--prettier-ignore-->
 ```html fragment
+<!-- Shows up in the playground frame if properly rendered -->
 First html content fragment!
 
-<!-- This is to trace when it works -->
+<!-- Prints trace in the console if properly rendered -->
 <script>
 	console.trace(document.currentScript);
 </script>
@@ -132,10 +133,10 @@ So the `<script>` element that's included in the above fragment which outputs to
 
 <!--prettier-ignore-->
 ```html fragment
-<!-- Markout's minimal reset styles and root variables -->
+<!-- Loads base styles in the playground frame (obvious) -->
 <link rel="stylesheet" href="/markout/styles/root.css" />
 
-<!-- Additional reset styles not assumed by Markout  -->
+<!-- Playgrounds-specific styles (more obvious) -->
 <style>
 	body {
 		overflow-x: hidden;
@@ -191,8 +192,8 @@ So for starters, the right amount of mojo will be needed here at least to proper
 You define a `<style>` tag using <code>\`\`\`css style</code> block.
 
 ```css style
-/* This is to know it works as expected */
 body > style:first-of-type::before {
+	/* Shows up in the playground frame if properly rendered */
 	content: 'First <style> tag… works!';
 	display: block;
 }
@@ -210,12 +211,14 @@ body > style:first-of-type {
 You define a `<script>` tag using <code>\`\`\`js script</code> block.
 
 ```js script
-// This is to trace when it works
+/* Prints trace in the console if properly rendered */
 console.trace(document.currentScript);
 
-// This is to know it works as expected
 document.currentScript.before(
-	Object.assign(document.createElement('p'), {textContent: 'First 𝘤𝘭𝘢𝘴𝘴𝘪𝘤 <script> tag… works!'}),
+	Object.assign(document.createElement('p'), {
+		/* Shows up in the playground frame if properly rendered */
+		textContent: 'First 𝘤𝘭𝘢𝘴𝘴𝘪𝘤 <script> tag… works!',
+	}),
 );
 ```
 
@@ -262,11 +265,11 @@ Fun fact to consider here is that while `<script type=text/javascript>` **unambi
 And so at lease for now and just to pair nicely with those smelly and somewhat distasteful specifications, we will use <code>\`\`\`js script=module</code> for module blocks, thusly and intuitively (not), coercing onto them in the playground the `type=module` attribute they would require.
 
 ```js script=module
-// This is to trace when it works
+/* Prints trace in the console if properly rendered */
 console.trace(
-	// This is to know it works as expected
 	document.body.querySelector('script[type=module],:last-child').after(
 		Object.assign(document.createElement('p'), {
+			/* Shows up in the playground frame if properly rendered */
 			textContent: 'First 𝘮𝘰𝘥𝘶𝘭𝘦 <script> tag… works!',
 		}),
 	),
@@ -301,6 +304,8 @@ One example is the Markout content renderer upon which this all works. Other exa
 To turn your <code>\`\`\`md</code> block into actual content, simply change it to <code>\`\`\`md fragment</code>, and the way this works is that it will wrap the fragment inside a `<markout-content>` element.
 
 ```md fragment
+<!-- Shows up in the playground frame if properly rendered -->
+
 First `<markout-content>`-wrapped fragment!
 ```
 
@@ -315,6 +320,8 @@ If you're just too weird or simply `fragment` weirdly, that's more than okay… 
 ```text fragment
 First <object>-wrapped fragment… weird!
 ```
+
+> **Note**: Shows up in the playground frame if properly rendered
 
 Should this all work out for you, be sure to share your own narrative!
 
