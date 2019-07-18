@@ -57,6 +57,10 @@
 	--blockquote--background--: var(--band-fill\-\-);
 	--blockquote--color--: var(--band-text\-\-);
 	--blockquote--opacity--: var(--band-text\-\-);
+
+	--section--background--: var(--markout--section-background, #ffffffee);
+	--section--color--: var(--markout--section-text, #000);
+	--section--padding--: calc(1em * var(--body-spacing-size, 1));
 }
 
 :host {
