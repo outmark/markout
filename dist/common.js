@@ -1538,6 +1538,8 @@ const {
 
 		(flags.TOKEN_FLATTENING === true || (flags.TOKEN_FLATTENING !== false && DOM_MUTATIONS !== false)) &&
 			flattenTokensInFragment(fragment);
+
+		renderURLExpansionLinksInFragment(fragment);
 	};
 
 	/** Populate remappable elements @param {DocumentFragment} fragment */
@@ -1772,6 +1774,17 @@ const {
 		for (const empty of fragment.querySelectorAll('p:empty')) empty.remove();
 	};
 
+	const renderURLExpansionLinksInFragment = fragment => {
+		for (const span of fragment.querySelectorAll('span[href]')) {
+			if (span.closest('a')) continue;
+			const anchor = document.createElement('a');
+			anchor.href = span.getAttribute('href');
+			span.before(anchor);
+			anchor.append(...span.childNodes);
+			span.remove();
+		}
+	};
+
 	const flattenTokensInFragment = fragment => {
 		for (const token of fragment.querySelectorAll('span[token-type],tt[token-type]')) {
 			token.nodeName === 'TT' || token.before(...token.childNodes);
@@ -1885,6 +1898,7 @@ const {
 	// Patched regression from changing markdown.FRAGMENTS
 	//   to /[^\\\n\s\[\]\(\)\<\>&`"*~_]+?/ which has been reversed
 	'markout-render-patch-stray-brace': STRAY_BRACE = false,
+	'markout-render-url-expansion': URL_EXPANSION = true,
 } = import.meta;
 
 const normalize = sourceText => {
@@ -1908,6 +1922,11 @@ const encodeEscapedEntities = ((Escapes, replace) => text => text.replace(Escape
 );
 
 const FencedBlockHeader = /^(?:(\w+)(?:\s+(.*?)\s*|)$|)/m;
+const URLPrefix = /^(?:https?:|HTTPS?:)\/\/\S+$|^(?:[A-Za-z][!%\-0-9A-Za-z_~]+\.)+(?:[a-z]{2,5}|[A-Z]{2,5})(?:\/\S*|)$/u;
+const URLString = /^\s*(?:(?:https?:|HTTPS?:)\/\/\S+|(?:[A-Za-z][!%\-0-9A-Za-z_~]+\.)+(?:[a-z]{2,5}|[A-Z]{2,5})\/\S*)\s*$/u;
+const URLScheme = /^https?:|HTTPS?:/;
+//
+const SPAN = 'span';
 
 class MarkoutRenderingContext {
 	constructor(renderer) {
@@ -2008,7 +2027,23 @@ class MarkoutRenderer {
 						// passthru code
 						context.passthru += body.replace(context.indent, '');
 					}
-					// continue;
+					continue;
+				} else if (context.url) {
+					if (type === 'text') {
+						context.passthru += text;
+						continue;
+					}
+					if (URLString.test(context.passthru)) {
+						[before, context.url, after] = context.passthru.split(/(\S+)/);
+						context.renderedText += `${before}<span href="${encodeURI(
+							URLScheme.test(context.url) ? context.url : `https://${context.url}`,
+						)}">${context.url}</span>${after}`;
+						before = after = undefined;
+						// console.log(context.passthru, token);
+					} else {
+						context.renderedText += context.passthru;
+					}
+					context.url = context.passthru = '';
 				} else {
 					// Construct open and close tags
 					if (context.currentTag) {
@@ -2055,11 +2090,11 @@ class MarkoutRenderer {
 						context.renderedText += context.passthru;
 						context.passthru = '';
 					}
+					continue;
 				}
-				continue;
 			}
 
-			tag = 'span';
+			tag = SPAN;
 			classes = context.classes = hint.split(/\s+/);
 
 			if (hint.includes('-in-markdown')) {
@@ -2130,6 +2165,20 @@ class MarkoutRenderer {
 					(before || after) && (tag = 'tt');
 					classes.push(`${punctuator}-token`);
 				} else {
+					if (
+						URL_EXPANSION &&
+						type === 'text' &&
+						tag === SPAN &&
+						before === after &&
+						before === undefined &&
+						URLPrefix.test(text)
+					) {
+						context.passthru = context.url = text;
+						continue;
+						// before = `<a href="${text.trim()}">`;
+						// after = `</a>`;
+						// console.log(text, {tag, before, after}, token);
+					}
 					if (lineBreaks) {
 						(!context.block && (tag = 'br')) || ((after = `</${context.block}>`) && (context.block = body = ''));
 					} else if (type === 'sequence') {
