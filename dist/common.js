@@ -908,7 +908,7 @@ class MarkoutBlockNormalizer {
 				// console.log('reference — %O ', match);
 
 				if (m[0] === '!') {
-					return ` <img${href ? ` src="${encodeURI(href)}"` : ''}${style ? ` style="${style}"` : ''}${
+					return ` <img${href ? ` src="${encodeURI(href)}"` : ''}${
 						text || title ? ` title="${text || title}"` : ''
 					} />`;
 				} else {
