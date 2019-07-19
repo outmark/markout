@@ -10,7 +10,7 @@
 
 <!-- sometimes elements can have special styling facilities like `<img/>` with `width` and `height` -->
 
-HTML-flavoured markup-inspired client-side renderer
+HTML-flavoured Markdown-inspired client-side renderer
 
 <kbd>`Markdown` Previewed</kbd> <kbd>`Markout` Unleashed</kbd>
 
