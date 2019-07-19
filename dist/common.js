@@ -433,7 +433,7 @@ const partials = {};
 			sequence`(?:${partials.OrderedMarker} )`,
 		)})`;
 
-		sequences.NormalizableLists = sequence/* fsharp */ `
+		sequences.NormalizableLists = sequence/* regexp */ `
 			(?=\n?^(${partials.Inset}*)(?:${sequences.ListMarker}))
 			((?:\n?\1
 				(?:${sequences.ListMarker}|   ?)+
@@ -443,7 +443,7 @@ const partials = {};
 			)+)
 		`;
 
-		sequences.NormalizableListItem = sequence/* fsharp */ `
+		sequences.NormalizableListItem = sequence/* regexp */ `
 			^
 			(${partials.Inset}*)
 			((?:${sequences.ListMarkerHead})|)
@@ -457,7 +457,7 @@ const partials = {};
 	// TODO: Document partials and sequences
 
 	Matchers: {
-		sequences.NormalizableBlocks = sequence/* fsharp */ `
+		sequences.NormalizableBlocks = sequence/* regexp */ `
       (?:^|\n)(${partials.Inset}*(?:${partials.BlockFence}))[^]+?(?:(?:\n\1[ \t]*)+\n?|$)
       |(?:^|\n)(${partials.Inset}*)(?:
 				<style>[^]+?(?:(?:\n\2</style>[ \t]*)+\n?|$)
@@ -468,9 +468,9 @@ const partials = {};
     `;
 		matchers.NormalizableBlocks = new RegExp(sequences.NormalizableBlocks, 'g');
 
-		partials.HTMLTagBody = sequence/* fsharp */ `(?:[^${`"'`}>]+?|".*?"|'.*?')`;
+		partials.HTMLTagBody = sequence/* regexp */ `(?:[^${`"'`}>]+?|".*?"|'.*?')`;
 
-		sequences.HTMLTags = sequence/* fsharp */ `
+		sequences.HTMLTags = sequence/* regexp */ `
 			<\/?[a-zA-z]\w*${partials.HTMLTagBody}*?>
 			|<\?[^]*?\?>
 			|<!--[^]*?-->
@@ -479,7 +479,7 @@ const partials = {};
 
 		matchers.HTMLTags = new RegExp(sequences.HTMLTags, 'g');
 
-		sequences.NormalizableParagraphs = sequence/* fsharp */ `
+		sequences.NormalizableParagraphs = sequence/* regexp */ `
       ^
       ((?:[ \t]*\n(${partials.Inset}*))+)
       ($|(?:
@@ -496,7 +496,7 @@ const partials = {};
     `;
 		matchers.NormalizableParagraphs = new RegExp(sequences.NormalizableParagraphs, 'gmu');
 
-		sequences.RewritableParagraphs = sequence/* fsharp */ `
+		sequences.RewritableParagraphs = sequence/* regexp */ `
       ^
       ([ \t]*[^\-\*#>\n].*?)
       (\b.*[^:\n\s>]+|\b)
@@ -511,9 +511,9 @@ const partials = {};
 
 		matchers.RewritableParagraphs = new RegExp(sequences.RewritableParagraphs, 'gmu');
 
-		partials.BlockQuote = sequence/* fsharp */ `(?:  ?|\t)*>(?:  ?>|\t>)`;
+		partials.BlockQuote = sequence/* regexp */ `(?:  ?|\t)*>(?:  ?>|\t>)`;
 
-		sequences.NormalizableBlockquotes = sequence/* fsharp */ `
+		sequences.NormalizableBlockquotes = sequence/* regexp */ `
 			(?:((?:^|\n)[ \t]*\n|^)|\n)
 			(${partials.BlockQuote}*)
 			([ \t]*(?!>).*)
@@ -527,7 +527,7 @@ const partials = {};
 
 		matchers.NormalizableBlockquotes = new RegExp(sequences.NormalizableBlockquotes, 'g');
 
-		sequences.NormalizableReferences = sequence/* fsharp */ `
+		sequences.NormalizableReferences = sequence/* regexp */ `
       !?
       ${escape$1('[')}(\S.*?\S)${escape$1(']')}
       (?:
@@ -538,7 +538,7 @@ const partials = {};
 		// NOTE: Safari seems to struggle with /\S|\s/gmu
 		matchers.NormalizableReferences = new RegExp(sequences.NormalizableReferences, 'gm');
 
-		sequences.RewritableAliases = sequence/* fsharp */ `
+		sequences.RewritableAliases = sequence/* regexp */ `
       ^
       (${partials.Inset}*)
       ${escape$1('[')}(\S.*?\S)${escape$1(']')}:\s+
@@ -551,10 +551,10 @@ const partials = {};
 		// NOTE: Safari seems to struggle with /\S|\s/gmu
 		matchers.RewritableAliases = new RegExp(sequences.RewritableAliases, 'gm');
 
-		sequences.NormalizableLink = sequence/* fsharp */ `
-      \s*((?:\s?[^${`'"`}${escape$1('()[]')}}\s\n]+)*)
+		sequences.NormalizableLink = sequence/* regexp */ `
+      \s*((?:\s?[^${`'"`}${escape$1('()[]')}}\s\n]+))
       (?:\s+[${`'"`}]([^\n]*)[${`'"`}]|)
-		`;
+		`; // (?:\s+{([^\n]*)}|)
 		// NOTE: Safari seems to struggle with /\S|\s/gmu
 		matchers.NormalizableLink = new RegExp(sequences.NormalizableLink);
 	}
@@ -725,13 +725,12 @@ ComposableList.LIKE = {
 
 const {
 	/** Attempts to overcome **__** */
-	'markout-render-merged-marking': MERGED_MARKING = false,
 	'markout-render-comment-stashing': COMMENT_STASHING = false,
 	'markout-render-paragraph-trimming': PARAGRAPH_TRIMMING = true,
 } = import.meta;
 
 const generateBlockquotes = (quotesAfter, quotesBefore = 0) => {
-	let blockquotes, steps;
+	let blockquotes, steps, level;
 
 	steps = quotesAfter - (quotesBefore || 0);
 
@@ -739,7 +738,7 @@ const generateBlockquotes = (quotesAfter, quotesBefore = 0) => {
 		return '</p></blockquote>'.repeat(-steps);
 	} else if (steps > 0) {
 		blockquotes = new Array(steps);
-		for (let level = quotesAfter; steps; blockquotes[steps--] = `<blockquote blockquote-level=${level--}><p>`);
+		for (level = quotesAfter; steps; blockquotes[steps--] = `<blockquote blockquote-level=${level--}><p>`);
 		return blockquotes.join('');
 	} else {
 		return '';
@@ -898,16 +897,18 @@ class MarkoutBlockNormalizer {
 			const reference = (alias && (alias = alias.trim())) || (link && (link = link.trim()));
 
 			if (reference) {
-				let href, title;
+				let href, title, match;
 				// debugging && console.log(m, {text, link, alias, reference, index});
 				if (link) {
-					[, href, title] = matchers.NormalizableLink.exec(link);
+					[, href, title] = match = matchers.NormalizableLink.exec(link);
 				} else if (alias && alias in aliases) {
-					({href, title} = aliases[alias]);
+					({href, title} = match = aliases[alias]);
 				}
 
+				// console.log('reference — %O ', match);
+
 				if (m[0] === '!') {
-					return ` <img${href ? ` src="${encodeURI(href)}"` : ''}${
+					return ` <img${href ? ` src="${encodeURI(href)}"` : ''}${style ? ` style="${style}"` : ''}${
 						text || title ? ` title="${text || title}"` : ''
 					} />`;
 				} else {
@@ -1012,7 +1013,7 @@ class MarkoutBlockNormalizer {
 		return sourceText.replace(matchers.RewritableParagraphs, (m, a, b, c, index, sourceText) => {
 			import.meta['debug:markout:break-normalization'] &&
 				console.log('normalizeBreaks:\n\t%o%o\u23CE%o [%o]', a, b, c, index);
-			return `${a}${b}${MERGED_MARKING ? '<tt class="normalized-break"> \u{035C}</tt>' : ' '}`;
+			return `${a}${b} `;
 		});
 	}
 }
@@ -1148,19 +1149,19 @@ globalThis.$mo = async function debug(specifier = '/markout/examples/markdown-te
 };
 
 const MarkoutSegments = (() => {
-	const MarkoutLists = sequence$1`[-*]|[1-9]+\d*\.|[ivx]+\.|[a-z]\.`;
-	const MarkoutMatter = sequence$1`---(?=\n.+)(?:\n.*)+?\n---`;
-	const MarkoutStub = sequence$1`<!--[^]*?-->|<!.*?>|<\?.*?\?>|<%.*?%>|<(?:\b|\/).*(?:\b|\/)>.*`;
-	const MarkoutStart = sequence$1`(?!(?:${MarkoutLists}) )(?:[^#${'`'}~<>|\n\s]|${'`'}{1,2}(?!${'`'})|~{1, 2}(?!~))`;
-	const MarkoutLine = sequence$1`(?:${MarkoutStart})(?:${MarkoutStub}|.*)*$`;
-	// const MarkoutDivider = sequence`-(?:[ \t]*-)+|=(?:=[ \t]*)+`;
-	const MarkoutDivider = sequence$1`-{2,}|={2,}|\*{2,}|(?:- ){2,}-|(?:= ){2,}=|(?:\* ){2,}\*`;
-	const MarkoutATXHeading = sequence$1`#{1,6}(?= +${MarkoutLine})`;
-	const MarkoutTextHeading = sequence$1`${MarkoutStart}.*\n(?=\2\={3,}\n|\2\-{3,}\n)`;
+	const MarkoutLists = sequence$1/* regexp */ `[-*]|[1-9]+\d*\.|[ivx]+\.|[a-z]\.`;
+	const MarkoutMatter = sequence$1/* regexp */ `---(?=\n.+)(?:\n.*)+?\n---`;
+	const MarkoutStub = sequence$1/* regexp */ `<!--[^]*?-->|<!.*?>|<\?.*?\?>|<%.*?%>|<(?:\b|\/).*(?:\b|\/)>.*`;
+	const MarkoutStart = sequence$1/* regexp */ `(?!(?:${MarkoutLists}) )(?:[^#${'`'}~<>|\n\s]|${'`'}{1,2}(?!${'`'})|~{1, 2}(?!~))`;
+	const MarkoutLine = sequence$1/* regexp */ `(?:${MarkoutStart})(?:${MarkoutStub}|.*)*$`;
+	// const MarkoutDivider = sequence/* regexp */`-(?:[ \t]*-)+|=(?:=[ \t]*)+`;
+	const MarkoutDivider = sequence$1/* regexp */ `-{2,}|={2,}|\*{2,}|(?:- ){2,}-|(?:= ){2,}=|(?:\* ){2,}\*`;
+	const MarkoutATXHeading = sequence$1/* regexp */ `#{1,6}(?= +${MarkoutLine})`;
+	const MarkoutTextHeading = sequence$1/* regexp */ `${MarkoutStart}.*\n(?=\2\={3,}\n|\2\-{3,}\n)`;
 
 	const MarkoutSegments = Segmenter.define(
 		type =>
-			sequence$1`^
+			sequence$1/* regexp */ `^
 		  (?:
 		    ${type(UNKNOWN$1)}(${MarkoutMatter}$|[ \t]*(?:${MarkoutStub})[ \t]*$)|
 		    (?:
