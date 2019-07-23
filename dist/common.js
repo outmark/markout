@@ -1044,7 +1044,7 @@ const isNotBlank = text => typeof text === 'string' && !(text === '' || text.tri
 //@ts-check
 
 /** Segmenter for sub-match captures */
-class Segmenter extends Matcher {
+class SegmentMatcher extends Matcher {
   /**
    * @param {MatcherPattern} pattern
    * @param {MatcherFlags} [flags]
@@ -1100,7 +1100,7 @@ class Segmenter extends Matcher {
     match.capture = {};
 
     match &&
-      (match.forEach(this.capture || Segmenter.prototype.capture, this),
+      (match.forEach(this.capture || SegmentMatcher.prototype.capture, this),
       match.identity || (match.capture[this.UNKNOWN || Matcher.UNKNOWN] = match[0]));
 
     return match;
@@ -1109,10 +1109,10 @@ class Segmenter extends Matcher {
 
 const {
   /** Identity for delimiter captures (like newlines) */
-  INSET = (Segmenter.INSET = 'INSET'),
+  INSET = (SegmentMatcher.INSET = 'INSET'),
   /** Identity for unknown captures */
-  LOOKAHEAD = (Segmenter.LOOKAHEAD = 'LOOKAHEAD'),
-} = Segmenter;
+  LOOKAHEAD = (SegmentMatcher.LOOKAHEAD = 'LOOKAHEAD'),
+} = SegmentMatcher;
 
 // import dynamicImport from '/browser/dynamic-import.js';
 
@@ -1141,9 +1141,8 @@ const MarkoutSegments = (() => {
 	const MarkoutATXHeading = sequence$1/* regexp */ `#{1,6}(?= +${MarkoutLine})`;
 	const MarkoutTextHeading = sequence$1/* regexp */ `${MarkoutStart}.*\n(?=\2\={3,}\n|\2\-{3,}\n)`;
 
-	const MarkoutSegments = Segmenter.define(
-		entity =>
-			sequence$1/* regexp */ `^
+	const MarkoutSegments = SegmentMatcher.define(
+		entity => SegmentMatcher.sequence/* regexp */ `^
 		  (?:
 		    ${entity(UNKNOWN)}(${MarkoutMatter}$|[ \t]*(?:${MarkoutStub})[ \t]*$)|
 		    (?:
