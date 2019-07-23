@@ -4,214 +4,214 @@ import { encodeEntities, entities as entities$1, render as render$1, tokenize as
 //@ts-check
 /// <reference path="./types.d.ts" />
 
-// const trace = /** @type {[function, any[]][]} */ [];
-
+/** Matcher for composable matching */
 class Matcher extends RegExp {
-	/**
-	 * @template T
-	 * @param {Matcher.Pattern} pattern
-	 * @param {Matcher.Flags} [flags]
-	 * @param {Matcher.Entities} [entities]
-	 * @param {T} [state]
-	 */
-	constructor(pattern, flags, entities, state) {
-		// trace.push([new.target, [...arguments]]);
-		//@ts-ignore
-		super(pattern, flags);
-		// Object.assign(this, RegExp.prototype, new.target.prototype);
-		(pattern &&
-			pattern.entities &&
-			Symbol.iterator in pattern.entities &&
-			((!entities && (entities = pattern.entities)) || entities === pattern.entities)) ||
-			Object.freeze((entities = (entities && Symbol.iterator in entities && [...entities]) || []));
-		/** @type {MatcherEntities} */
-		this.entities = entities;
-		/** @type {T} */
-		this.state = state;
-		this.capture = this.capture;
-		this.exec = this.exec;
-		// this.test = this.test;
-		({
-			// LOOKAHEAD: this.LOOKAHEAD = Matcher.LOOKAHEAD,
-			// INSET: this.INSET = Matcher.INSET,
-			// OUTSET: this.OUTSET = Matcher.OUTSET,
-			DELIMITER: this.DELIMITER = Matcher.DELIMITER,
-			UNKNOWN: this.UNKNOWN = Matcher.UNKNOWN,
-		} = new.target);
-	}
+  /**
+   * @param {MatcherPattern} pattern
+   * @param {MatcherFlags} [flags]
+   * @param {MatcherEntities} [entities]
+   * @param {{}} [state]
+   */
+  constructor(pattern, flags, entities, state) {
+    //@ts-ignore
+    super(pattern, flags);
+    (pattern &&
+      pattern.entities &&
+      Symbol.iterator in pattern.entities &&
+      ((!entities && (entities = pattern.entities)) || entities === pattern.entities)) ||
+      Object.freeze((entities = (entities && Symbol.iterator in entities && [...entities]) || []));
+    /** @type {MatcherEntities} */
+    this.entities = entities;
+    this.state = state;
+    this.exec = this.exec;
+    ({DELIMITER: this.DELIMITER = Matcher.DELIMITER, UNKNOWN: this.UNKNOWN = Matcher.UNKNOWN} = new.target);
+  }
 
-	/**
-	 * @template {MatcherMatchResult} T
-	 * @param {string} text
-	 * @param {number} capture
-	 * @param {T} match
-	 * @returns {T}
-	 */
-	capture(text, capture, match) {
-		if (capture === 0) return void (match.capture = {});
-		if (text === undefined) return;
-		const index = capture - 1;
-		const {
-			entities: {[index]: entity},
-			state,
-		} = this;
-		typeof entity === 'function'
-			? ((match.entity = index), entity(text, capture, match, state))
-			: entity == null || //entity === INSET ||
-			  // entity === OUTSET ||
-			  // entity === DELIMITER ||
-			  // entity === LOOKAHEAD ||
-			  // entity === UNKNOWN ||
-			  (match.entity !== undefined || ((match.identity = entity), (match.entity = index)),
-			  (match.capture[entity] = text));
-	}
+  /**
+   * @param {string} source
+   */
+  exec(source) {
+    /** @type {MatcherExecArray} */
+    let match;
 
-	/**
-	 * @param {string} source
-	 * @returns {MatcherMatchResult}
-	 */
-	exec(source) {
-		// const tracing = trace.length;
-		// trace.push([this.exec, [...arguments]]);
-		/** @type {MatcherMatchArray} */
-		const match = super.exec(source);
-		// console.log(trace.slice(tracing, trace.length));
-		match &&
-			(match.forEach(this.capture || Matcher.prototype.capture, (match.matcher = this)),
-			match.identity || (match.capture[this.UNKNOWN || Matcher.UNKNOWN] = match[0]));
+    // @ts-ignore
+    match = super.exec(source);
 
-		// @ts-ignore
-		return match;
-	}
+    // @ts-ignore
+    if (match === null) return null;
 
-	/**
-	 * @param {Matcher.PatternFactory} factory
-	 * @param {Matcher.Flags} [flags]
-	 * @param {PropertyDescriptorMap} [properties]
-	 */
-	static define(factory, flags, properties) {
-		/** @type {MatcherEntities} */
-		const entities = [];
-		entities.flags = '';
-		// const pattern = factory(entity => void entities.push(((entity != null || undefined) && entity) || undefined));
-		const pattern = factory(entity => {
-			if (entity !== null && entity instanceof Matcher) {
-				entities.push(...entity.entities);
+    // @ts-ignore
+    match.matcher = this;
+    match.capture = {};
 
-				!entity.flags || (entities.flags = entities.flags ? Matcher.flags(entities.flags, entity.flags) : entity.flags);
+    //@ts-ignore
+    for (
+      let i = 0, entity;
+      match[++i] === undefined ||
+      void (
+        (entity = this.entities[(match.entity = i - 1)]) == null ||
+        (typeof entity === 'function'
+          ? entity(match[0], i, match, this.state)
+          : (match.capture[(match.identity = entity)] = match[0]))
+      );
 
-				return entity.source;
-			} else {
-				entities.push(((entity != null || undefined) && entity) || undefined);
-			}
-		});
-		flags = Matcher.flags('g', flags == null ? pattern.flags : flags, entities.flags);
-		const matcher = new ((this && (this.prototype === Matcher.prototype || this.prototype instanceof RegExp) && this) ||
-			Matcher)(pattern, flags, entities);
+    );
 
-		properties && Object.defineProperties(matcher, properties);
+    return match;
+  }
 
-		return matcher;
-	}
+  /**
+   * @param {MatcherPatternFactory} factory
+   * @param {MatcherFlags} [flags]
+   * @param {PropertyDescriptorMap} [properties]
+   */
+  static define(factory, flags, properties) {
+    /** @type {MatcherEntities} */
+    const entities = [];
+    entities.flags = '';
+    const pattern = factory(entity => {
+      if (entity !== null && entity instanceof Matcher) {
+        entities.push(...entity.entities);
 
-	static flags(...sources) {
-		let flags = '',
-			iterative;
-		for (const source of sources) {
-			if (!source || (typeof source !== 'string' && typeof source.flags !== 'string')) continue;
-			for (const flag of source.flags || source)
-				(flag === 'g' || flag === 'y' ? iterative || !(iterative = true) : flags.includes(flag)) || (flags += flag);
-		}
-		// console.log('%o: ', flags, ...sources);
-		return flags;
-	}
+        !entity.flags || (entities.flags = entities.flags ? Matcher.flags(entities.flags, entity.flags) : entity.flags);
 
-	static get sequence() {
-		const {raw} = String;
-		const {replace} = Symbol;
-		/**
-		 * @param {TemplateStringsArray} template
-		 * @param  {...any} spans
-		 * @returns {string}
-		 */
-		const sequence = (template, ...spans) =>
-			sequence.WHITESPACE[replace](raw(template, ...spans.map(sequence.span)), '');
-		/**
-		 * @param {any} value
-		 * @returns {string}
-		 */
-		sequence.span = value =>
-			(value &&
-				// TODO: Don't coerce to string here?
-				(typeof value !== 'symbol' && `${value}`)) ||
-			'';
+        return entity.source;
+      } else {
+        entities.push(((entity != null || undefined) && entity) || undefined);
+      }
+    });
+    flags = Matcher.flags('g', flags == null ? pattern.flags : flags, entities.flags);
+    const matcher = new ((this && (this.prototype === Matcher.prototype || this.prototype instanceof RegExp) && this) ||
+      Matcher)(pattern, flags, entities);
 
-		sequence.WHITESPACE = /^\s+|\s*\n\s*|\s+$/g;
+    properties && Object.defineProperties(matcher, properties);
 
-		Object.defineProperty(Matcher, 'sequence', {value: Object.freeze(sequence), enumerable: true, writable: false});
-		return sequence;
-	}
+    return matcher;
+  }
 
-	static get join() {
-		const {sequence} = this;
+  static flags(...sources) {
+    let flags = '',
+      iterative;
+    for (const source of sources) {
+      if (!source || (typeof source !== 'string' && typeof source.flags !== 'string')) continue;
+      for (const flag of source.flags || source)
+        (flag === 'g' || flag === 'y' ? iterative || !(iterative = true) : flags.includes(flag)) || (flags += flag);
+    }
+    return flags;
+  }
 
-		const join = (...values) =>
-			values
-				.map(sequence.span)
-				.filter(Boolean)
-				.join('|');
+  static get sequence() {
+    const {raw} = String;
+    const {replace} = Symbol;
 
-		Object.defineProperty(Matcher, 'join', {value: Object.freeze(join), enumerable: true, writable: false});
+    /**
+     * @param {TemplateStringsArray} template
+     * @param  {...any} spans
+     * @returns {string}
+     */
+    const sequence = (template, ...spans) =>
+      sequence.WHITESPACE[replace](raw(template, ...spans.map(sequence.span)), '');
+    // const sequence = (template, ...spans) =>
+    //   sequence.WHITESPACE[replace](sequence.COMMENTS[replace](raw(template, ...spans.map(sequence.span)), ''), '');
 
-		return join;
-	}
+    /**
+     * @param {any} value
+     * @returns {string}
+     */
+    sequence.span = value =>
+      (value &&
+        // TODO: Don't coerce to string here?
+        (typeof value !== 'symbol' && `${value}`)) ||
+      '';
+
+    sequence.WHITESPACE = /^\s+|\s*\n\s*|\s+$/g;
+    // sequence.COMMENTS = /(?:^|\n)\s*\/\/.*(?=\n)|\n\s*\/\/.*(?:\n\s*)*$/g;
+
+    Object.defineProperty(Matcher, 'sequence', {value: Object.freeze(sequence), enumerable: true, writable: false});
+    return sequence;
+  }
+
+  static get join() {
+    const {sequence} = this;
+
+    const join = (...values) =>
+      values
+        .map(sequence.span)
+        .filter(Boolean)
+        .join('|');
+
+    Object.defineProperty(Matcher, 'join', {value: Object.freeze(join), enumerable: true, writable: false});
+
+    return join;
+  }
+
+  static get matchAll() {
+    /**
+     * @template {RegExp} T
+     * @type {(string: MatcherText, matcher: T) => MatcherIterator<T> }
+     */
+    const matchAll =
+      //@ts-ignore
+      (() =>
+        Function.call.bind(
+          // String.prototype.matchAll || // TODO: Uncomment eventually
+          {
+            /**
+             * @this {string}
+             * @param {RegExp | string} pattern
+             */
+            *matchAll() {
+              const matcher =
+                arguments[0] &&
+                (arguments[0] instanceof RegExp
+                  ? Object.setPrototypeOf(RegExp(arguments[0].source, arguments[0].flags || 'g'), arguments[0])
+                  : RegExp(arguments[0], 'g'));
+              const string = String(this);
+
+              if (!(matcher.flags.includes('g') || matcher.flags.includes('y')))
+                return void (yield matcher.exec(string));
+
+              for (
+                let match, lastIndex = -1;
+                lastIndex <
+                ((match = matcher.exec(string))
+                  ? (lastIndex = matcher.lastIndex + (match[0].length === 0))
+                  : lastIndex);
+                yield match, matcher.lastIndex = lastIndex
+              );
+            },
+          }.matchAll,
+        ))();
+
+    Object.defineProperty(Matcher, 'matchAll', {value: Object.freeze(matchAll), enumerable: true, writable: false});
+
+    return matchAll;
+  }
 }
 
+// Well-known identities for meaningful debugging which are
+//   Strings but could possible be changed to Symbols
+//
+//   TODO: Revisit Matcher.UNKOWN
+//
+
 const {
-	// INSET = (Matcher.INSET = /* Symbol.for */ 'INSET'),
-	// OUTSET = (Matcher.OUTSET = /* Symbol.for */ 'OUTSET'),
-	DELIMITER = (Matcher.DELIMITER = /* Symbol.for */ 'DELIMITER'),
-	UNKNOWN = (Matcher.UNKNOWN = /* Symbol.for */ 'UNKNOWN'),
-	// LOOKAHEAD = (Matcher.LOOKAHEAD = /* Symbol.for */ 'LOOKAHEAD'),
-	escape: escape$1 = (Matcher.escape = /** @type {<T>(source: T) => string} */ ((() => {
-		const {replace} = Symbol;
-		return source => /[\\^$*+?.()|[\]{}]/g[replace](source, '\\$&');
-	})())),
-	sequence,
-	join,
-	matchAll = (Matcher.matchAll =
-		/**
-		 * @template {RegExp} T
-		 * @type {(string: Matcher.Text, matcher: T) => Matcher.Iterator<T> }
-		 */
-		//@ts-ignore
-		(() =>
-			Function.call.bind(
-				// String.prototype.matchAll || // TODO: Uncomment eventually
-				{
-					/**
-					 * @this {string}
-					 * @param {RegExp | string} pattern
-					 */
-					*matchAll() {
-						const matcher =
-							arguments[0] &&
-							(arguments[0] instanceof RegExp
-								? Object.setPrototypeOf(RegExp(arguments[0].source, arguments[0].flags || 'g'), arguments[0])
-								: RegExp(arguments[0], 'g'));
-						const string = String(this);
+  /** Identity for delimiter captures (like newlines) */
+  DELIMITER = (Matcher.DELIMITER = 'DELIMITER'),
+  /** Identity for unknown captures */
+  UNKNOWN = (Matcher.UNKNOWN = 'UNKNOWN'),
+} = Matcher;
 
-						if (!(matcher.flags.includes('g') || matcher.flags.includes('y'))) return void (yield matcher.exec(string));
+//@ts-check
 
-						for (
-							let match, lastIndex = -1;
-							lastIndex <
-							((match = matcher.exec(string)) ? (lastIndex = matcher.lastIndex + (match[0].length === 0)) : lastIndex);
-							yield match, matcher.lastIndex = lastIndex
-						);
-					},
-				}.matchAll,
-			))()),
+const {
+  escape: escape$1 = (Matcher.escape = /** @type {<T>(source: T) => string} */ ((() => {
+    const {replace} = Symbol;
+    return source => /[\\^$*+?.()|[\]{}]/g[replace](source, '\\$&');
+  })())),
+  join,
+  sequence,
+  matchAll,
 } = Matcher;
 
 //@ts-check
@@ -1041,110 +1041,92 @@ const isNotBlank = text => typeof text === 'string' && !(text === '' || text.tri
 /** @typedef {MatchedRecord<'text'|'fence'|'inset'|'unfenced'>} MatchedBlockRecord */
 /** @typedef {RegExpExecArray & MatchedBlockRecord} MatchedBlock */
 
-class Segmenter extends RegExp {
-	/**
-	 * @param {string | RegExp} pattern
-	 * @param {string} [flags]
-	 * @param {(string|undefined)[]} [types]
-	 */
-	constructor(pattern, flags, types) {
-		(pattern &&
-			pattern.types &&
-			Symbol.iterator in pattern.types &&
-			((!types && (types = pattern.types)) || types === pattern.types)) ||
-			Object.freeze((types = (types && Symbol.iterator in types && [...types]) || []));
-		const {LOOKAHEAD = Segmenter.LOOKAHEAD, INSET = Segmenter.INSET, UNKNOWN = Segmenter.UNKNOWN} = new.target;
-		Object.defineProperties(super(pattern, flags), {
-			types: {value: types, enumerable: true},
-			LOOKAHEAD: {value: LOOKAHEAD},
-			INSET: {value: INSET},
-			UNKNOWN: {value: UNKNOWN},
-			// lookaheads: {value: (typeof LOOKAHEAD === 'symbol' && types.indexOf(LOOKAHEAD) + 1) || false},
-			// insets: {value: (typeof insets === 'symbol' && types.indexOf(INSET) + 1) || false},
-		});
-	}
+//@ts-check
 
-	/**
-	 * @param {RegExpExecArray} match
-	 */
-	matchType(text, index) {
-		return index > 0 && text !== undefined && match.types[index - 1] != null;
-	}
-
-	capture(text, index, match) {
-		// let typeOf;
-		if (index === 0 || text === undefined) return;
-
-		const typeIndex = index - 1;
-		const type = this.types[typeIndex];
-
-		if (type === INSET) {
-			match.inset = text;
-			return;
-		} else if (type === LOOKAHEAD) {
-			match.lookahead = text;
-			return;
-		} else if (type !== UNKNOWN$1) {
-			switch (typeof type) {
-				case 'string':
-					if (match.typeIndex > -1) return;
-					match.type = type;
-					match.typeIndex = typeIndex;
-				case 'symbol':
-					match[type] = text;
-					return;
-				case 'function':
-					type(text, index, match);
-					return;
-			}
-		}
-	}
-
-	/**
-	 * @param {RegExpExecArray} match
-	 * @returns {typeof match & {slot: number, type: string}}
-	 */
-	exec(source) {
-		const match = super.exec(source);
-		match &&
-			((match.typeIndex = -1),
-			match.forEach(this.capture || Segmenter.prototype.capture, this),
-			match.typeIndex > -1 || ((match.type = 'unknown'), (match.typeIndex = -1)),
-			null);
-
-		return match;
+/** Segmenter for sub-match captures */
+class Segmenter extends Matcher {
+  /**
+   * @param {MatcherPattern} pattern
+   * @param {MatcherFlags} [flags]
+   * @param {MatcherEntities} [entities]
+   * @param {{}} [state]
+   */
+  constructor(pattern, flags, entities, state) {
+    //@ts-ignore
+    super(pattern, flags, entities, state);
+    this.capture = this.capture;
+  }
+  /**
+   * @template {MatcherMatch} T
+   * @param {string} text
+   * @param {number} capture
+   * @param {T} match
+   * @returns {T}
+   */
+  capture(text, capture, match) {
+    if (capture === 0) return void (match.capture = {});
+    if (text === undefined) return;
+    const index = capture - 1;
+    const {
+      entities: {[index]: entity},
+      state,
+    } = this;
+    typeof entity === 'function'
+      ? ((match.entity = index), entity(text, capture, match, state))
+      : entity == null ||
+        // entity === INSET ||
+        // entity === LOOKAHEAD ||
+        // entity === Matcher.DELIMITER ||
+        // entity === Matcher.UNKNOWN ||
+        (match.entity !== undefined || ((match.identity = entity), (match.entity = index)),
+        (match.capture[entity] = text));
   }
 
-	static define(factory, flags) {
-		const types = [];
-		const RegExp = (this && (this.prototype === Segmenter || this.prototype instanceof Segmenter) && this) || Segmenter;
-    const pattern = factory(type => (types.push((type != null || undefined) && type), ''));
+  /**
+   * @param {string} source
+   */
+  exec(source) {
+    /** @type {MatcherExecArray} */
+    let match;
 
-    flags = `${(flags == null ? pattern && pattern.flags : flags) || ''}`;
+    // @ts-ignore
+    match = super.exec(source);
 
-		return new RegExp(pattern, flags, types);
-	}
+    // @ts-ignore
+    if (match === null) return null;
+
+    // @ts-ignore
+    match.matcher = this;
+    match.capture = {};
+
+    match &&
+      (match.forEach(this.capture || Segmenter.prototype.capture, this),
+      match.identity || (match.capture[this.UNKNOWN || Matcher.UNKNOWN] = match[0]));
+
+    return match;
+  }
 }
 
-const {INSET, UNKNOWN: UNKNOWN$1, LOOKAHEAD} = Object.defineProperties(Segmenter, {
-	INSET: {value: Symbol.for('INSET'), enumerable: true},
-	UNKNOWN: {value: Symbol.for('UNKNOWN'), enumerable: true},
-	LOOKAHEAD: {value: Symbol.for('LOOKAHEAD'), enumerable: true},
-});
+const {
+  /** Identity for delimiter captures (like newlines) */
+  INSET = (Segmenter.INSET = 'INSET'),
+  /** Identity for unknown captures */
+  LOOKAHEAD = (Segmenter.LOOKAHEAD = 'LOOKAHEAD'),
+} = Segmenter;
 
 // import dynamicImport from '/browser/dynamic-import.js';
 
 // console.log(import.meta.url);
 
 globalThis.$mo = async function debug(specifier = '/markout/examples/markdown-testsuite.md') {
-	// const {MarkoutSegments} = await import(`/markout/lib/experimental/markout-segmenter.js${timestamp}`);
 	const url = new URL(specifier, location);
 	const response = await fetch(url);
 	if (!response.ok) console.warn(Error(`Failed to fetch ${url}`));
 	const sourceText = await response.text();
 	// console.log(dynamicImport);
-	// const {debugSegmenter} = await dynamicImport('/modules/segmenter/segmenter.debug.js');
-	const {debugSegmenter} = await (0, eval)('specifier => import(specifier)')('/modules/segmenter/segmenter.debug.js');
+	const {debugMatcher, debugSegmenter = debugMatcher} = await (0, eval)('specifier => import(specifier)')(
+		'/markup/packages/matcher/lib/debug.js',
+	);
 	debugSegmenter(MarkoutSegments, sourceText);
 };
 
@@ -1160,25 +1142,25 @@ const MarkoutSegments = (() => {
 	const MarkoutTextHeading = sequence$1/* regexp */ `${MarkoutStart}.*\n(?=\2\={3,}\n|\2\-{3,}\n)`;
 
 	const MarkoutSegments = Segmenter.define(
-		type =>
+		entity =>
 			sequence$1/* regexp */ `^
 		  (?:
-		    ${type(UNKNOWN$1)}(${MarkoutMatter}$|[ \t]*(?:${MarkoutStub})[ \t]*$)|
+		    ${entity(UNKNOWN)}(${MarkoutMatter}$|[ \t]*(?:${MarkoutStub})[ \t]*$)|
 		    (?:
-		      ${type(INSET)}((?:  |\t)*?(?:> ?)*?(?:> ?| *))
+		      ${entity(INSET)}((?:  |\t)*?(?:> ?)*?(?:> ?| *))
 		      (?:
-		        ${type('fence')}(?:(${'```'}|~~~)(?=.*\n)[^]*?\n\2\3.*$)|
-		        ${type('table')}(?:([|](?=[ :-]).+[|]$)(?:\n\2[|].+[|]$)+)|
-		        ${type('heading')}(?:(${MarkoutATXHeading}|${MarkoutTextHeading}).*$)|
-		        ${type('list')}(?:(${MarkoutLists}) +${MarkoutLine}(?:\n\2 {2,4}${MarkoutLine})*$)|
-		        ${type('alias')}(?:(\[.+?\]: .+)$)|
-		        ${type('divider')}(?:(${MarkoutDivider})$)|
-		        ${type('feed')}(?:([ \t]*(?:\n\2[ \t])*)$)|
-		        ${type('paragraph')}(?:(${MarkoutLine}(?:\n\2 {0,2}${MarkoutLine})*)$)
+		        ${entity('fence')}(?:(${'```'}|~~~)(?=.*\n)[^]*?\n\2\3.*$)|
+		        ${entity('table')}(?:([|](?=[ :-]).+[|]$)(?:\n\2[|].+[|]$)+)|
+		        ${entity('heading')}(?:(${MarkoutATXHeading}|${MarkoutTextHeading}).*$)|
+		        ${entity('list')}(?:(${MarkoutLists}) +${MarkoutLine}(?:\n\2 {2,4}${MarkoutLine})*$)|
+		        ${entity('alias')}(?:(\[.+?\]: .+)$)|
+		        ${entity('divider')}(?:(${MarkoutDivider})$)|
+		        ${entity('feed')}(?:([ \t]*(?:\n\2[ \t])*)$)|
+		        ${entity('paragraph')}(?:(${MarkoutLine}(?:\n\2 {0,2}${MarkoutLine})*)$)
 		      )|
-		      ${type(UNKNOWN$1)}(.+?$)
+		      ${entity(UNKNOWN)}(.+?$)
 		    )
-		  )(?=${type(LOOKAHEAD)}(\n?^.*$)?)
+		  )(?=${entity(LOOKAHEAD)}(\n?^.*$)?)
 		`,
 		'gmi',
 	);
@@ -1259,11 +1241,11 @@ const {
 }))(entities$1.es);
 
 const entities = /*#__PURE__*/Object.freeze({
-	UnicodeIdentifier: UnicodeIdentifier,
-	MarkdownIdentityPrefixer: MarkdownIdentityPrefixer,
-	MarkdownIdentityJoiner: MarkdownIdentityJoiner,
-	MarkdownIdentityWord: MarkdownIdentityWord,
-	MarkdownIdentity: MarkdownIdentity
+  UnicodeIdentifier: UnicodeIdentifier,
+  MarkdownIdentityPrefixer: MarkdownIdentityPrefixer,
+  MarkdownIdentityJoiner: MarkdownIdentityJoiner,
+  MarkdownIdentityWord: MarkdownIdentityWord,
+  MarkdownIdentity: MarkdownIdentity
 });
 
 const declarativeStyling = (declarativeStyling => {

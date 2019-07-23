@@ -16,7 +16,7 @@ const Playground = {};
 
 ```js
 Playground.createPostScriptEntities = async () => {
-	const {Matcher} = import('/markup/experimental/matcher/matcher.js');
+	const {Matcher} = import('/markup/packages/matcher/matcher.js');
 	const {capture, forward, fault, open, close} = await import('markup/experimental/es/helpers.js');
 
 	const Entities = (Playground.PostScriptEntities = {
@@ -45,7 +45,7 @@ Playground.createPostScriptEntities = async () => {
 
 ```js
 (async () => {
-	const {Matcher} = import('/markup/experimental/matcher/matcher.js');
+	const {Matcher} = import('/markup/packages/matcher/matcher.js');
 
 	Matcher.define(entity => Matcher.join(entity()));
 })();
