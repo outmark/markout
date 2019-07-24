@@ -1,4 +1,4 @@
-import { sequence as sequence$1, debugging, normalizeString } from '/markout/lib/helpers.js';
+import { debugging, normalizeString } from '/markout/lib/helpers.js';
 import { encodeEntities, entities as entities$1, render as render$1, tokenize as tokenize$1, encodeEntity } from '/markup/dist/tokenizer.browser.js';
 
 //@ts-check
@@ -306,6 +306,8 @@ const patterns = {};
 const partials = {};
 
 {
+	const {sequence, escape, join} = Matcher;
+
 	Insets: {
 		ranges.Inseter = atoms.split('\t >'); // 0=tab 1=space 2=quote
 		partials.Inset = range(...ranges.Inseter);
@@ -316,7 +318,7 @@ const partials = {};
 		//			 fencing or strikethrough here make it harder
 		//			 to retain intent and traceablility.
 		ranges.FenceMarks = atoms.split('`'); // 0=grave 1=tilde
-		partials.BlockFence = join(...ranges.FenceMarks.map(fence => escape$1(fence.repeat(3))));
+		partials.BlockFence = join(...ranges.FenceMarks.map(fence => escape(fence.repeat(3))));
 	}
 
 	Lists: {
@@ -340,10 +342,10 @@ const partials = {};
 		//   NOTE: Markers are not semantically interchangeable
 		//
 		//   1. Matching Square character (ie `-` per popular notation):
-		partials.SquareMark = escape$1(ranges.ListMarkers[0]);
+		partials.SquareMark = escape(ranges.ListMarkers[0]);
 		//
 		//   2. Matching Disc character (ie `*` per lesser popular notation):
-		partials.DiscMark = escape$1(ranges.ListMarkers[1]);
+		partials.DiscMark = escape(ranges.ListMarkers[1]);
 		//
 		//   Unordered mark is the range of Square/Disc characters:
 		partials.UnorderedMark = range(...ranges.ListMarkers);
@@ -504,8 +506,8 @@ const partials = {};
       (?=(
 				</?(?:span|small|big|kbd)\b${partials.HTMLTagBody}*?>[^-#>|~\n].*
         |\b(?!(?:${sequences.HTMLTags}))
-        |${escape$1('[')}.*?${escape$1(']')}[^:\n]?
-        |[^#${'`'}${escape$1('[')}\n]
+        |${escape('[')}.*?${escape(']')}[^:\n]?
+        |[^#${'`'}${escape('[')}\n]
       ))
     `;
 
@@ -529,10 +531,10 @@ const partials = {};
 
 		sequences.NormalizableReferences = sequence/* regexp */ `
       !?
-      ${escape$1('[')}(\S.*?\S)${escape$1(']')}
+      ${escape('[')}(\S.*?\S)${escape(']')}
       (?:
-        ${escape$1('(')}(\S[^\n${escape$1('()[]')}]*?\S)${escape$1(')')}
-        |${escape$1('[')}(\S[^\n${escape$1('()[]')}]*\S)${escape$1(']')}
+        ${escape('(')}(\S[^\n${escape('()[]')}]*?\S)${escape(')')}
+        |${escape('[')}(\S[^\n${escape('()[]')}]*\S)${escape(']')}
       )
 		`;
 		// NOTE: Safari seems to struggle with /\S|\s/gmu
@@ -541,7 +543,7 @@ const partials = {};
 		sequences.RewritableAliases = sequence/* regexp */ `
       ^
       (${partials.Inset}*)
-      ${escape$1('[')}(\S.*?\S)${escape$1(']')}:\s+
+      ${escape('[')}(\S.*?\S)${escape(']')}:\s+
       (\S+)(?:
         \s+${'"'}([^\n]*)${'"'}
         |\s+${"'"}([^\n]*)${"'"}
@@ -552,7 +554,7 @@ const partials = {};
 		matchers.RewritableAliases = new RegExp(sequences.RewritableAliases, 'gm');
 
 		sequences.NormalizableLink = sequence/* regexp */ `
-      \s*((?:\s?[^${`'"`}${escape$1('()[]')}}\s\n]+))
+      \s*((?:\s?[^${`'"`}${escape('()[]')}}\s\n]+))
       (?:\s+[${`'"`}]([^\n]*)[${`'"`}]|)
 		`; // (?:\s+{([^\n]*)}|)
 		// NOTE: Safari seems to struggle with /\S|\s/gmu
@@ -1131,15 +1133,15 @@ globalThis.$mo = async function debug(specifier = '/markout/examples/markdown-te
 };
 
 const MarkoutSegments = (() => {
-	const MarkoutLists = sequence$1/* regexp */ `[-*]|[1-9]+\d*\.|[ivx]+\.|[a-z]\.`;
-	const MarkoutMatter = sequence$1/* regexp */ `---(?=\n.+)(?:\n.*)+?\n---`;
-	const MarkoutStub = sequence$1/* regexp */ `<!--[^]*?-->|<!.*?>|<\?.*?\?>|<%.*?%>|<(?:\b|\/).*(?:\b|\/)>.*`;
-	const MarkoutStart = sequence$1/* regexp */ `(?!(?:${MarkoutLists}) )(?:[^#${'`'}~<>|\n\s]|${'`'}{1,2}(?!${'`'})|~{1, 2}(?!~))`;
-	const MarkoutLine = sequence$1/* regexp */ `(?:${MarkoutStart})(?:${MarkoutStub}|.*)*$`;
-	// const MarkoutDivider = sequence/* regexp */`-(?:[ \t]*-)+|=(?:=[ \t]*)+`;
-	const MarkoutDivider = sequence$1/* regexp */ `-{2,}|={2,}|\*{2,}|(?:- ){2,}-|(?:= ){2,}=|(?:\* ){2,}\*`;
-	const MarkoutATXHeading = sequence$1/* regexp */ `#{1,6}(?= +${MarkoutLine})`;
-	const MarkoutTextHeading = sequence$1/* regexp */ `${MarkoutStart}.*\n(?=\2\={3,}\n|\2\-{3,}\n)`;
+	const MarkoutLists = SegmentMatcher.sequence/* regexp */ `[-*]|[1-9]+\d*\.|[ivx]+\.|[a-z]\.`;
+	const MarkoutMatter = SegmentMatcher.sequence/* regexp */ `---(?=\n.+)(?:\n.*)+?\n---`;
+	const MarkoutStub = SegmentMatcher.sequence/* regexp */ `<!--[^]*?-->|<!.*?>|<\?.*?\?>|<%.*?%>|<(?:\b|\/).*(?:\b|\/)>.*`;
+	const MarkoutStart = SegmentMatcher.sequence/* regexp */ `(?!(?:${MarkoutLists}) )(?:[^#${'`'}~<>|\n\s]|${'`'}{1,2}(?!${'`'})|~{1, 2}(?!~))`;
+	const MarkoutLine = SegmentMatcher.sequence/* regexp */ `(?:${MarkoutStart})(?:${MarkoutStub}|.*)*$`;
+	// const MarkoutDivider = SegmentMatcher.sequence/* regexp */`-(?:[ \t]*-)+|=(?:=[ \t]*)+`;
+	const MarkoutDivider = SegmentMatcher.sequence/* regexp */ `-{2,}|={2,}|\*{2,}|(?:- ){2,}-|(?:= ){2,}=|(?:\* ){2,}\*`;
+	const MarkoutATXHeading = SegmentMatcher.sequence/* regexp */ `#{1,6}(?= +${MarkoutLine})`;
+	const MarkoutTextHeading = SegmentMatcher.sequence/* regexp */ `${MarkoutStart}.*\n(?=\2\={3,}\n|\2\-{3,}\n)`;
 
 	const MarkoutSegments = SegmentMatcher.define(
 		entity => SegmentMatcher.sequence/* regexp */ `^

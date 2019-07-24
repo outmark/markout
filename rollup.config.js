@@ -8,7 +8,7 @@ const scope = `${__dirname}/packages/markout`;
 
 const SCOPED = /^(?:(?:\.\.\/)*|\/)(markup|markout)\/(?:lib|dist)\//;
 
-const resolver = new class RollupHooks {
+const resolver = new (class RollupHooks {
 	resolveScope(specifier, referrer) {
 		const absolute = specifier.startsWith('/');
 		const relative = !absolute && specifier.startsWith('../');
@@ -50,7 +50,7 @@ const resolver = new class RollupHooks {
 			}
 		}
 	}
-}();
+})();
 
 // SEE: https://rollupjs.org/
 const defaults = {
