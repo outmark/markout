@@ -101,9 +101,9 @@ Current experimental efforts divide the rendering into two phases, the first por
         </figure>
 
   - [x] <figure display:=grid align-items:=center>
-        <pre title=source text-align:=center source-type=html margin:=0 padding:=0>`… <span style:=fence>one</span> …`</pre>
-        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>…<span style:=fence>one</span>…</figure>
-        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column>…<span style="border:var(--fence--border--); background:var(--fence--background--); color:var(--fence--color--); font:var(--fence--font--);">one</span>…</pre>
+        <pre title=source text-align:=center source-type=html margin:=0 padding:=0>` … <span style:=fence>one</span> … `</pre>
+        <figure debug=all title=rendered text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column> … <span style:=fence>one</span> … </figure>
+        <pre title=expected text-align:=center margin:=0 padding:=0 display:=grid grid-auto-flow:=column> … <span style="border:var(--fence--border--); background:var(--fence--background--); color:var(--fence--color--); font:var(--fence--font--);">one</span> … </pre>
         </figure>
 
 - [x] <figcaption>Markdown-Style Italics</figcaption> <figure columns:=20em font-size:=90%>
