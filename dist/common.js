@@ -563,6 +563,10 @@ const partials = {};
 }
 
 class ComposableList extends Array {
+	static create(properties, ...elements) {
+		return Object.assign(new ComposableList(...elements), properties);
+	}
+
 	toString(
 		listInset = this.listInset || '',
 		listType = this.listType || 'ul',
@@ -590,6 +594,11 @@ class ComposableList extends Array {
 		}`.trim();
 
 		const listRows = [`${listInset}<${listType}${(attributes && ` ${attributes}`) || ''}>`];
+
+		/** @type {import('./block-normalizer.js').MarkoutBlockNormalizer} */
+		const normalizer = this.normalizer;
+
+		// .split('\n\n').map(line => `<p>${line}</p>`).join('')
 		for (const item of this) {
 			if (item && typeof item === 'object') {
 				if (item instanceof ComposableList) {
@@ -600,6 +609,7 @@ class ComposableList extends Array {
 								`${listInset}\t\t`,
 						  )}\n${listInset}\t</li>`)
 						: listRows.push(`${listInset}\t<li>\n${item.toString(`${listInset}\t\t`)}\n${listInset}\t</li>`);
+					// continue;
 				} else {
 					const insetText = `${item}`;
 					let text = insetText;
@@ -607,7 +617,12 @@ class ComposableList extends Array {
 						if (!text.startsWith(character)) break;
 						text = text.slice(1);
 					}
+					// if (normalizer) {
+					// 	console.log({normalizer, text});
+					// 	text = normalizer.normalizeParagraphs(`\n\n${text}`);
+					// }
 					listRows.push(text);
+					// listRows.push(text.replace(/^(.+?)(?=(<\/p>)|<[a-z]+\b|\n+))/, (m, a, b) => (a ? `<p>${a}${b || '</p>'}` : m)));
 				}
 			} else {
 				const [, checked, content] = /^\s*(?:\[([-xX]| )\] |)(.+?)\s*$/.exec(item);
@@ -617,12 +632,16 @@ class ComposableList extends Array {
 						checked
 							? `${listInset}\t<li type=checkbox ${
 									checked === ' ' ? '' : checked === '-' ? 'indeterminate' : ' checked'
-							  }> ${content} </li>`
+							  }> ${
+									content
+									// content.replace(/^(.+?)(?=(<\/p>)|<[a-z]+\b))/, (m, a, b) => (a ? `<p>${a}${b || '</p>'}` : m))
+							  } </li>`
 							: `${listInset}\t<li> ${content} </li>`,
 					);
 			}
 		}
 		listRows.push(`${listInset}</${listType}>`);
+		// console.log(this, {normalizer, listRows});
 		return `\n${listRows.join('\n')}\n`;
 	}
 }
@@ -924,10 +943,11 @@ class MarkoutBlockNormalizer {
 
 	/** @param {string} sourceText */
 	normalizeLists(sourceText) {
+		const listProperties = {normalizer: this};
 		return sourceText.replace(matchers.NormalizableLists, (m, feed, body) => {
 			let match, indent;
 			indent = feed.slice(1);
-			let top = new ComposableList();
+			let top = ComposableList.create(listProperties);
 			let list = top;
 			const lists = [top];
 			matchers.NormalizableListItem.lastIndex = 0;
@@ -942,13 +962,13 @@ class MarkoutBlockNormalizer {
 					let depth = matchedInset.length;
 					if (depth > list.listDepth) {
 						const parent = list;
-						list.push((list = new ComposableList()));
+						list.push((list = ComposableList.create(listProperties)));
 						list.parent = parent;
 					} else if (depth < list.listDepth) {
 						while ((list = list.parent) && depth < list.listDepth);
 					} else if ('listStyle' in list && !(like = ComposableList.markerIsLike(matchedMarker, list.listStyle))) {
 						const parent = list.parent;
-						((list = new ComposableList()).parent = parent) ? parent.push(list) : lists.push((top = list));
+						((list = ComposableList.create(listProperties)).parent = parent) ? parent.push(list) : lists.push((top = list));
 					}
 
 					// console.log(text, [matchedMarker, list.listStyle, like]);
@@ -1456,8 +1476,10 @@ const {
 			BREAK_NORMALIZATION: undefined,
 			HEADING_NORMALIZATION: true,
 			PARAGRAPH_NORMALIZATION: true,
+			BLOCK_PARAGRAPH_NORMALIZATION: true,
 			CHECKLIST_NORMALIZATION: true,
 			BLOCKQUOTE_NORMALIZATION: true,
+			BLOCKQUOTE_HEADING_NORMALIZATION: true,
 			TOKEN_FLATTENING: true,
 			DECLARATIVE_STYLING: true,
 			SOURCE_TEXT_RENDERING: true,
@@ -1494,9 +1516,13 @@ const {
 			BREAK_NORMALIZATION: fragment.markoutContentFlags.BREAK_NORMALIZATION = defaults.BREAK_NORMALIZATION,
 			HEADING_NORMALIZATION: fragment.markoutContentFlags.HEADING_NORMALIZATION = defaults.HEADING_NORMALIZATION,
 			PARAGRAPH_NORMALIZATION: fragment.markoutContentFlags.PARAGRAPH_NORMALIZATION = defaults.PARAGRAPH_NORMALIZATION,
+			BLOCK_PARAGRAPH_NORMALIZATION: fragment.markoutContentFlags
+				.BLOCK_PARAGRAPH_NORMALIZATION = defaults.BLOCK_PARAGRAPH_NORMALIZATION,
 			CHECKLIST_NORMALIZATION: fragment.markoutContentFlags.CHECKLIST_NORMALIZATION = defaults.CHECKLIST_NORMALIZATION,
 			BLOCKQUOTE_NORMALIZATION: fragment.markoutContentFlags
 				.BLOCKQUOTE_NORMALIZATION = defaults.BLOCKQUOTE_NORMALIZATION,
+			BLOCKQUOTE_HEADING_NORMALIZATION: fragment.markoutContentFlags
+				.BLOCKQUOTE_HEADING_NORMALIZATION = defaults.BLOCKQUOTE_HEADING_NORMALIZATION,
 			TOKEN_FLATTENING: fragment.markoutContentFlags.TOKEN_FLATTENING = defaults.TOKEN_FLATTENING,
 			DECLARATIVE_STYLING: fragment.markoutContentFlags.DECLARATIVE_STYLING = defaults.DECLARATIVE_STYLING,
 			SOURCE_TEXT_RENDERING: fragment.markoutContentFlags.SOURCE_TEXT_RENDERING = defaults.SOURCE_TEXT_RENDERING,
@@ -1566,6 +1592,8 @@ const {
 		}
 	};
 
+	const HeadingNumber = /^[1-9]\d*\.$|/;
+
 	/** @param {DocumentFragment} fragment */
 	const normalizeHeadingsInFragment = fragment => {
 		const {MarkdownIdentity: Identity, MarkdownIdentityPrefixer: Prefixer, MarkdownIdentityJoiner: Joiner} = entities;
@@ -1585,8 +1613,6 @@ const {
 				hgroup.appendChild(subheading);
 			}
 		}
-
-		const HeadingNumber = /^[1-9]\d*\.$|/;
 
 		for (const heading of fragment.querySelectorAll(
 			`h1:not([id]):not(:empty),h2:not([id]):not(:empty),h3:not([id]):not(:empty),h4:not([id]):not(:empty),h5:not([id]):not(:empty),h6:not([id]):not(:empty)`,
@@ -1624,21 +1650,97 @@ const {
 		}
 	};
 
+	// const BlockParts = /^(?:(\w+(?: \w+)*)(:| - | — |)|)(.*)$/u;
+	const BlockParts = /^[*_]*?(?:(\*{1,2}|_{1,2}|)(\w+(?: \w+)*)\1(: | - | — |)|)(.*)$|/u;
+
+	const BlockHeadingSelectors = ['i:first-child > b', 'b:first-child > i', 'b', 'i'].flatMap(selector => [
+		`:scope > ${(selector = `${selector}:first-child:not(:empty)`)}`,
+		`p:first-child > ${selector}`,
+	]);
+
+	const BlockHeadingSelector = BlockHeadingSelectors.join(',');
+
 	/** @param {DocumentFragment} fragment */
 	const normalizeBlockquotesInFragment = fragment => {
 		/** @type {HTMLQuoteElement} */
 		let previousBlockquote, nextBlockquote;
 		/** @type {Node | Element} */
 		let node, previousNode;
+		/** @type {Range} */
+		let range;
+		let heading, delimiter, headingSeparator, body;
 		const {COMMENT_NODE, TEXT_NODE, ELEMENT_NODE} = fragment;
+
 		/** @type {IterableIterator<HTMLQuoteElement>} */
-		const matchedBlockquotes = fragment.querySelectorAll(
+		const matchedBlocks = fragment.querySelectorAll('blockquote:not(:empty)');
+
+		for (const blockquote of matchedBlocks) {
+			node = blockquote.querySelector(BlockHeadingSelector);
+
+			node == null ||
+				(body = blockquote.textContent.trim()) === '' ||
+				([, delimiter = '', heading = '', headingSeparator = '', body = ''] = BlockParts.exec(body));
+
+			// console.log(`%o — ${delimiter}%s${delimiter}${headingSeparator}${body}`, {blockquote, node}, node.textContent);
+
+			body === '' || (blockquote.blockBody = body);
+
+			if (heading) {
+				blockquote.blockHeadingNode = node;
+				blockquote.dataset.blockHeading = blockquote.blockHeading = heading;
+				blockquote.dataset.blockHeadingSeparator = blockquote.blockHeadingSeparator = headingSeparator;
+				if ((fragment.markoutContentFlags || defaults).BLOCKQUOTE_HEADING_NORMALIZATION === true) {
+					node.slot = 'block-heading';
+					range = document.createRange();
+					range.setStartAfter(node);
+					previousNode = node;
+
+					do {
+						range.setEndAfter((node = node.nextSibling));
+					} while (!(range.text = range.toString()).startsWith(headingSeparator));
+
+					if (range.text !== headingSeparator) {
+						console.log(
+							`%o — [%s][%s][${body}]`,
+							{blockquote, range, contents: range.contents},
+							previousNode.textContent,
+							range.toString(),
+						);
+					} else {
+						node = document.createElement('span');
+						node.textContent = headingSeparator;
+						node.slot = 'block-heading-separator';
+						range.deleteContents();
+						previousNode.after(node);
+						previousNode.parentElement.attachShadow({
+							mode: 'open',
+						}).innerHTML =
+							//
+							/* html */ `
+						<div style="display: grid; grid-template-columns: min-content auto; grid-gap: 1em;">
+							<div>
+								<slot name="block-heading"></slot>
+								<slot name="block-heading-separator" hidden></slot>
+							</div>
+							<div><slot></slot></div>
+						</div>`;
+					}
+
+					// range.setEnd(blockquote, range.startOffset + headingSeparator.length);
+					// range.extractContents();
+					// blockquote.attachShadow({mode: open})
+				}
+			}
+		}
+
+		/** @type {IterableIterator<HTMLQuoteElement>} */
+		const matchedTails = fragment.querySelectorAll(
 			// 'blockquote[blockquote-level]+:not(blockquote)[blockquote-level]')
 			':not(blockquote)[blockquote-level]+blockquote[blockquote-level]',
 		);
 
 		// return;
-		for (const lastBlockquote of matchedBlockquotes) {
+		for (const lastBlockquote of matchedTails) {
 			nextBlockquote = lastBlockquote;
 
 			(previousNode = undefined);
@@ -1754,7 +1856,32 @@ const {
 		}
 	};
 
+	const normalizeParagraphsInBlock = block => {
+		let element, node, nodes, paragraph, text;
+		node = block.firstChild;
+		if (node == null) return;
+		element = block.firstElementChild;
+		// while (element != null && element.matches('span,code,kbd,tt,small,em,strong,b,i,a,q,wbr,br,slot')) {
+		while (element != null && !element.matches('hr,pre,p,blockquote,table,div')) {
+			element = element.nextElementSibling;
+		}
+		while (node !== element) {
+			(nodes || (nodes = [])).push(node);
+			node = node.nextSibling;
+		}
+		if (nodes) {
+			paragraph = document.createElement('p');
+			paragraph.append(...nodes);
+			text = paragraph.textContent;
+			// console.log({element, node, nodes, paragraph, text});
+			text && text.trim() && block.prepend(paragraph);
+		}
+	};
+
 	const normalizeParagraphsInFragment = fragment => {
+		if ((fragment.markoutContentFlags || defaults).BLOCK_PARAGRAPH_NORMALIZATION)
+			for (const block of fragment.querySelectorAll('li:not(:empty), blockquote:not(:empty)'))
+				normalizeParagraphsInBlock(block);
 		for (const empty of fragment.querySelectorAll('p:empty')) empty.remove();
 	};
 
