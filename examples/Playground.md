@@ -61,7 +61,7 @@ Let's look at the narrative behind this rendered playground below.
 
 <!--prettier-ignore-start-->
 ## The Narrative
-### 1.  Fragments
+### 1. Fragments
 <!--prettier-ignore-end-->
 
 ---
@@ -170,7 +170,7 @@ So let's see how other fenced blocks can be used to make a good narrative.
 
 <!--prettier-ignore-start-->
 ## The Narrative
-### 2.  Tags
+### 2. Tags
 <!--prettier-ignore-end-->
 
 ---
@@ -265,11 +265,11 @@ Fun fact to consider here is that while `<script type=text/javascript>` **unambi
 And so at lease for now and just to pair nicely with those smelly and somewhat distasteful specifications, we will use <code>\`\`\`js script=module</code> for module blocks, thusly and intuitively (not), coercing onto them in the playground the `type=module` attribute they would require.
 
 ```js script=module
-/* Prints trace in the console if properly rendered */
 console.trace(
+	// Prints trace in the console if properly rendered
 	document.body.querySelector('script[type=module],:last-child').after(
 		Object.assign(document.createElement('p'), {
-			/* Shows up in the playground frame if properly rendered */
+			// Shows up in the playground frame if properly rendered
 			textContent: 'First 𝘮𝘰𝘥𝘶𝘭𝘦 <script> tag… works!',
 		}),
 	),
