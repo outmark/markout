@@ -353,6 +353,10 @@ blockquote {
 	color: var(--band-text\-\-);
 }
 
+blockquote > p {
+	/* padding: 0.5em; */
+}
+
 blockquote > q {
 	text-indent: 2em;
 	quotes: '“' '”';
