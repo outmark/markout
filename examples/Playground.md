@@ -265,8 +265,8 @@ Fun fact to consider here is that while `<script type=text/javascript>` **unambi
 And so at lease for now and just to pair nicely with those smelly and somewhat distasteful specifications, we will use <code>\`\`\`js script=module</code> for module blocks, thusly and intuitively (not), coercing onto them in the playground the `type=module` attribute they would require.
 
 ```js script=module
+// Prints trace in the console if properly rendered
 console.trace(
-	// Prints trace in the console if properly rendered
 	document.body.querySelector('script[type=module],:last-child').after(
 		Object.assign(document.createElement('p'), {
 			// Shows up in the playground frame if properly rendered

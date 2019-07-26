@@ -169,7 +169,8 @@ export class MarkoutContent extends Component {
 		const timeout = new Promise(resolve => setTimeout(resolve, 150));
 
 		(fragment.markoutContentFlags.ASSET_INITIALIZATION === true ||
-			(fragment.markoutContentFlags.ASSET_INITIALIZATION !== false && fragment.markoutContentFlags.DOM_MUTATIONS !== false)) &&
+			(fragment.markoutContentFlags.ASSET_INITIALIZATION !== false &&
+				fragment.markoutContentFlags.DOM_MUTATIONS !== false)) &&
 			(fragment.assets.modules && fragment.assets.modules.forEach(this.instantiateLinkedModule, this),
 			fragment.assets.scripts && fragment.assets.scripts.forEach(this.instantiateLinkedScript, this));
 
@@ -227,10 +228,14 @@ export class MarkoutContent extends Component {
 
 		const promises = [];
 
-		(fragment.markoutContentFlags.SOURCE_TEXT_RENDERING === true || (fragment.markoutContentFlags.SOURCE_TEXT_RENDERING !== false && fragment.markoutContentFlags.DOM_MUTATIONS !== false)) &&
+		(fragment.markoutContentFlags.SOURCE_TEXT_RENDERING === true ||
+			(fragment.markoutContentFlags.SOURCE_TEXT_RENDERING !== false &&
+				fragment.markoutContentFlags.DOM_MUTATIONS !== false)) &&
 			promises.push(content.renderSourceTextsInFragment(fragment));
 
-		(fragment.markoutContentFlags.ASSET_REMAPPING === true || (fragment.markoutContentFlags.ASSET_REMAPPING !== false && fragment.markoutContentFlags.DOM_MUTATIONS !== false)) &&
+		(fragment.markoutContentFlags.ASSET_REMAPPING === true ||
+			(fragment.markoutContentFlags.ASSET_REMAPPING !== false &&
+				fragment.markoutContentFlags.DOM_MUTATIONS !== false)) &&
 			promises.push(this.linkMarkoutFragment(fragment));
 
 		promises.length && (await Promise.all(promises));

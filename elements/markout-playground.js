@@ -178,24 +178,28 @@ export const MarkoutPlayground = (() => {
 					// `<script type=module src="/browser/markout-frame.js?resize"></script>`,
 				);
 
-			'head' in playground.fragments &&
-				playground.fragments.head.length > 0 &&
-				playground.document.head.appendChild(playground.fragments.head.createFragment(playground.document));
+			playground.target.srcdoc = /* html */ `
+<!doctype html>
+<html>
+	<head>
+		${playground.fragments.head.join('\n		')}
+	</head>
+	<body>
+		${playground.fragments.body.join('\n		')}
+	</body>
+</html>
+			`;
 
-			'body' in playground.fragments &&
-				playground.fragments.body.length > 0 &&
-				playground.document.body.appendChild(playground.fragments.body.createFragment(playground.document));
+			// 'head' in playground.fragments &&
+			// 	playground.fragments.head.length > 0 &&
+			// 	playground.document.head.appendChild(playground.fragments.head.createFragment(playground.document));
+
+			// 'body' in playground.fragments &&
+			// 	playground.fragments.body.length > 0 &&
+			// 	playground.document.body.appendChild(playground.fragments.body.createFragment(playground.document));
 
 			// We really need just the one frame here
 			await new Promise(requestAnimationFrame);
-			// await new Promise(resolve => playground.frame.requestAnimationFrame(resolve));
-			// playground.document.body.style.minHeight = 'max-content';
-			// setTimeout(() => {
-			// 	playground.target.height = `${playground.document.body.scrollHeight}`;
-			// 	playground.target.style.opacity = '';
-			// }, 500);
-			// playground.target.style.opacity = 0;
-			// // playground.target.style.transition = '0.25s';
 			//@ts-ignore
 			playground.target.hidden = playground.target.scrolling = playground.target.frameBorder = false;
 
