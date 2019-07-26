@@ -1717,13 +1717,14 @@ const {
 						}).innerHTML =
 							//
 							/* html */ `
-						<div style="display: grid; grid-template-columns: min-content auto; grid-gap: 1em;">
-							<div>
-								<slot name="block-heading"></slot>
-								<slot name="block-heading-separator" hidden></slot>
-							</div>
-							<div><slot></slot></div>
-						</div>`;
+							<style>:host {padding: 0.5em;}</style>
+							<div style="display: grid; grid-template-columns: min-content auto; grid-gap: 1em;">
+								<div>
+									<slot name="block-heading"></slot>
+									<slot name="block-heading-separator" hidden></slot>
+								</div>
+								<div><slot></slot></div>
+							</div>`;
 					}
 
 					// range.setEnd(blockquote, range.startOffset + headingSeparator.length);
