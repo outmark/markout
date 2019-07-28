@@ -90,11 +90,20 @@ class Matcher extends RegExp {
   }
 
   static flags(...sources) {
-    let flags = '',
-      iterative;
+    let flags, iterative, sourceFlags;
+    flags = '';
     for (const source of sources) {
-      if (!source || (typeof source !== 'string' && typeof source.flags !== 'string')) continue;
-      for (const flag of source.flags || source)
+      sourceFlags =
+        (!!source &&
+          (typeof source === 'string'
+            ? source
+            : typeof source === 'object' &&
+              typeof source.flags !== 'string' &&
+              typeof source.source === 'string' &&
+              source.flags)) ||
+        undefined;
+      if (!sourceFlags) continue;
+      for (const flag of sourceFlags)
         (flag === 'g' || flag === 'y' ? iterative || !(iterative = true) : flags.includes(flag)) || (flags += flag);
     }
     return flags;
@@ -473,7 +482,7 @@ const partials = {};
 		partials.HTMLTagBody = sequence/* regexp */ `(?:[^${`"'`}>]+?|".*?"|'.*?')`;
 
 		sequences.HTMLTags = sequence/* regexp */ `
-			<\/?[a-zA-z]\w*${partials.HTMLTagBody}*?>
+			<\/?[A-Za-z]\w*${partials.HTMLTagBody}*?>
 			|<\?[^]*?\?>
 			|<!--[^]*?-->
 			|<!\w[^]>
@@ -529,7 +538,9 @@ const partials = {};
 
 		matchers.NormalizableBlockquotes = new RegExp(sequences.NormalizableBlockquotes, 'g');
 
+		// We guard against the special case for checklists
 		sequences.NormalizableReferences = sequence/* regexp */ `
+		  (?!${escape('[')}[- xX]${escape(']')} )
       !?
       ${escape('[')}(\S.*?\S)${escape(']')}
       (?:
@@ -538,7 +549,7 @@ const partials = {};
       )
 		`;
 		// NOTE: Safari seems to struggle with /\S|\s/gmu
-		matchers.NormalizableReferences = new RegExp(sequences.NormalizableReferences, 'gm');
+		matchers.NormalizableReferences = new RegExp(sequences.NormalizableReferences, 'g');
 
 		sequences.RewritableAliases = sequence/* regexp */ `
       ^
@@ -926,7 +937,7 @@ class MarkoutBlockNormalizer {
 					({href, title} = match = aliases[alias]);
 				}
 
-				// console.log('reference — %O ', match);
+				// console.log('reference — %O ', {m, text, link, alias, match});
 
 				if (m[0] === '!') {
 					return ` <img${href ? ` src="${encodeURI(href)}"` : ''}${
@@ -968,7 +979,9 @@ class MarkoutBlockNormalizer {
 						while ((list = list.parent) && depth < list.listDepth);
 					} else if ('listStyle' in list && !(like = ComposableList.markerIsLike(matchedMarker, list.listStyle))) {
 						const parent = list.parent;
-						((list = ComposableList.create(listProperties)).parent = parent) ? parent.push(list) : lists.push((top = list));
+						((list = ComposableList.create(listProperties)).parent = parent)
+							? parent.push(list)
+							: lists.push((top = list));
 					}
 
 					// console.log(text, [matchedMarker, list.listStyle, like]);
@@ -1685,7 +1698,7 @@ const {
 
 			body === '' || (blockquote.blockBody = body);
 
-			if (heading) {
+			if (node != null && heading) {
 				blockquote.blockHeadingNode = node;
 				blockquote.dataset.blockHeading = blockquote.blockHeading = heading;
 				blockquote.dataset.blockHeadingSeparator = blockquote.blockHeadingSeparator = headingSeparator;
@@ -2034,8 +2047,8 @@ const encodeEscapedEntities = ((Escapes, replace) => text => text.replace(Escape
 );
 
 const FencedBlockHeader = /^(?:(\w+)(?:\s+(.*?)\s*|)$|)/m;
-const URLPrefix = /^(?:https?:|HTTPS?:)\/\/\S+$|^(?:[A-Za-z][!%\-0-9A-Za-z_~]+\.)+(?:[a-z]{2,5}|[A-Z]{2,5})(?:\/\S*|)$/u;
-const URLString = /^\s*(?:(?:https?:|HTTPS?:)\/\/\S+|(?:[A-Za-z][!%\-0-9A-Za-z_~]+\.)+(?:[a-z]{2,5}|[A-Z]{2,5})\/\S*)\s*$/u;
+const URLPrefix = /^(?:https?:|HTTPS?:)\/\/\S+$|^(?:[A-Za-z][!%\-0-9A-Z_a-z~]+\.)+(?:[a-z]{2,5}|[A-Z]{2,5})(?:\/\S*|)$/u;
+const URLString = /^\s*(?:(?:https?:|HTTPS?:)\/\/\S+|(?:[A-Za-z][!%\-0-9A-Z_a-z~]+\.)+(?:[a-z]{2,5}|[A-Z]{2,5})\/\S*)\s*$/u;
 const URLScheme = /^https?:|HTTPS?:/;
 //
 const SPAN = 'span';
