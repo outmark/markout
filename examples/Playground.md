@@ -1,4 +1,4 @@
-﻿<markout-playground class=primer>
+﻿<markout-playground markout-class=primer>
 
 # The First Markout Playground
 

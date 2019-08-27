@@ -8,6 +8,8 @@
 
 <img display:=block min-width=25em max-height:=25vh title="smotaal.io/markout" src="./assets/markout-icon.svg"/>
 
+<!-- !["smotaal.io/markout"](./assets/markout-icon.svg 'min-width:25em;max-height:25vh') -->
+
 <!-- sometimes elements can have special styling facilities like `<img/>` with `width` and `height` -->
 
 HTML-flavoured Markdown-inspired client-side renderer
@@ -48,13 +50,13 @@ Current experimental efforts divide the rendering into two phases, the first por
 
   - [x] _Syntaxes_
 
-        > one of `md`/`markdown`, `html`, `css`, `json`, `js`/`javascript`, `es`/`ecmascript`
-        >
-        > defaults to `markup`
+    > one of `md`/`markdown`, `html`, `css`, `json`, `js`/`javascript`, `es`/`ecmascript`
+    >
+    > defaults to `markup`
 
   - [x] Markdown _Triple-Grave-Block_ Notation
 
-        > **Note**: Additionally allows annotations after close fence — not recommended for cross-compatibility.
+    > **Note**: Additionally allows annotations after close fence — not recommended for cross-compatibility.
 
   - [ ] Markdown _Triple-Tilde-Block_ <kbd>Excluded</kbd>
   - [ ] Markdown _Indented-Block_ <kbd>Excluded</kbd>
@@ -64,7 +66,7 @@ Current experimental efforts divide the rendering into two phases, the first por
   - [x] HTML Block/Inline Quotes
   - [-] Markdown Block Quote Notation
 
-        > **Note**: Not yet fully implemented in some places, not limited to lists.
+    > **Note**: Not yet fully implemented in some places, not limited to lists.
 
 - [ ] <details><summary>Tables</summary>
 

@@ -1,13 +1,391 @@
+//@ts-check
+
+const DefaultAttributes = 'defaultAttributes';
+const IsInitialized = 'isInitialized';
+const COMPONENT_LOADING_VISIBILITY = 'hidden !important';
+
+const Component = (() => {
+  const {
+    HTMLElement = (() => /** @type {HTMLElementConstructor} */ (class HTMLElement {}))(),
+    // ShadowRoot: Root = (() => /** @type {globalThis['ShadowRoot']} */ (class ShadowRoot {}))(),
+  } = globalThis;
+
+  class Component extends HTMLElement {
+    constructor() {
+      /** @typedef {this} element */
+      /** @type {ComponentStyleElement} */
+      let style;
+      /** @type {DocumentFragment} */
+      let fragment;
+      /** @type {(this | ShadowRoot)} */
+      let root;
+
+      super();
+
+      root = new.target.shadowRoot ? this.attachShadow(new.target.shadowRoot) : this;
+
+      //@ts-ignore
+      fragment = new.target.template
+        ? new.target.template.cloneNode(true)
+        : root !== this || document.createDocumentFragment();
+
+      if (new.target.styles) {
+        root === this && (this.style.visibility = COMPONENT_LOADING_VISIBILITY);
+        // this.style.visibility = COMPONENT_LOADING_VISIBILITY;
+        (fragment || root).prepend((style = initializeComponentStyles(this, new.target)));
+      }
+
+      if (new.target.attributes && new.target.attributes.length) {
+        this.attributes[DefaultAttributes] = initializeComponentAttributes(this, new.target);
+        this.attributes[IsInitialized] = false;
+      }
+
+      if (new.target.template) {
+        for (const element of fragment.querySelectorAll('[id]')) this[`#${element.id}`] = element;
+        for (const element of fragment.querySelectorAll('slot'))
+          `::${element.name || ''}` in this || (this[`::${element.name || ''}`] = element);
+      }
+
+      new.target.initializeRoot(this, fragment, style, root);
+    }
+
+    connectedCallback() {
+      this.attributes[IsInitialized] === false && this.initializeAttributes();
+    }
+
+    attributeChangedCallback(attributeName, previousValue, nextValue) {
+      previousValue === nextValue ||
+        previousValue == nextValue ||
+        (typeof this.updateAttribute === 'function'
+          ? this.updateAttribute(attributeName, nextValue, previousValue)
+          : attributeName in this && (this[attributeName] = nextValue));
+    }
+
+    initializeAttributes() {
+      const attributes = this.attributes;
+      if (!attributes[IsInitialized] && attributes[DefaultAttributes]) {
+        attributes[IsInitialized] = true;
+        for (const attribute in attributes[DefaultAttributes])
+          this.updateAttribute(attribute, this[attribute]);
+      }
+    }
+
+    trace(detail, context = (detail && detail.target) || this, ...args) {
+      const span = typeof context === 'string' ? '%s' : '%O';
+      detail &&
+        (detail.preventDefault
+          ? console.log(`${span}‹%s› %O`, context, detail.type, detail, ...args)
+          : console.trace(`${span} %O`, context, detail, ...args));
+    }
+
+    static async initializeRoot(host, fragment, style, root) {
+      //@ts-ignore
+      style && root === host && (await new Promise(setTimeout));
+      // if (root === host) return setTimeout(() => Component.initializeRoot(host, fragment, style));
+      fragment && root.append(fragment);
+
+      const options = {passive: false};
+      for (const property in host.constructor.prototype) {
+        if (
+          !(
+            typeof property === 'string' &&
+            typeof host[`(${property})`] === 'function' &&
+            property.startsWith('on')
+          )
+        )
+          continue;
+        // (console.internal || console).log(property);
+        root[`(${property})`] = host[`(${property})`];
+        // if (host[property] === host[property]) host[property] = undefined;
+        root.addEventListener(property.slice(2), this.Root.prototype['(onevent)'], options);
+      }
+
+      //@ts-ignore
+      if (style) {
+        await style.loaded;
+        // await new Promise(requestAnimationFrame);
+      }
+      host.style.visibility === COMPONENT_LOADING_VISIBILITY && (host.style.visibility = '');
+    }
+  }
+
+  const {defineProperty} = Object;
+
+  Object.freeze(
+    (Component.Root = class Root {
+      ['(onevent)'](event) {
+        (console['internal'] || console).log({event, this: this, host: this.host});
+        return `(on${event.type})` in this
+          ? this[`(on${event.type})`].call(this.host || this, event)
+          : undefined;
+      }
+    }),
+  );
+
+  /** @type {Component} */
+  Component.Root.prototype.host = undefined;
+
+  Object.freeze(Component.Root.prototype);
+
+  /**
+   * @template {typeof Component} C
+   * @param {InstanceType<C>} component
+   * @param {C} constructor
+   */
+  const initializeComponentAttributes = (component, constructor) => {
+    const {prototype, attributes: componentAttributes} = constructor;
+    for (const attribute of componentAttributes) {
+      prototype.hasOwnProperty(attribute) ||
+        defineProperty(this, attribute, {
+          get() {
+            return this.hasAttribute(attribute)
+              ? this.getAttribute(attribute)
+              : componentAttributes[attribute];
+          },
+          set(value) {
+            value === null || value === undefined
+              ? this.removeAttribute(attribute)
+              : value === this.getAttribute(attribute) || this.setAttribute(attribute, value);
+          },
+        });
+    }
+    return componentAttributes;
+  };
+
+  const StyleElement = Symbol('styles.element');
+
+  /**
+   * @template {typeof Component} C
+   * @param {InstanceType<C>} component
+   * @param {C} constructor
+   */
+  const initializeComponentStyles = (component, constructor) => {
+    /** @type {ComponentStyleElement} */
+    const componentStyleElement =
+      constructor[StyleElement] ||
+      (constructor.styles &&
+        (constructor[StyleElement] = createComponentStyleElement(constructor.styles)));
+
+    if (componentStyleElement) return componentStyleElement.cloneStyleSheet();
+  };
+
+  /** @param {string} textContent */
+  const createComponentStyleElement = textContent => {
+    /** @type {ComponentStyleElement} */
+    const style = document.createElement('style');
+
+    style.loaded = new Promise(resolve => {
+      const handler = event => {
+        style.removeEventListener('load', handler);
+        style.removeEventListener('error', handler);
+        style.removeEventListener('abort', handler);
+        resolve();
+      };
+      style.addEventListener('load', handler, {capture: true, passive: false, once: true});
+      style.addEventListener('error', handler, {capture: true, passive: false, once: true});
+      style.addEventListener('abort', handler, {capture: true, passive: false, once: true});
+    });
+
+    style.cloneStyleSheet = () => {
+      /** @type {any} */
+      const clone = style.cloneNode(true);
+      clone.loaded = style.loaded;
+      return clone;
+    };
+
+    style.textContent = textContent;
+
+    return style;
+  };
+
+  {
+    const hasOwnProperty = Function.call.bind(Object.prototype.hasOwnProperty);
+    const {defineProperty, defineProperties, getOwnPropertyDescriptor} = Object;
+
+    /**
+     * @template {PropertyKey} K
+     * @template V
+     * @param {{}} target
+     * @param {K} property
+     * @param {V} value
+     */
+    const updateProperty = (target, property, value) => (
+      !target ||
+        !property ||
+        ((!hasOwnProperty(target, property) ||
+          getOwnPropertyDescriptor(target, property).configurable !== false) &&
+          defineProperty(target, property, {
+            get: () => value,
+            set: value => updateProperty(target, property, value),
+            configurable: true,
+          })),
+      target
+    );
+
+    const descriptor = {get: () => undefined, enumerable: true, configurable: true};
+
+    defineProperties(Component, {
+      ['set']: {
+        value: {
+          /** @template T @param {PropertyKey} property @param {T} value */
+          ['set'](property, value) {
+            updateProperty(this, property, value);
+            return value;
+          },
+        }['set'],
+      },
+      attributes: {
+        set(value) {
+          updateProperty(this, 'attributes', value);
+        },
+        ...descriptor,
+      },
+      observedAttributes: {
+        set(value) {
+          updateProperty(this, 'observedAttributes', value);
+        },
+        ...descriptor,
+      },
+      shadowRoot: {
+        set(value) {
+          updateProperty(this, 'shadowRoot', value);
+        },
+        ...descriptor,
+      },
+      template: {
+        set(value) {
+          updateProperty(this, 'template', value);
+        },
+        ...descriptor,
+      },
+      styles: {
+        set(value) {
+          updateProperty(this, 'styles', value);
+        },
+        ...descriptor,
+      },
+      html: {
+        set(value) {
+          this === Component || updateProperty(this, 'html', value);
+        },
+        get() {
+          return components.html;
+        },
+      },
+      css: {
+        set(value) {
+          this === Component || updateProperty(this, 'css', value);
+        },
+        get() {
+          return components.css;
+        },
+      },
+      styling: {
+        set(value) {
+          this === Component || updateProperty(this, 'styling', value);
+        },
+        get() {
+          return components.styling;
+        },
+      },
+      Attributes: {
+        set(value) {
+          this === Component || updateProperty(this, 'Attributes', value);
+        },
+        get() {
+          return components.Attributes;
+        },
+      },
+      Assets: {
+        set(value) {
+          this === Component || updateProperty(this, 'Assets', value);
+        },
+        get() {
+          return components.Assets;
+        },
+      },
+    });
+
+    // EventHandlers: {
+    //   const EventHook = /^on[a-z]{2,}$/;
+    //   const descriptors = {};
+    //   for (const property of Object.getOwnPropertyNames(HTMLElement.prototype)) {
+    //     if (EventHook.test(property)) {
+    //       const descriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, property);
+    //       descriptors[property] = {
+    //         get() {
+    //           console.log('get', property, this, descriptor);
+    //           return descriptor.get.call(this);
+    //         },
+    //         set(value) {
+    //           console.log('set', property, this, descriptor, value);
+    //           return descriptor.set.call(this, value);
+    //         },
+    //       };
+    //     }
+    //   }
+    //   Object.defineProperties(Component.prototype, descriptors);
+    // }
+  }
+
+  if (void Component) {
+    /** @type {<T>(property:PropertyKey, value: T) => T} */
+    Component.set = undefined;
+
+    /** @type {import('./attributes').Attributes<string> | undefined} */
+    Component.attributes = undefined;
+
+    /** @type {string[]} */
+    Component.observedAttributes = undefined;
+
+    /** @type {ShadowRootInit} */
+    Component.shadowRoot = undefined;
+
+    /** @type {DocumentFragment} */
+    Component.template = undefined;
+
+    /** @type {string} */
+    Component.styles = undefined;
+
+    // Those properties are meant for bundling
+    /** @type {import('./templates.js')['css']} */
+    Component.html = components.html;
+    /** @type {import('./templates.js')['html']} */
+    Component.css = components.css;
+    /** @type {import('./styling.js')['styling']} */
+    Component.styling = components.styling;
+    /** @type {import('./assets.js')['Assets']} */
+    Component.Assets = components.Assets;
+    /** @type {import('./attributes.js')['Attributes']} */
+    Component.Attributes = components.Attributes;
+
+    /** @type {<T, R, U>(attributeName: string, nextValue?: T, previousValue?: T | R) => U} */
+    Component.prototype.updateAttribute = undefined;
+  }
+
+  return Component;
+})();
+
+/** @typedef {typeof HTMLElement} HTMLElementConstructor */
+/** @typedef {import('./attributes')['Attributes']} Attributes */
+/** @typedef {HTMLStyleElement & Partial<{cloneStyleSheet(): ComponentStyleElement, loaded?: Promise<void>}>} ComponentStyleElement */
+
 // @ts-check
-/// <reference path="./types/global.d.ts" />
 
 const components = {};
 
+/** @type {(typeof Component)['html']} */
 components.html = import.meta['components.html'];
+/** @type {(typeof Component)['css']} */
 components.css = import.meta['components.css'];
+/** @type {(typeof Component)['styling']} */
+components.styling = import.meta['components.styling'];
+/** @type {(typeof Component)['Assets']} */
 components.Assets = import.meta['components.Assets'];
+/** @type {(typeof Component)['Attributes']} */
 components.Attributes = import.meta['components.Attributes'];
-components.Component = import.meta['components.Component'];
+
+components.Component = import.meta['components.Component'] = Component;
 
 //@ts-check
 
@@ -105,13 +483,14 @@ const css = (options => {
   };
 
   Object.defineProperty(css, 'prefixes', {value: Object.freeze(prefixes)});
+
+  import.meta['components.css'] = components.css = css;
+
   return css;
 })({
   prefixes: {'backdrop-filter': ['-webkit'], position: [], 'position:sticky': ['-webkit']},
   prefixed: ['user-select', 'backdrop-filter', 'position'],
 });
-
-import.meta['components.css'] = components.css = css;
 
 /**
  * @template T, V
@@ -120,27 +499,8 @@ import.meta['components.css'] = components.css = css;
 
 //@ts-check
 
-/** @typedef {{raw: TemplateStringsArray['raw']}} RawStrings */
-/** @typedef {TemplateStringsArray | RawStrings} TemplateStrings */
-
-/**
- * @template T
- * @template V
- * @typedef {(strings: TemplateStrings, ...values: V[]) => T} TaggedTemplate
- */
-
-/**
- * @template T
- * @typedef {TaggedTemplate<T, {toString(): string | void} | {} | void>} StringTaggedTemplate
- */
-
 /** @type {StringTaggedTemplate<string>} */
 const raw = String.raw;
-
-/**
- * @template T
- * @typedef {TaggedTemplate<T, {toString(): string | void} | DocumentFragment | HTMLElement | {} | void>} HTMLTaggedTemplate
- */
 
 /** @returns {HTMLTaggedTemplate<HTMLTemplateElement>} */
 const template = (template = document.createElement('template')) => (strings, ...values) => {
@@ -158,345 +518,166 @@ const template = (template = document.createElement('template')) => (strings, ..
     index++;
   }
   template.innerHTML = raw(strings, ...values);
-  return template;
+  return (import.meta['components.template'] = components.template = template);
 };
 template.html = template;
 
 const html = (template => {
   /** @type {HTMLTaggedTemplate<DocumentFragment>} */
-  return (...args) => {
-    const content = document.createDocumentFragment();
-    content.appendChild(Reflect.apply(template, null, args).content);
-    return content;
-  };
+  return (import.meta['components.html'] = components.html = (...args) => {
+    //@ts-ignore
+    (args.content = document.createDocumentFragment()).appendChild(
+      Reflect.apply(template, null, args).content,
+    );
+    //@ts-ignore
+    return args.content;
+  });
 })(template());
 
-import.meta['components.template'] = components.template = template;
-import.meta['components.html'] = components.html = html;
+/** @typedef {{raw: TemplateStringsArray['raw']}} RawStrings */
+/** @typedef {TemplateStringsArray | RawStrings} TemplateStrings */
 
-// /**
-//  * @param {TemplateStringsArray | {raw: string[]}} strings
-//  * @param {*} values
-//  * @returns {string}
-//  */
-// export function css(strings, ...values) {
-//   const source = raw(strings, ...values);
-//   const style = source.replace(css.matcher, css.matcher.replacer);
-//   console.log({style});
-//   return style;
-// }
+/** @template T, V @typedef {(strings: TemplateStrings, ...values: V[]) => T} TaggedTemplate */
 
-// css.prefix = ['user-select'];
+/** @template T @typedef {TaggedTemplate<T, {toString(): string | void} | {} | void>} StringTaggedTemplate */
+/** @template T @typedef {TaggedTemplate<T, {toString(): string | void} | DocumentFragment | HTMLElement | {} | void>} HTMLTaggedTemplate */
 
-// @ts-check
+//@ts-check
 
-const DefaultAttributes = 'defaultAttributes';
-const IsInitialized = 'isInitialized';
-const COMPONENT_LOADING_VISIBILITY = 'hidden !important';
+const styling = (() => {
+  const styling = {};
 
-const Component = (() => {
-  class Component extends HTMLElement {
-    constructor() {
-      /** @type {ComponentStyleElement} */
-      let style;
-      /** @type {DocumentFragment} */
-      let fragment;
-      /** @type {this | ShadowRoot} */
-      let root;
+  const {getOwnPropertyNames, setPrototypeOf, getPrototypeOf, freeze, keys} = Object;
 
-      super();
+  const {ELEMENT_NODE = 1, ATTRIBUTE_NODE = 2, DOCUMENT_FRAGMENT_NODE = 11} =
+    (globalThis.Node && globalThis.Node.prototype) || {};
 
-      root = new.target.shadowRoot ? this.attachShadow(new.target.shadowRoot) : this;
-
-      //@ts-ignore
-      fragment = new.target.template
-        ? new.target.template.cloneNode(true)
-        : root !== this || document.createDocumentFragment();
-
-      if (new.target.styles) {
-        root === this && (this.style.visibility = COMPONENT_LOADING_VISIBILITY);
-        // this.style.visibility = COMPONENT_LOADING_VISIBILITY;
-        (fragment || root).prepend((style = initializeComponentStyles(this, new.target)));
-      }
-
-      if (new.target.attributes && new.target.attributes.length) {
-        this.attributes[DefaultAttributes] = initializeComponentAttributes(this, new.target);
-        this.attributes[IsInitialized] = false;
-      }
-
-      if (new.target.template) {
-        for (const element of fragment.querySelectorAll('[id]')) this[`#${element.id}`] = element;
-        for (const element of fragment.querySelectorAll('slot'))
-          `::${element.name || ''}` in this || (this[`::${element.name || ''}`] = element);
-      }
-
-      new.target.initializeRoot(this, fragment, style, root);
-    }
-
-    connectedCallback() {
-      this.attributes[IsInitialized] === false && this.initializeAttributes();
-    }
-
-    attributeChangedCallback(attributeName, previousValue, nextValue) {
-      previousValue === nextValue ||
-        previousValue == nextValue ||
-        (typeof this.updateAttribute === 'function'
-          ? this.updateAttribute(attributeName, nextValue, previousValue)
-          : attributeName in this && (this[attributeName] = nextValue));
-    }
-
-    initializeAttributes() {
-      const attributes = this.attributes;
-      if (!attributes[IsInitialized] && attributes[DefaultAttributes]) {
-        attributes[IsInitialized] = true;
-        for (const attribute in attributes[DefaultAttributes])
-          this.updateAttribute(attribute, this[attribute]);
-      }
-    }
-
-    trace(detail, context = (detail && detail.target) || this, ...args) {
-      const span = typeof context === 'string' ? '%s' : '%O';
-      detail &&
-        (detail.preventDefault
-          ? console.log(`${span}‹%s› %O`, context, detail.type, detail, ...args)
-          : console.trace(`${span} %O`, context, detail, ...args));
-    }
-
-    static async initializeRoot(host, fragment, style, root) {
-      //@ts-ignore
-      style && root === host && (await new Promise(setTimeout));
-      // if (root === host) return setTimeout(() => Component.initializeRoot(host, fragment, style));
-      fragment && root.append(fragment);
-      //@ts-ignore
-      if (style) {
-        await style.loaded;
-        // await new Promise(requestAnimationFrame);
-      }
-      host.style.visibility === COMPONENT_LOADING_VISIBILITY && (host.style.visibility = '');
-    }
-  }
-
-  const {defineProperty} = Object;
-
-  /**
-   * @template {typeof Component} C
-   * @param {InstanceType<C>} component
-   * @param {C} constructor
-   */
-  const initializeComponentAttributes = (component, constructor) => {
-    const {prototype, attributes: componentAttributes} = constructor;
-    for (const attribute of componentAttributes) {
-      prototype.hasOwnProperty(attribute) ||
-        defineProperty(this, attribute, {
-          get() {
-            return this.hasAttribute(attribute)
-              ? this.getAttribute(attribute)
-              : componentAttributes[attribute];
-          },
-          set(value) {
-            value === null || value === undefined
-              ? this.removeAttribute(attribute)
-              : value === this.getAttribute(attribute) || this.setAttribute(attribute, value);
-          },
-        });
-    }
-    return componentAttributes;
-  };
-
-  const StyleElement = Symbol('styles.element');
-
-  /**
-   * @template {typeof Component} C
-   * @param {InstanceType<C>} component
-   * @param {C} constructor
-   */
-  const initializeComponentStyles = (component, constructor) => {
-    /** @type {ComponentStyleElement} */
-    const componentStyleElement =
-      constructor[StyleElement] ||
-      (constructor.styles &&
-        (constructor[StyleElement] = createComponentStyleElement(constructor.styles)));
-
-    if (componentStyleElement) return componentStyleElement.cloneStyleSheet();
-  };
-
-  /** @param {string} textContent */
-  const createComponentStyleElement = textContent => {
-    /** @type {ComponentStyleElement} */
-    const style = document.createElement('style');
-
-    style.loaded = new Promise(resolve => {
-      const handler = event => {
-        style.removeEventListener('load', handler);
-        style.removeEventListener('error', handler);
-        style.removeEventListener('abort', handler);
-        resolve();
-      };
-      style.addEventListener('load', handler, {capture: true, passive: false, once: true});
-      style.addEventListener('error', handler, {capture: true, passive: false, once: true});
-      style.addEventListener('abort', handler, {capture: true, passive: false, once: true});
-    });
-
-    style.cloneStyleSheet = () => {
-      /** @type {any} */
-      const clone = style.cloneNode(true);
-      clone.loaded = style.loaded;
-      return clone;
-    };
-
-    style.textContent = textContent;
-
-    return style;
-  };
+  /** @param {string} value @returns {string} */
+  styling.autoprefix = value =>
+    value.replace(styling.autoprefix.matcher, styling.autoprefix.replacer);
 
   {
-    const hasOwnProperty = Function.call.bind(Object.prototype.hasOwnProperty);
+    styling.autoprefix.mappings = {};
+    styling.autoprefix.prefix = CSS.supports('-moz-appearance', 'initial')
+      ? '-moz-'
+      : CSS.supports('-webkit-appearance', 'initial')
+      ? '-webkit-'
+      : '';
+    if (styling.autoprefix.prefix) {
+      const {mappings, prefix} = styling.autoprefix;
+      const map = (property, value, mapping = `${prefix}${value}`) =>
+        CSS.supports(property, value) || (mappings[value] = mapping);
 
-    const {defineProperty, defineProperties, getOwnPropertyDescriptor} = Object;
+      if (prefix === '-webkit-') {
+        map('width', 'fill-available');
+      } else if (prefix === '-moz-') {
+        map('width', 'fill-available', '-moz-available');
+      }
 
-    /**
-     * @template {PropertyKey} K
-     * @template V
-     * @param {{}} target
-     * @param {K} property
-     * @param {V} value
-     */
-    const updateProperty = (target, property, value) => (
-      !target ||
-        !property ||
-        ((!hasOwnProperty(target, property) ||
-          getOwnPropertyDescriptor(target, property).configurable !== false) &&
-          defineProperty(target, property, {
-            get: () => value,
-            set: value => updateProperty(target, property, value),
-            configurable: true,
-          })),
-      target
-    );
+      const mapped = keys(mappings);
 
-    const descriptor = {get: () => undefined, enumerable: true, configurable: true};
-
-    Object.defineProperty(Component, 'set', {
-      value: {
-        /** @template T @param {PropertyKey} property @param {T} value */
-        ['set'](property, value) {
-          updateProperty(this, property, value);
-          return value;
-        },
-      }['set'],
-    });
-
-    defineProperties(Component, {
-      attributes: {
-        set(value) {
-          updateProperty(this, 'attributes', value);
-        },
-        ...descriptor,
-      },
-      observedAttributes: {
-        set(value) {
-          updateProperty(this, 'observedAttributes', value);
-        },
-        ...descriptor,
-      },
-      shadowRoot: {
-        set(value) {
-          updateProperty(this, 'shadowRoot', value);
-        },
-        ...descriptor,
-      },
-      template: {
-        set(value) {
-          updateProperty(this, 'template', value);
-        },
-        ...descriptor,
-      },
-      styles: {
-        set(value) {
-          updateProperty(this, 'styles', value);
-        },
-        ...descriptor,
-      },
-      html: {
-        set(value) {
-          // (value || (value = import.meta['components.html'])) &&
-          this === Component || updateProperty(this, 'html', value);
-        },
-        get() {
-          //@ts-ignore
-          return components.html;
-        },
-      },
-      css: {
-        set(value) {
-          // (value || (value = import.meta['components.css'])) &&
-          this === Component || updateProperty(this, 'css', value);
-        },
-        get() {
-          //@ts-ignore
-          return components.css;
-        },
-      },
-      Attributes: {
-        set(value) {
-          // (value || (value = import.meta['components.Attributes'])) &&
-          this === Component || updateProperty(this, 'Attributes', value);
-        },
-        get() {
-          //@ts-ignore
-          return components.Attributes;
-        },
-      },
-      Assets: {
-        set(value) {
-          // (value || (value = import.meta['components.Assets'])) &&
-          this === Component || updateProperty(this, 'Assets', value);
-        },
-        get() {
-          //@ts-ignore
-          return components.Assets;
-        },
-      },
-    });
+      if (mapped.length > 0) {
+        styling.autoprefix.matcher = new RegExp(String.raw`\b-?(?:${mapped.join('|')})\b`, 'gi');
+        freeze((styling.autoprefix.replacer = value => mappings[value] || value));
+        freeze(styling.autoprefix.mappings);
+        freeze(styling.autoprefix);
+      }
+    }
   }
 
-  return Component;
+  /** @param {string} value @param {string} property @returns {string} */
+  styling.normalize = (value, property) => {
+    if (!value || !(value = value.trim())) return '';
+    value.startsWith('--') && !value.includes(' ') && (value = `var(${value}--${property}--)`);
+    return value;
+  };
 
-  AMBIENT: {
-    /** @type {import('./attributes').Attributes<string> | undefined} */
-    Component.attributes = undefined;
+  /** @param {HTMLElement} element @param {string} style */
+  styling.mixin = (element, style) => {
+    // TODO: Explore computedStyle mixins
+    element.style.border = `var(--${style}--border--, unset)`;
+    element.style.background = `var(--${style}--background--, unset)`;
+    element.style.color = `var(--${style}--color--, unset)`;
+    element.style.font = `var(--${style}--font--, unset)`;
+    element.style.opacity = `var(--${style}--opacity--, unset)`;
+  };
 
-    /** @type {string[]} */
-    Component.observedAttributes = undefined;
+  /** @param {HTMLElement|DocumentFragment} node */
+  styling.apply = node => {
+    node == null ||
+      typeof node !== 'object' ||
+      (node.nodeType - DOCUMENT_FRAGMENT_NODE === 0
+        ? // TODO: consider pseudom fragments
+          styling.apply.toFragment(/** @type {DocumentFragment} */ (node))
+        : // (node.nodeType - ELEMENT_NODE) === 0 &&
+          styling.apply.toElement(/** @type {HTMLElement} */ (node)));
+  };
 
-    /** @type {ShadowRootInit} */
-    Component.shadowRoot = undefined;
+  /** @param {HTMLElement} element */
+  styling.apply.toElement = element => {
+    // const {lookup, autoprefix, normalize} = styling;
+    for (const attribute of element.getAttributeNames()) {
+      attribute in styling.lookup &&
+        (attribute === 'style:'
+          ? styling.mixin(element, element.getAttribute(attribute))
+          : styling.autoprefix === undefined
+          ? (element.style[styling.lookup[attribute]] = styling.normalize(
+              element.getAttribute(attribute),
+              attribute.slice(0, -1),
+            ))
+          : (element.style[styling.lookup[attribute]] = styling.autoprefix(
+              styling.normalize(element.getAttribute(attribute), attribute.slice(0, -1)),
+            )),
+        element.removeAttribute(attribute));
+    }
+  };
 
-    /** @type {DocumentFragment} */
-    Component.template = undefined;
+  /** @param {DocumentFragment} fragment */
+  styling.apply.toFragment = fragment => {
+    // if (typeof styling.selector === 'string' && styling.selector !== '') return;
+    for (const element of fragment.querySelectorAll(styling.selector))
+      styling.apply.toElement(/** @type {HTMLElement} */ (element));
+  };
 
-    /** @type {string} */
-    Component.styles = undefined;
+  /** @type {{[name: string] : string}} */
+  styling.lookup = {};
 
-    // Those properties are meant for bundling
-    Component.html = import.meta['components.html'];
-    Component.css = import.meta['components.css'];
-    Component.Assets = import.meta['components.Assets'];
-    Component.Attributes = import.meta['components.Attributes'];
+  {
+    const selectors = [];
+    const style = document.createElement('span').style;
+    const Prefix = /^-?webkit-|-?moz-/;
+    const Boundary = /[a-z](?=[A-Z])/g;
 
-    /** @type {<T, R, U>(attributeName: string, nextValue?: T, previousValue?: T | R) => U} */
-    Component.prototype.updateAttribute = undefined;
+    for (const property of new Set([
+      // Markout style properties
+      'style', // mixin styling
+      // CSS style properties
+      ...[
+        // Webkit/Blink
+        ...getOwnPropertyNames(style),
+        // Firefox
+        ...getOwnPropertyNames(getPrototypeOf(style)),
+      ].filter(property => style[property] === ''),
+      // ].filter(property => style[property] === '' && Filter.test(property)),
+    ])) {
+      const attribute = `${property.replace(Boundary, '$&-').toLowerCase()}:`.replace(Prefix, '');
+      styling.lookup[attribute] = property;
+      selectors.push(`[${CSS.escape(attribute)}]`);
+    }
+
+    styling.selector = selectors.join(',');
   }
+  freeze(setPrototypeOf(styling.lookup, null));
+  freeze(styling.apply.toElement);
+  freeze(styling.apply.toFragment);
+  freeze(styling.apply);
+
+  freeze(styling);
+
+  import.meta['components.styling'] = components.styling = styling;
+
+  return styling;
 })();
-
-import.meta['components.Component'] = components.Component = Component;
-
-// if (import.meta.url.includes('/components/lib/components.js')) {
-
-// }
-
-/** @typedef {import('./attributes')['Attributes']} Attributes */
-/** @typedef {HTMLStyleElement & Partial<{cloneStyleSheet(): ComponentStyleElement, loaded?: Promise<void>}>} ComponentStyleElement */
 
 //@ts-check
 
@@ -576,10 +757,10 @@ const {Toggle, Attributes} = (() => {
     [Symbol.isConcatSpreadable]: {value: false},
   });
 
+  import.meta['components.Attributes'] = components.Attributes = Attributes;
+
   return {Attributes, Toggle};
 })();
-
-import.meta['components.Attributes'] = components.Attributes = Attributes;
 
 /**
  * @typedef {*} attribute.value
@@ -800,139 +981,143 @@ const preload = (src => {
 
 //@ts-check
 
-const root =
-  (currentDocument && currentDocument.baseURI && new URL('./', currentDocument.baseURI)) ||
-  (currentWindow && currentWindow.location && new URL('./', String(currentWindow.location))) ||
-  (currentProcess && currentProcess.cwd && new URL(`file://${currentProcess.cwd()}`)) ||
-  new URL('../', import.meta.url);
+const {Assets, Asset} = (() => {
+  const root =
+    (currentDocument && currentDocument.baseURI && new URL('./', currentDocument.baseURI)) ||
+    (currentWindow && currentWindow.location && new URL('./', String(currentWindow.location))) ||
+    (currentProcess && currentProcess.cwd && new URL(`file://${currentProcess.cwd()}`)) ||
+    new URL('../', import.meta.url);
 
-const BASE = '[[base]]';
-const SCRIPTS = '[[scripts]]';
-const STYLES = '[[styles]]';
-const PRELOAD = '[[preload]]';
+  const BASE = '[[base]]';
+  const SCRIPTS = '[[scripts]]';
+  const STYLES = '[[styles]]';
+  const PRELOAD = '[[preload]]';
 
-class Asset extends URL {
-  constructor(href, type, id) {
-    let link, selector;
-    if (id) {
-      // console.log({href, type, id});
-      if (type === 'style') {
-        selector = `link#${CSS.escape(id)}`;
-        link = currentDocument.querySelector(
-          `${selector}[rel=stylesheet][href], ${selector}[rel=preload][as=style][href]`,
+  class Asset extends URL {
+    constructor(href, type, id) {
+      let link, selector;
+      if (id) {
+        // console.log({href, type, id});
+        if (type === 'style') {
+          selector = `link#${CSS.escape(id)}`;
+          link = currentDocument.querySelector(
+            `${selector}[rel=stylesheet][href], ${selector}[rel=preload][as=style][href]`,
+          );
+        }
+      }
+      if (link && link.href) {
+        super(link.href);
+        Object.defineProperty(this, PRELOAD, {value: resolvedPromise});
+      } else {
+        super(href);
+      }
+      this.id = id;
+      this.type = type;
+      // Object.defineProperties(this, Object.getOwnPropertyDescriptors(Object.freeze({...this})));
+    }
+
+    get [PRELOAD]() {
+      const value = preload(this, this.type);
+      // const value =
+      //   this.type === 'style' &&
+      //   Array.prototype.find.call(document.styleSheets, ({href}) => (href = this.href))
+      //     ? resolvedPromise
+      //     : preload(this, this.type);
+      Object.defineProperty(this, PRELOAD, {value});
+      return value;
+    }
+
+    then(ƒ) {
+      return this[PRELOAD].then(ƒ);
+    }
+
+    catch(ƒ) {
+      return this[PRELOAD].catch(ƒ);
+    }
+
+    finally(ƒ) {
+      return this[PRELOAD].finally(ƒ);
+    }
+  }
+
+  class Assets {
+    /** @typedef {{base: string, Asset?: typeof Asset}} Options */
+    /** @typedef {string} specifier */
+    /** @param {Options} [options] */
+    /** @param {... specifier} [specifiers] */
+    constructor(options, ...specifiers) {
+      const assets = {script: {}, style: {}};
+
+      const {base = `${root}`, Asset = new.target.Asset || Assets.Asset} = {
+        ...(((!arguments.length || typeof options === 'object') && options) ||
+          (options = void ([...specifiers] = arguments))),
+      };
+
+      const descriptors = {
+        [BASE]: {value: base},
+
+        [SCRIPTS]: {
+          get: () => {
+            const promise = awaitAll(Object.values(assets.script));
+            Object.defineProperty(this, SCRIPTS, {value: promise});
+            return promise;
+          },
+          configurable: true,
+        },
+
+        [STYLES]: {
+          get: () => {
+            const promise = awaitAll(Object.values(assets.style));
+            Object.defineProperty(this, STYLES, {value: promise});
+            return promise;
+          },
+          configurable: true,
+        },
+      };
+
+      for (const specifier of specifiers) {
+        let [, type, href] = /^(?:(style|script|fetch):|)(.*)$/.exec(specifier);
+        // const preloading = as && preload(specifier, as);
+
+        if (!type || !(type in assets || (type = `${type}`.toLowerCase()) in assets)) {
+          console.log({specifier, type, href});
+          continue;
+        }
+
+        const url = resolve(href, base);
+        url.startsWith(base) && (href = url.replace(base, ''));
+        const id = `${type}:${href}`;
+
+        Object.defineProperty(
+          assets[type],
+          href,
+          (descriptors[id] = {
+            value: new Asset(url, type, id),
+            enumerable: true,
+          }),
         );
-      }
-    }
-    if (link && link.href) {
-      super(link.href);
-      Object.defineProperty(this, PRELOAD, {value: resolvedPromise});
-    } else {
-      super(href);
-    }
-    this.id = id;
-    this.type = type;
-    // Object.defineProperties(this, Object.getOwnPropertyDescriptors(Object.freeze({...this})));
-  }
 
-  get [PRELOAD]() {
-    const value = preload(this, this.type);
-    // const value =
-    //   this.type === 'style' &&
-    //   Array.prototype.find.call(document.styleSheets, ({href}) => (href = this.href))
-    //     ? resolvedPromise
-    //     : preload(this, this.type);
-    Object.defineProperty(this, PRELOAD, {value});
-    return value;
-  }
-
-  then(ƒ) {
-    return this[PRELOAD].then(ƒ);
-  }
-
-  catch(ƒ) {
-    return this[PRELOAD].catch(ƒ);
-  }
-
-  finally(ƒ) {
-    return this[PRELOAD].finally(ƒ);
-  }
-}
-
-class Assets {
-  /** @typedef {{base: string, Asset?: typeof Asset}} Options */
-  /** @typedef {string} specifier */
-  /** @param {Options} [options] */
-  /** @param {... specifier} [specifiers] */
-  constructor(options, ...specifiers) {
-    const assets = {script: {}, style: {}};
-
-    const {base = `${root}`, Asset = new.target.Asset || Assets.Asset} = {
-      ...(((!arguments.length || typeof options === 'object') && options) ||
-        (options = void ([...specifiers] = arguments))),
-    };
-
-    const descriptors = {
-      [BASE]: {value: base},
-
-      [SCRIPTS]: {
-        get: () => {
-          const promise = awaitAll(Object.values(assets.script));
-          Object.defineProperty(this, SCRIPTS, {value: promise});
-          return promise;
-        },
-        configurable: true,
-      },
-
-      [STYLES]: {
-        get: () => {
-          const promise = awaitAll(Object.values(assets.style));
-          Object.defineProperty(this, STYLES, {value: promise});
-          return promise;
-        },
-        configurable: true,
-      },
-    };
-
-    for (const specifier of specifiers) {
-      let [, type, href] = /^(?:(style|script|fetch):|)(.*)$/.exec(specifier);
-      // const preloading = as && preload(specifier, as);
-
-      if (!type || !(type in assets || (type = `${type}`.toLowerCase()) in assets)) {
-        console.log({specifier, type, href});
-        continue;
+        id !== specifier && (descriptors[specifier] = {get: () => this[id]});
       }
 
-      const url = resolve(href, base);
-      url.startsWith(base) && (href = url.replace(base, ''));
-      const id = `${type}:${href}`;
-
-      Object.defineProperty(
-        assets[type],
-        href,
-        (descriptors[id] = {
-          value: new Asset(url, type, id),
-          enumerable: true,
-        }),
-      );
-
-      id !== specifier && (descriptors[specifier] = {get: () => this[id]});
+      Object.defineProperties(this, descriptors);
     }
 
-    Object.defineProperties(this, descriptors);
+    resolve(specifier, referrer = this[BASE]) {
+      return resolve(specifier, referrer);
+    }
+
+    static resolve(specifier, referrer = root) {
+      return resolve(specifier, referrer);
+    }
   }
 
-  resolve(specifier, referrer = this[BASE]) {
-    return resolve(specifier, referrer);
-  }
+  import.meta['components.Assets'] = components.Assets = Assets;
 
-  static resolve(specifier, referrer = root) {
-    return resolve(specifier, referrer);
-  }
-}
+  Assets.Asset = Asset;
 
-Assets.Asset = Asset;
+  return {Assets, Asset};
+})();
 
-import.meta['components.Assets'] = components.Assets = Assets;
-
-export { Assets, Attributes, Component, Toggle, components, css, html, raw };
+export { Assets, Attributes, Component, Toggle, components, css, html, raw, styling };
 //# sourceMappingURL=components.js.map

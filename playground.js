@@ -1,4 +1,4 @@
-﻿{
+﻿if (/^about:/.test(globalThis.location)) {
 	import('/browser/markout-frame.js?resize');
 
 	const inDevelopment = /\?.*?\bdev\b/i.test(import.meta.url);
@@ -31,4 +31,6 @@
 		);
 
 	import(markoutURL);
+} else if (typeof globalThis.customElements === 'object') {
+	customElements.get('markout-playground') || import('./elements/markout-playground.js');
 }

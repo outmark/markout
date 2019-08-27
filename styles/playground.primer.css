@@ -1,38 +1,28 @@
-﻿markout-playground.primer * {
+﻿[markout-class='primer'] * {
 	--inline-margin: 1rem;
 }
 
-/* markout-playground.primer :not(.markup) > br[for-scrolling] {
-	display: none;
-} */
-
-markout-playground.primer {
+[markout-class='primer'] {
 	--body-spacing-size: 2;
 	--body-offset-size: 3;
-	/* --block-margin: calc(1rem * var(--body-offset-size)); */
 	--block--offset--: 2rem;
 	--block--inset--: 0.5rem;
 	--body--offset--: 1rem;
-	/* --body--inset--: 0.5rem; */
-	/* --figure--inset--: 0.5rem; */
-	/* padding-inline-start: var(--body--inset--); */
-	/* padding-inline-end: var(--body--inset--); */
-	/* margin-inline-start: 0; */
-	/* margin-inline-end: 0; */
+}
+
+@media only screen and (min-width: 600px) {
+	[markout-class='primer'] {
+		--block--inset--: 1rem;
+	}
+}
+
+[markout-class='primer'] {
 	margin-block-start: var(--block--offset--);
 	margin-block-end: var(--block--offset--);
 }
 
-@media only screen and (min-width: 600px) {
-	markout-playground.primer {
-		--block--inset--: 1rem;
-		/* --body--inset--: 1.5rem; */
-		/* --figure--inset--: 1rem; */
-	}
-}
-
-markout-playground.primer section,
-markout-playground.primer article {
+[markout-class='primer'] section,
+[markout-class='primer'] article {
 	padding-inline-start: var(--block--inset--);
 	padding-inline-end: var(--block--inset--);
 	margin-block-start: var(--block--offset--);
@@ -40,142 +30,108 @@ markout-playground.primer article {
 	border-radius: calc(var(--thinline, 1px) * 2);
 }
 
-markout-playground.primer h1[data-heading-number]::before,
-markout-playground.primer h2[data-heading-number]::before,
-markout-playground.primer h3[data-heading-number]::before,
-markout-playground.primer h4[data-heading-number]::before,
-markout-playground.primer h5[data-heading-number]::before,
-markout-playground.primer h6[data-heading-number]::before {
-	/* display: block; */
-	/* margin-block-end: 0; */
+[markout-class='primer'] h1[data-heading-number]::before,
+[markout-class='primer'] h2[data-heading-number]::before,
+[markout-class='primer'] h3[data-heading-number]::before,
+[markout-class='primer'] h4[data-heading-number]::before,
+[markout-class='primer'] h5[data-heading-number]::before,
+[markout-class='primer'] h6[data-heading-number]::before {
 	font-weight: 400;
-	/* font-size: 75%; */
-	/* line-height: 100%; */
 	content: 'Part ' attr(data-heading-number) ' - ';
 }
 
-markout-playground.primer h1,
-markout-playground.primer h2,
-markout-playground.primer h3,
-markout-playground.primer h4,
-markout-playground.primer h5,
-markout-playground.primer h6,
-markout-playground.primer hgroup,
-markout-playground.primer blockquote,
-markout-playground.primer hr {
-	/* margin: 0; */
-	/* padding: 0; */
+[markout-class='primer'] h1,
+[markout-class='primer'] h2,
+[markout-class='primer'] h3,
+[markout-class='primer'] h4,
+[markout-class='primer'] h5,
+[markout-class='primer'] h6,
+[markout-class='primer'] hgroup,
+[markout-class='primer'] blockquote,
+[markout-class='primer'] hr {
 	margin-block-start: var(--block--offset--);
 	margin-block-end: var(--block--offset--);
-	/* padding-inline-start: var(--block--inset--); */
-	/* padding-inline-end: var(--block--inset--); */
 }
 
-/* markout-playground.primer blockquote, */
-markout-playground.primer article > p,
-markout-playground.primer section > p,
-markout-playground.primer > p {
-	/* margin: 0; */
-	/* padding: 0; */
-	/* margin-inline-start: var(--body--inset--); */
-	/* margin-inline-end: var(--body--inset--); */
+[markout-class='primer'] article > p,
+[markout-class='primer'] section > p,
+[markout-class='primer'] > p {
 	margin-block-start: var(--body--offset--);
 	margin-block-end: var(--body--offset--);
 }
 
-markout-playground.primer > :last-child:not(:first-child),
-markout-playground.primer :not(pre):not(section):not(article) > :last-child:not(:first-child),
-markout-playground.primer iframe:not(:last-child),
-markout-playground.primer pre:not(:last-child) {
+[markout-class='primer'] > :last-child:not(:first-child),
+[markout-class='primer'] :not(pre):not(section):not(article) > :last-child:not(:first-child),
+[markout-class='primer'] iframe:not(:last-child),
+[markout-class='primer'] pre:not(:last-child) {
 	margin-block-end: 0;
 }
 
-markout-playground.primer pre + p {
+[markout-class='primer'] pre + p {
 	margin-block-start: calc(var(--body--offset--) * 2);
 }
 
-markout-playground.primer iframe + blockquote,
-markout-playground.primer pre + blockquote {
-	/* opacity: 0.5; */
+[markout-class='primer'] iframe + blockquote,
+[markout-class='primer'] pre + blockquote {
 	margin-block-start: 0.5em;
 	margin-block-end: calc(var(--body--offset--) * 2);
 	font-size: calc(100% * var(--ß));
 	break-before: avoid;
 }
 
-markout-playground.primer blockquote > :first-child:last-child {
-	/* margin-inline-start: var(--body--inset--); */
-	/* margin-inline-end: var(--body--inset--); */
-}
-
-markout-playground.primer pre:hover + blockquote,
-markout-playground.primer pre + blockquote:hover {
-	/* opacity: 1; */
-}
-
-markout-playground.primer hgroup > h1,
-markout-playground.primer hgroup > h2,
-markout-playground.primer hgroup > h3,
-markout-playground.primer hgroup > h4,
-markout-playground.primer hgroup > h5,
-markout-playground.primer hgroup > h6 {
+[markout-class='primer'] hgroup > h1,
+[markout-class='primer'] hgroup > h2,
+[markout-class='primer'] hgroup > h3,
+[markout-class='primer'] hgroup > h4,
+[markout-class='primer'] hgroup > h5,
+[markout-class='primer'] hgroup > h6 {
 	margin: 0;
-	/* padding-inline-start: var(--block--inset--); */
-	/* padding-inline-end: var(--block--inset--); */
 }
 
-markout-playground.primer details[open] {
+[markout-class='primer'] details[open] {
 	padding-block-end: 1em;
 }
 
-markout-playground.primer hr {
+[markout-class='primer'] hr {
 	border-width: 1px;
 }
 
 @media only screen {
-	markout-playground.primer aside,
-	markout-playground.primer section,
-	markout-playground.primer article {
+	[markout-class='primer'] aside,
+	[markout-class='primer'] section,
+	[markout-class='primer'] article {
 		border: var(--fence--border--, 1px solid #9999);
 	}
 }
 
-markout-playground.primer iframe,
-markout-playground.primer figure,
-markout-playground.primer pre {
-	/* margin-inline-start: var(--figure--inset--); */
-	/* margin-inline-end: var(--figure--inset--); */
-
-	/* margin: 1.5em 1rem; */
+[markout-class='primer'] iframe,
+[markout-class='primer'] figure,
+[markout-class='primer'] pre {
 	max-width: -webkit-fill-available;
 	max-width: -moz-available;
 	max-width: fill-available;
 }
 
-markout-playground.primer iframe {
+[markout-class='primer'] iframe {
 	width: 100%;
-	/* height: 100%; */
-	/* min-height: max-content; */
-	/* box-sizing: border-box; */
-	/* padding: 1em; */
 }
 
-markout-playground.primer :not(hgroup) > h1,
-markout-playground.primer > h1,
-markout-playground.primer :not(hgroup) > h2,
-markout-playground.primer > h2,
-markout-playground.primer hgroup {
+[markout-class='primer'] :not(hgroup) > h1,
+[markout-class='primer'] > h1,
+[markout-class='primer'] :not(hgroup) > h2,
+[markout-class='primer'] > h2,
+[markout-class='primer'] hgroup {
 	text-align: center;
 }
 
-markout-playground.primer pre[data-markout-open-tag]::before {
+[markout-class='primer'] pre[data-markout-open-tag]::before {
 	content: attr(data-markout-open-tag);
 	content: attr(data-markout-fence) attr(data-markout-header);
 	margin-block-start: -0.75em;
 	margin-block-end: 0.25em;
 }
 
-markout-playground.primer pre[data-markout-close-tag]::after {
+[markout-class='primer'] pre[data-markout-close-tag]::after {
 	content: attr(data-markout-close-tag);
 	content: attr(data-markout-fence);
 	margin-block-start: 0.25em;
@@ -183,23 +139,16 @@ markout-playground.primer pre[data-markout-close-tag]::after {
 	justify-self: flex-end;
 }
 
-markout-playground.primer pre[data-markout-open-tag],
-markout-playground.primer pre[data-markout-close-tag] {
-	/* --markup-gutter: 1.25em; */
-}
-
-markout-playground.primer pre[line-numbers] .markup-line {
+[markout-class='primer'] pre[line-numbers] .markup-line {
 	border-inline-start-color: #9993;
 	border-inline-start-width: 0.5pt;
 }
 
-markout-playground.primer pre[data-markout-open-tag]::before,
-markout-playground.primer pre[data-markout-close-tag]::after {
+[markout-class='primer'] pre[data-markout-open-tag]::before,
+[markout-class='primer'] pre[data-markout-close-tag]::after {
 	font-family: inherit !important;
 	white-space: nowrap;
 	display: block;
-	/* margin-inline-start: -0.75em; */
-	/* margin-inline-end: -0.75em; */
 	padding: 0 0.5em;
 	font-weight: 300;
 	font-size: 90%;
@@ -208,16 +157,9 @@ markout-playground.primer pre[data-markout-close-tag]::after {
 	border: 0.5pt solid #9993;
 	border-radius: 0.33em;
 	color: #9999;
-	/* padding: 0; */
-	/* margin: 0; */
 	text-indent: 0;
 	position: relative;
 	left: calc(var(--markup-gutter, 0) / 2 + 1px - 1em);
-	/* left: 0; */
-	/* margin-inline-start: calc(var(--markup-gutter, 0) + 1px -2.75em); */
-	/* margin-inline-end: calc(var(--markup-gutter, 0) + 1px -2.75em); */
-	/* margin-inline-end: -0.75rem; */
-	/* text-indent: calc(-1 * var(--markup-soft-indent, 0.0001em) + 1px); */
 }
 
 @media print {
@@ -226,98 +168,82 @@ markout-playground.primer pre[data-markout-close-tag]::after {
 	/* prettier-ignore */
 	[media~=print][hidden]:not([media~=screen]) { display: initial; }
 
-	markout-playground.primer {
+	[markout-class='primer'] {
 		--body-spacing-size: 2;
 		--body-offset-size: 2;
-		/* --block-margin: calc(1rem * var(--body-offset-size)); */
 		--block--offset--: 1.5rem;
 		--body--offset--: 0.75rem;
 	}
 
 	/* :first-child, */
 	/* :last-child, */
-	markout-playground.primer section > :first-child:not(:last-child),
-	markout-playground.primer article > :first-child:not(:last-child),
-	markout-playground.primer section > :last-child:not(:first-child),
-	markout-playground.primer article > :last-child:not(:first-child),
+	[markout-class='primer'] section > :first-child:not(:last-child),
+	[markout-class='primer'] article > :first-child:not(:last-child),
+	[markout-class='primer'] section > :last-child:not(:first-child),
+	[markout-class='primer'] article > :last-child:not(:first-child),
 	p + pre,
 	p + figure,
 	pre + p,
 	figure + p,
 	* + br,
 	* + hr {
-		/* break-before: avoid; */
-		/* page-break-before: avoid; */
 		break-inside: avoid;
-		/* page-break-inside: avoid; */
-		/* break-after: avoid; */
-		/* page-break-after: avoid; */
 	}
 
-	markout-playground.primer section,
-	markout-playground.primer article {
-		/* break-before: auto; */
-		/* page-break-before: auto; */
-		/* break-inside: auto; */
-		/* page-break-inside: auto; */
+	[markout-class='primer'] section,
+	[markout-class='primer'] article {
 		break-after: auto;
-		/* page-break-after: auto; */
 	}
 
-	markout-playground.primer pre[line-numbers] {
+	[markout-class='primer'] pre[line-numbers] {
 		break-inside: initial;
-		/* page-break-inside: auto; */
 	}
 
-	markout-playground.primer pre[line-numbers] .markup-line {
+	[markout-class='primer'] pre[line-numbers] .markup-line {
 		--markup-line-number-color: #9999;
 		border-inline-start-color: #9993;
-		/* break-before: avoid; */
 		break-inside: avoid;
 		break-after: avoid;
-		/* page-break-inside: avoid; */
 	}
 
-	markout-playground.primer pre[line-numbers] .markup-line:not(:first-child):not(:last-child) {
+	[markout-class='primer'] pre[line-numbers] .markup-line:not(:first-child):not(:last-child) {
 		break-before: auto;
 		break-after: auto;
 	}
 
-	markout-playground.primer pre[data-markout-open-tag]::before,
-	markout-playground.primer pre[data-markout-open-tag]::after {
+	[markout-class='primer'] pre[data-markout-open-tag]::before,
+	[markout-class='primer'] pre[data-markout-open-tag]::after {
 		border-width: 0;
 		border-radius: 0;
 	}
 
-	markout-playground.primer pre[data-markout-open-tag]::before {
+	[markout-class='primer'] pre[data-markout-open-tag]::before {
 		border-bottom-width: 1pt;
 		padding-block-end: 0.25em;
 		margin-block-end: 1em;
 	}
 
-	markout-playground.primer pre[data-markout-open-tag]::after {
+	[markout-class='primer'] pre[data-markout-open-tag]::after {
 		border-top-width: 1pt;
 		padding-block-start: 0.25em;
 		margin-block-start: 1em;
 	}
 
-	markout-playground.primer figure,
-	markout-playground.primer code,
-	markout-playground.primer pre {
+	[markout-class='primer'] figure,
+	[markout-class='primer'] code,
+	[markout-class='primer'] pre {
 		overflow-x: hidden !important;
 		white-space: pre-wrap !important;
-		/* border-width: 0 !important; */
 		color-adjust: exact;
 	}
 
-	markout-playground.primer * {
+	[markout-class='primer'] * {
 		overflow-y: unset !important;
 		max-width: unset !important;
 		max-height: unset !important;
 		min-width: unset !important;
 		min-height: unset !important;
 		-webkit-mask-image: unset !important;
-		/* filter: unset !important; */
 	}
 }
 
@@ -325,40 +251,39 @@ markout-playground.primer pre[data-markout-close-tag]::after {
 	/* prettier-ignore */
 	[media~=print]:not([media~=screen]) { display: none; }
 
-	markout-playground.primer iframe:not(:hover) + blockquote:not(:hover),
-	markout-playground.primer pre:not(:hover) + blockquote:not(:hover) {
+	[markout-class='primer'] iframe:not(:hover) + blockquote:not(:hover),
+	[markout-class='primer'] pre:not(:hover) + blockquote:not(:hover) {
 		opacity: 0.5;
 	}
 
-	markout-playground.primer pre[line-numbers] .markup-line::before {
+	[markout-class='primer'] pre[line-numbers] .markup-line::before {
 		font-weight: 100;
 	}
 
-	markout-playground.primer pre[line-numbers] .markup-line {
+	[markout-class='primer'] pre[line-numbers] .markup-line {
 		--markup-line-number-color: #9999;
 		border-inline-start-color: #9991;
 	}
 
-	markout-playground.primer pre[data-markout-open-tag]::before,
-	markout-playground.primer pre[data-markout-close-tag]::after {
+	[markout-class='primer'] pre[data-markout-open-tag]::before,
+	[markout-class='primer'] pre[data-markout-close-tag]::after {
 		color: #999c;
 		background-color: #9991;
-		/* border-color: #9993; */
 		mix-blend-mode: difference;
 	}
 
-	markout-playground.primer pre[data-markout-open-tag]:active::before {
+	[markout-class='primer'] pre[data-markout-open-tag]:active::before {
 		content: attr(data-markout-open-tag);
 	}
 
-	markout-playground.primer pre[data-markout-close-tag][data-markout-fence]:active::after {
+	[markout-class='primer'] pre[data-markout-close-tag][data-markout-fence]:active::after {
 		content: attr(data-markout-close-tag);
 	}
 
-	markout-playground.primer pre[data-markout-fence]:not(:hover)::before,
-	markout-playground.primer pre[data-markout-fence]:not(:hover)::after,
-	markout-playground.primer pre[data-markout-open-tag]:not(:hover)::before,
-	markout-playground.primer pre[data-markout-close-tag]:not(:hover)::after {
+	[markout-class='primer'] pre[data-markout-fence]:not(:hover)::before,
+	[markout-class='primer'] pre[data-markout-fence]:not(:hover)::after,
+	[markout-class='primer'] pre[data-markout-open-tag]:not(:hover)::before,
+	[markout-class='primer'] pre[data-markout-close-tag]:not(:hover)::after {
 		opacity: 0.25;
 		background-color: transparent;
 	}
