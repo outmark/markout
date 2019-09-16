@@ -1,0 +1,30 @@
+﻿h1:not(:empty) > nav:last-child,
+h1:not(:empty) > a > nav:last-child,
+hgroup:not(:empty) > nav:last-child,
+hgroup:not(:empty) > a > nav:last-child {
+	float: right;
+	margin: 0;
+	padding: 0;
+	max-width: -moz-available;
+	max-width: -webkit-fill-available;
+	max-width: fill-available;
+	transform: scale(0.75);
+	overflow-x: visible;
+	text-align: center;
+	/* outline: 1px solid red; */
+}
+
+hgroup:not(:empty) > nav:last-child > *,
+hgroup:not(:empty) > a > nav:last-child > * {
+	margin: 0.5ex;
+}
+
+h1:not(:empty),
+hgroup:not(:empty) {
+	/* contain: layout; */
+}
+
+h1:not(:empty) + *,
+hgroup:not(:empty) + * {
+	clear: right;
+}

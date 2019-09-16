@@ -1,4 +1,5 @@
 ﻿@import './root.css';
+@import './overrides.css';
 /* @import './markdown.prefix.css'; */
 /* @import './primer-reset.css'; */
 
@@ -206,6 +207,7 @@ caption + table,
 table + caption,
 figcaption + * {
 	break-before: avoid;
+	/* clear: right; */
 	/* page-break-before: avoid; */
 }
 
