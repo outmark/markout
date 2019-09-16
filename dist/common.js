@@ -1550,6 +1550,9 @@ const {
 			anchor.heading = heading.anchor = {anchor, identity, heading, level, number};
 			heading.appendChild(anchor);
 
+			const nav = anchor.querySelector('nav:last-child');
+			nav && heading.appendChild(nav);
+
 			// Unique mappings are prioritized by heading level
 			(anchor.id in headings && headings[anchor.id].level > level) || (headings[anchor.id] = heading.anchor);
 		}

@@ -7,7 +7,6 @@ const COMPONENT_LOADING_VISIBILITY = 'hidden !important';
 const Component = (() => {
   const {
     HTMLElement = (() => /** @type {HTMLElementConstructor} */ (class HTMLElement {}))(),
-    // ShadowRoot: Root = (() => /** @type {globalThis['ShadowRoot']} */ (class ShadowRoot {}))(),
   } = globalThis;
 
   class Component extends HTMLElement {
@@ -41,6 +40,17 @@ const Component = (() => {
       }
 
       if (new.target.template) {
+        // for (const template of /** @type {Iterable<HTMLTemplateElement>} */ (fragment.querySelectorAll(
+        //   '* > template[shadow-root]:not([inert])',
+        // )))
+        //   template.parentElement
+        //     .attachShadow({
+        //       mode: /\bclosed\b/i.test(template.getAttribute('shadow-root')) ? 'closed' : 'open',
+        //       delegatesFocus: /\bdelegates-focus\b/i.test(template.getAttribute('shadow-root')),
+        //     })
+        //     .appendChild(template.content) &&
+        //     template.setAttribute('inert', '');
+
         for (const element of fragment.querySelectorAll('[id]')) this[`#${element.id}`] = element;
         for (const element of fragment.querySelectorAll('slot'))
           `::${element.name || ''}` in this || (this[`::${element.name || ''}`] = element);
@@ -79,53 +89,41 @@ const Component = (() => {
     }
 
     static async initializeRoot(host, fragment, style, root) {
+      // Upgrade shadow root prototype from ‹this Component›.Root
+      //  TODO: Chaining Component.Root inheritance via setter
+      'Root' in this &&
+        root !== host &&
+        typeof this.Root === 'function' &&
+        this.Root.prototype instanceof ShadowRoot &&
+        Object.setPrototypeOf(root, this.Root.prototype);
+
       //@ts-ignore
       style && root === host && (await new Promise(setTimeout));
-      // if (root === host) return setTimeout(() => Component.initializeRoot(host, fragment, style));
       fragment && root.append(fragment);
 
-      const options = {passive: false};
-      for (const property in host.constructor.prototype) {
-        if (
-          !(
+      // Attach host['(on…)'] listeners against the shadow root
+      //  TODO: Attaching host['(on…)'] listeners without shadow root.
+      if (typeof root['(onevent)'] === 'function') {
+        const options = {passive: false};
+        for (const property in host.constructor.prototype) {
+          if (
             typeof property === 'string' &&
             typeof host[`(${property})`] === 'function' &&
             property.startsWith('on')
-          )
-        )
-          continue;
-        // (console.internal || console).log(property);
-        root[`(${property})`] = host[`(${property})`];
-        // if (host[property] === host[property]) host[property] = undefined;
-        root.addEventListener(property.slice(2), this.Root.prototype['(onevent)'], options);
+          ) {
+            root[`(${property})`] = host[`(${property})`];
+            root.addEventListener(property.slice(2), root['(onevent)'], options);
+          }
+        }
       }
 
-      //@ts-ignore
-      if (style) {
-        await style.loaded;
-        // await new Promise(requestAnimationFrame);
-      }
+      style && (await style.loaded);
+
       host.style.visibility === COMPONENT_LOADING_VISIBILITY && (host.style.visibility = '');
     }
   }
 
   const {defineProperty} = Object;
-
-  Object.freeze(
-    (Component.Root = class Root {
-      ['(onevent)'](event) {
-        (console['internal'] || console).log({event, this: this, host: this.host});
-        return `(on${event.type})` in this
-          ? this[`(on${event.type})`].call(this.host || this, event)
-          : undefined;
-      }
-    }),
-  );
-
-  /** @type {Component} */
-  Component.Root.prototype.host = undefined;
-
-  Object.freeze(Component.Root.prototype);
 
   /**
    * @template {typeof Component} C
@@ -202,6 +200,14 @@ const Component = (() => {
     const hasOwnProperty = Function.call.bind(Object.prototype.hasOwnProperty);
     const {defineProperty, defineProperties, getOwnPropertyDescriptor} = Object;
 
+    Component.Root = class Root extends ShadowRoot {
+      ['(onevent)'](event) {
+        return `(on${event.type})` in this
+          ? this[`(on${event.type})`].call(this.host || this, event)
+          : undefined;
+      }
+    };
+
     /**
      * @template {PropertyKey} K
      * @template V
@@ -225,14 +231,14 @@ const Component = (() => {
     const descriptor = {get: () => undefined, enumerable: true, configurable: true};
 
     defineProperties(Component, {
-      ['set']: {
+      set: {
         value: {
           /** @template T @param {PropertyKey} property @param {T} value */
-          ['set'](property, value) {
+          set(property, value) {
             updateProperty(this, property, value);
             return value;
           },
-        }['set'],
+        }.set,
       },
       attributes: {
         set(value) {
@@ -305,27 +311,6 @@ const Component = (() => {
         },
       },
     });
-
-    // EventHandlers: {
-    //   const EventHook = /^on[a-z]{2,}$/;
-    //   const descriptors = {};
-    //   for (const property of Object.getOwnPropertyNames(HTMLElement.prototype)) {
-    //     if (EventHook.test(property)) {
-    //       const descriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, property);
-    //       descriptors[property] = {
-    //         get() {
-    //           console.log('get', property, this, descriptor);
-    //           return descriptor.get.call(this);
-    //         },
-    //         set(value) {
-    //           console.log('set', property, this, descriptor, value);
-    //           return descriptor.set.call(this, value);
-    //         },
-    //       };
-    //     }
-    //   }
-    //   Object.defineProperties(Component.prototype, descriptors);
-    // }
   }
 
   if (void Component) {
