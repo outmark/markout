@@ -1,10 +1,8 @@
 ﻿import dynamicImport from '/browser/dynamic-import.js';
-import * as content from '../lib/content.js';
+// import * as content from '../lib/content/dom.js';
+import '../lib/content/dom.js';
+import {content} from '../lib/content.js';
 import {Component} from '../lib/components.js';
-
-// const defaults = import.meta['markout-content-defaults'] || (import.meta['markout-content-normalization'] = {});
-
-// console.log({...components}, {...components.Component});
 
 export class MarkoutContent extends Component {
 	/** @type {{[name: string]: boolean | undefined}} */
@@ -168,9 +166,11 @@ export class MarkoutContent extends Component {
 
 		const timeout = new Promise(resolve => setTimeout(resolve, 150));
 
-		(fragment.markoutContentFlags.ASSET_INITIALIZATION === true ||
-			(fragment.markoutContentFlags.ASSET_INITIALIZATION !== false &&
-				fragment.markoutContentFlags.DOM_MUTATIONS !== false)) &&
+		fragment.assets !== null &&
+			typeof fragment.assets === 'object' &&
+			(fragment.markoutContentFlags.ASSET_INITIALIZATION === true ||
+				(fragment.markoutContentFlags.ASSET_INITIALIZATION !== false &&
+					fragment.markoutContentFlags.DOM_MUTATIONS !== false)) &&
 			(fragment.assets.modules && fragment.assets.modules.forEach(this.instantiateLinkedModule, this),
 			fragment.assets.scripts && fragment.assets.scripts.forEach(this.instantiateLinkedScript, this));
 
@@ -191,12 +191,9 @@ export class MarkoutContent extends Component {
 	async appendMarkoutContent(sourceText = this.sourceText, contentSlot = this['::content'], baseURL = this.baseURI) {
 		const {fragment} = content.createRenderedFragment(sourceText);
 
-		// fragment.markoutContentFlags = {...MarkoutContent.flags};
 		fragment.baseURL = baseURL;
 
-		// fragment.markoutContentFlags.DOM_MUTATIONS === false ||
 		content.normalizeRenderedFragment(fragment, MarkoutContent.flags);
-		// DOM_MUTATIONS === false || this.normalizeMarkoutFragment(fragment);
 
 		contentSlot.appendChild(
 			await (fragment.instantiated || (fragment.instantiated = this.instantiateMarkoutFragment(fragment))),
@@ -204,24 +201,6 @@ export class MarkoutContent extends Component {
 
 		return {slot: contentSlot, sourceText, fragment, ...fragment};
 	}
-
-	// /** @param {DocumentFragment} fragment */
-	// normalizeMarkoutFragment(fragment) {
-	// 	// fragment.markoutContentFlags || (fragment.markoutContentFlags = {...MarkoutContent.flags});
-
-	// 	content.normalizeMarkoutFragment(fragment);
-	// 	// DOM_MUTATIONS !== false &&
-	// 	// 	((BREAK_NORMALIZATION === true || DOM_MUTATIONS === true) && content.normalizeBreaksInFragment(fragment),
-	// 	// 	(HEADING_NORMALIZATION === true || DOM_MUTATIONS === true) && content.normalizeHeadingsInFragment(fragment),
-	// 	// 	(PARAGRAPH_NORMALIZATION === true || DOM_MUTATIONS === true) && content.normalizeParagraphsInFragment(fragment),
-	// 	// 	(CHECKLIST_NORMALIZATION === true || DOM_MUTATIONS === true) && content.normalizeChecklistsInFragment(fragment),
-	// 	// 	(DECLARATIVE_STYLING === true || DOM_MUTATIONS === true) && content.applyDeclarativeStylingInFragment(fragment));
-
-	// 	// (TOKEN_FLATTENING === true || (TOKEN_FLATTENING !== false && DOM_MUTATIONS !== false)) &&
-	// 	// 	content.flattenTokensInFragment(fragment);
-
-	// 	return fragment;
-	// }
 
 	async instantiateMarkoutFragment(fragment) {
 		if (fragment.instantiated) return fragment.instantiated;
@@ -329,13 +308,13 @@ export class MarkoutContent extends Component {
 	/// Constants
 
 	static get MARKUP_SYNTAX_ATTRIBUTE() {
-		return super.set('MARKUP_SYNTAX_ATTRIBUTE', content.MarkupSyntaxAttribute);
+		return super.set('MARKUP_SYNTAX_ATTRIBUTE', content.MarkupAttributeMap.MarkupSyntax);
 	}
 	static get SOURCE_TYPE_ATTRIBUTE() {
-		return super.set('SOURCE_TYPE_ATTRIBUTE', content.SourceTypeAttribute);
+		return super.set('SOURCE_TYPE_ATTRIBUTE', content.MarkupAttributeMap.SourceType);
 	}
 	static get MARKUP_MODE_ATTRIBUTE() {
-		return super.set('MARKUP_MODE_ATTRIBUTE', content.MarkupModeAttribute);
+		return super.set('MARKUP_MODE_ATTRIBUTE', content.MarkupAttributeMap.MarkupMode);
 	}
 }
 
@@ -344,44 +323,3 @@ try {
 } catch (exception) {
 	console.warn(exception);
 }
-
-// 'DOM_MUTATIONS'
-// 'BREAK_NORMALIZATION'
-// 'HEADING_NORMALIZATION'
-// 'PARAGRAPH_NORMALIZATION'
-// 'CHECKLIST_NORMALIZATION'
-// 'BLOCKQUOTE_NORMALIZATION'
-// 'TOKEN_FLATTENING'
-// 'DECLARATIVE_STYLING'
-// 'SOURCE_TEXT_RENDERING'
-// 'ASSET_REMAPPING'
-// 'ASSET_INITIALIZATION'
-
-// 	import.meta['markout-content-flags'] ||
-// 	(import.meta['markout-content-flags'] = {
-// 		DOM_MUTATIONS: import.meta['markout-content-dom-mutations'],
-// 		BREAK_NORMALIZATION: import.meta['markout-content-break-normalization'],
-// 		HEADING_NORMALIZATION: import.meta['markout-content-heading-normalization'],
-// 		PARAGRAPH_NORMALIZATION: import.meta['markout-content-paragraph-normalization'],
-// 		CHECKLIST_NORMALIZATION: import.meta['markout-content-checklist-normalization'],
-// 		BLOCKQUOTE_NORMALIZATION: import.meta['markout-content-blockquote-normalization'],
-// 		TOKEN_FLATTENING: import.meta['markout-content-token-flattening'],
-// 		DECLARATIVE_STYLING: import.meta['markout-content-declarative-styling'],
-// 		SOURCE_TEXT_RENDERING: import.meta['markout-content-source-text-rendering'],
-// 		ASSET_REMAPPING: import.meta['markout-content-asset-remapping'],
-// 		ASSET_INITIALIZATION: import.meta['markout-content-asset-initialization'],
-// 	});
-
-// ({
-// 	DOM_MUTATIONS: flags.DOM_MUTATIONS = undefined,
-// 	BREAK_NORMALIZATION: flags.BREAK_NORMALIZATION = undefined,
-// 	HEADING_NORMALIZATION: flags.HEADING_NORMALIZATION = true,
-// 	PARAGRAPH_NORMALIZATION: flags.PARAGRAPH_NORMALIZATION = true,
-// 	CHECKLIST_NORMALIZATION: flags.CHECKLIST_NORMALIZATION = true,
-// 	BLOCKQUOTE_NORMALIZATION: flags.BLOCKQUOTE_NORMALIZATION = true,
-// 	TOKEN_FLATTENING: flags.TOKEN_FLATTENING = true,
-// 	DECLARATIVE_STYLING: flags.DECLARATIVE_STYLING = true,
-// 	SOURCE_TEXT_RENDERING: flags.SOURCE_TEXT_RENDERING = true,
-// 	ASSET_REMAPPING: flags.ASSET_REMAPPING = true,
-// 	ASSET_INITIALIZATION: flags.ASSET_INITIALIZATION = true,
-// } = flags);

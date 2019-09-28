@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "name": "@markout/content",
+  "description": "smotaal.io/markout/lib/content",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "content.js",
+  "types": "types.d.ts"
+}
