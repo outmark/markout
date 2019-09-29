@@ -1,6 +1,6 @@
-import { debugging } from '/markout/lib/helpers.js';
 import { entities as entities$1 } from '/markup/dist/tokenizer.browser.js';
-import { c as content, r as render, t as tokenize, n as normalize, E as Enum } from './common.js';
+import { c as content, d as defaults, D as DOM_MUTATIONS, B as BREAK_NORMALIZATION, H as HEADING_NORMALIZATION, P as PARAGRAPH_NORMALIZATION, a as BLOCK_PARAGRAPH_NORMALIZATION, C as CHECKLIST_NORMALIZATION, b as BLOCKQUOTE_NORMALIZATION, e as BLOCKQUOTE_HEADING_NORMALIZATION, T as TOKEN_FLATTENING, f as DECLARATIVE_STYLING, S as SOURCE_TEXT_RENDERING, A as ASSET_REMAPPING, g as ASSET_INITIALIZATION, h as flags, r as render, t as tokenize, n as normalize, E as Enum } from './common.js';
+import { debugging } from '/markout/lib/helpers.js';
 import { styling, Component } from './components.js';
 
 async function dynamicImport(specifier, referrer) {
@@ -121,49 +121,46 @@ const entities = /*#__PURE__*/Object.freeze({
 //@ts-check
 
 /** @param {Fragment} fragment @param {Record<string, boolean>} [flags] */
-const normalizeRenderedFragment = (fragment, flags) => {
-	flags = {
-		DOM_MUTATIONS: fragment.markoutContentFlags.DOM_MUTATIONS = content.defaults.DOM_MUTATIONS,
-		BREAK_NORMALIZATION: fragment.markoutContentFlags.BREAK_NORMALIZATION = content.defaults.BREAK_NORMALIZATION,
-		HEADING_NORMALIZATION: fragment.markoutContentFlags.HEADING_NORMALIZATION = content.defaults.HEADING_NORMALIZATION,
-		PARAGRAPH_NORMALIZATION: fragment.markoutContentFlags.PARAGRAPH_NORMALIZATION = content.defaults
-			.PARAGRAPH_NORMALIZATION,
-		BLOCK_PARAGRAPH_NORMALIZATION: fragment.markoutContentFlags.BLOCK_PARAGRAPH_NORMALIZATION = content.defaults
-			.BLOCK_PARAGRAPH_NORMALIZATION,
-		CHECKLIST_NORMALIZATION: fragment.markoutContentFlags.CHECKLIST_NORMALIZATION = content.defaults
-			.CHECKLIST_NORMALIZATION,
-		BLOCKQUOTE_NORMALIZATION: fragment.markoutContentFlags.BLOCKQUOTE_NORMALIZATION = content.defaults
-			.BLOCKQUOTE_NORMALIZATION,
-		BLOCKQUOTE_HEADING_NORMALIZATION: fragment.markoutContentFlags.BLOCKQUOTE_HEADING_NORMALIZATION = content.defaults
-			.BLOCKQUOTE_HEADING_NORMALIZATION,
-		TOKEN_FLATTENING: fragment.markoutContentFlags.TOKEN_FLATTENING = content.defaults.TOKEN_FLATTENING,
-		DECLARATIVE_STYLING: fragment.markoutContentFlags.DECLARATIVE_STYLING = content.defaults.DECLARATIVE_STYLING,
-		SOURCE_TEXT_RENDERING: fragment.markoutContentFlags.SOURCE_TEXT_RENDERING = content.defaults.SOURCE_TEXT_RENDERING,
-		ASSET_REMAPPING: fragment.markoutContentFlags.ASSET_REMAPPING = content.defaults.ASSET_REMAPPING,
-		ASSET_INITIALIZATION: fragment.markoutContentFlags.ASSET_INITIALIZATION = content.defaults.ASSET_INITIALIZATION,
+const normalizeRenderedFragment = (fragment, flags$1) => {
+	flags$1 = {
+		DOM_MUTATIONS: fragment.markoutContentFlags.DOM_MUTATIONS = DOM_MUTATIONS,
+		BREAK_NORMALIZATION: fragment.markoutContentFlags.BREAK_NORMALIZATION = BREAK_NORMALIZATION,
+		HEADING_NORMALIZATION: fragment.markoutContentFlags.HEADING_NORMALIZATION = HEADING_NORMALIZATION,
+		PARAGRAPH_NORMALIZATION: fragment.markoutContentFlags.PARAGRAPH_NORMALIZATION = PARAGRAPH_NORMALIZATION,
+		BLOCK_PARAGRAPH_NORMALIZATION: fragment.markoutContentFlags.BLOCK_PARAGRAPH_NORMALIZATION = BLOCK_PARAGRAPH_NORMALIZATION,
+		CHECKLIST_NORMALIZATION: fragment.markoutContentFlags.CHECKLIST_NORMALIZATION = CHECKLIST_NORMALIZATION,
+		BLOCKQUOTE_NORMALIZATION: fragment.markoutContentFlags.BLOCKQUOTE_NORMALIZATION = BLOCKQUOTE_NORMALIZATION,
+		BLOCKQUOTE_HEADING_NORMALIZATION: fragment.markoutContentFlags.BLOCKQUOTE_HEADING_NORMALIZATION = BLOCKQUOTE_HEADING_NORMALIZATION,
+		TOKEN_FLATTENING: fragment.markoutContentFlags.TOKEN_FLATTENING = TOKEN_FLATTENING,
+		DECLARATIVE_STYLING: fragment.markoutContentFlags.DECLARATIVE_STYLING = DECLARATIVE_STYLING,
+		SOURCE_TEXT_RENDERING: fragment.markoutContentFlags.SOURCE_TEXT_RENDERING = SOURCE_TEXT_RENDERING,
+		ASSET_REMAPPING: fragment.markoutContentFlags.ASSET_REMAPPING = ASSET_REMAPPING,
+		ASSET_INITIALIZATION: fragment.markoutContentFlags.ASSET_INITIALIZATION = ASSET_INITIALIZATION,
 	} = {
-		...content.defaults.flags,
-		...(fragment.markoutContentFlags || (fragment.markoutContentFlags = {})),
 		...flags,
+		...(fragment.markoutContentFlags || (fragment.markoutContentFlags = {})),
+		...flags$1,
 	};
 
-	flags.DOM_MUTATIONS !== false &&
-		((flags.BREAK_NORMALIZATION === true || flags.DOM_MUTATIONS === true) &&
+	flags$1.DOM_MUTATIONS !== false &&
+		((flags$1.BREAK_NORMALIZATION === true || flags$1.DOM_MUTATIONS === true) &&
 			content.normalizeBreaksInFragment(fragment),
-		(flags.HEADING_NORMALIZATION === true || flags.DOM_MUTATIONS === true) &&
+		(flags$1.HEADING_NORMALIZATION === true || flags$1.DOM_MUTATIONS === true) &&
 			content.normalizeHeadingsInFragment(fragment),
-		(flags.PARAGRAPH_NORMALIZATION === true || flags.DOM_MUTATIONS === true) &&
+		(flags$1.PARAGRAPH_NORMALIZATION === true || flags$1.DOM_MUTATIONS === true) &&
 			content.normalizeParagraphsInFragment(fragment),
-		(flags.BLOCKQUOTE_NORMALIZATION === true || flags.DOM_MUTATIONS === true) &&
+		(flags$1.BLOCKQUOTE_NORMALIZATION === true || flags$1.DOM_MUTATIONS === true) &&
 			content.normalizeBlockquotesInFragment(fragment),
-		(flags.CHECKLIST_NORMALIZATION === true || flags.DOM_MUTATIONS === true) &&
+		(flags$1.CHECKLIST_NORMALIZATION === true || flags$1.DOM_MUTATIONS === true) &&
 			content.normalizeChecklistsInFragment(fragment),
-		(flags.DECLARATIVE_STYLING === true || flags.DOM_MUTATIONS === true) &&
+		(flags$1.DECLARATIVE_STYLING === true || flags$1.DOM_MUTATIONS === true) &&
 			content.normalizeDeclarativeStylingInFragment(fragment));
 
-	(flags.TOKEN_FLATTENING === true || (flags.TOKEN_FLATTENING !== false && flags.DOM_MUTATIONS !== false)) &&
+	(flags$1.TOKEN_FLATTENING === true || (flags$1.TOKEN_FLATTENING !== false && flags$1.DOM_MUTATIONS !== false)) &&
+		//@ts-ignore
 		content.flattenTokensInFragment(fragment);
 
+	//@ts-ignore
 	content.renderURLExpansionLinksInFragment(fragment);
 };
 
@@ -187,7 +184,9 @@ const normalizeHeadingsInFragment = fragment => {
 	const {MarkdownIdentity: Identity, MarkdownIdentityPrefixer: Prefixer, MarkdownIdentityJoiner: Joiner} = entities;
 	const {headings = (fragment.headings = {}), TEXT_NODE} = fragment;
 
-	for (const subheading of fragment.querySelectorAll(`h1+h2, h2+h3, h3+h4, h4+h5, h5+h6`)) {
+	for (const subheading of /** @type {Iterable<Heading>} */ (fragment.querySelectorAll(
+		content.selectors.SubheadingsInFragment,
+	))) {
 		const previousElementSibling = subheading.previousElementSibling;
 		const previousSibling = subheading.previousSibling;
 		if (!previousElementSibling || previousSibling !== previousElementSibling) continue;
@@ -202,9 +201,9 @@ const normalizeHeadingsInFragment = fragment => {
 		}
 	}
 
-	for (const heading of fragment.querySelectorAll(
-		`h1:not([id]):not(:empty),h2:not([id]):not(:empty),h3:not([id]):not(:empty),h4:not([id]):not(:empty),h5:not([id]):not(:empty),h6:not([id]):not(:empty)`,
-	)) {
+	for (const heading of /** @type {Iterable<Heading>} */ (fragment.querySelectorAll(
+		content.selectors.HeadingsInFragment,
+	))) {
 		const level = parseFloat(heading.nodeName[1]);
 		const textSpan = heading.querySelector('span[token-type]');
 		const textNode =
@@ -214,7 +213,7 @@ const normalizeHeadingsInFragment = fragment => {
 		const number =
 			textNode &&
 			heading.matches('hgroup > *') &&
-			parseFloat(content.matchers.HeadingNumber.exec(textSpan.textContent));
+			parseFloat(content.matchers.HeadingNumber.exec(textSpan.textContent)[0]);
 
 		// Assuming all hgroup headings are either intentional or
 		//   implied from markout notation, we want to pull out
@@ -226,6 +225,7 @@ const normalizeHeadingsInFragment = fragment => {
 
 		const [, identity] = Identity.exec(heading.textContent) || '';
 		if (!identity) continue;
+		/** @type {Anchor} */
 		const anchor = document.createElement('a');
 		anchor.id = identity
 			.replace(Prefixer, '')
@@ -247,29 +247,23 @@ const normalizeHeadingsInFragment = fragment => {
 // const content.matchers.BlockParts = /^(?:(\w+(?: \w+)*)(:| - | — |)|)(.*)$/u;
 content.matchers.BlockParts = /^[*_]*?(?:(\*{1,2}|_{1,2}|)(\w+(?: \w+)*)\1(: | - | — |)|)(.*)$|/u;
 
-content.matchers.BlockHeadingSelectors = ['i:first-child > b', 'b:first-child > i', 'b', 'i'].flatMap(selector => [
-	`:scope > ${(selector = `${selector}:first-child:not(:empty)`)}`,
-	`p:first-child > ${selector}`,
-]);
-
-content.matchers.BlockHeadingSelector = content.matchers.BlockHeadingSelectors.join(',');
-
 /** @param {Fragment} fragment */
 content.normalizeBlockquotesInFragment = fragment => {
-	/** @type {HTMLQuoteElement} */
-	let previousBlockquote, nextBlockquote;
-	/** @type {Node | Element} */
-	let node, previousNode;
-	/** @type {Range} */
+	/** @type {BlockQuote} */
+	let previousBlockquote;
+	/** @type {BlockQuote} */
+	let nextBlockquote;
+	/** @type {NodeLike | ElementLike} */
+	let node;
+	/** @type {NodeLike | ElementLike} */
+	let previousNode;
+	/** @type {RangeLike} */
 	let range;
 	let heading, delimiter, headingSeparator, body;
 	const {COMMENT_NODE, TEXT_NODE, ELEMENT_NODE} = fragment;
 
-	/** @type {IterableIterator<HTMLQuoteElement>} */
-	const matchedBlocks = fragment.querySelectorAll('blockquote:not(:empty)');
-
-	for (const blockquote of matchedBlocks) {
-		node = blockquote.querySelector(content.matchers.BlockHeadingSelector);
+	for (const blockquote of /** @type {Iterable<BlockQuote>} */ (fragment.querySelectorAll('blockquote:not(:empty)'))) {
+		node = blockquote.querySelector(content.selectors.BlockHeadingNodesInFragment);
 
 		node == null ||
 			(body = blockquote.textContent.trim()) === '' ||
@@ -280,10 +274,10 @@ content.normalizeBlockquotesInFragment = fragment => {
 		body === '' || (blockquote.blockBody = body);
 
 		if (node != null && heading) {
-			blockquote.blockHeadingNode = node;
+			blockquote.blockHeadingNode = /** @type {HTMLSpanElement} */ (node);
 			blockquote.dataset.blockHeading = blockquote.blockHeading = heading;
 			blockquote.dataset.blockHeadingSeparator = blockquote.blockHeadingSeparator = headingSeparator;
-			if ((fragment.markoutContentFlags || content.defaults).BLOCKQUOTE_HEADING_NORMALIZATION === true) {
+			if ((fragment.markoutContentFlags || defaults).BLOCKQUOTE_HEADING_NORMALIZATION === true) {
 				node.slot = 'block-heading';
 				range = document.createRange();
 				range.setStartAfter(node);
@@ -320,26 +314,16 @@ content.normalizeBlockquotesInFragment = fragment => {
 								<div><slot></slot></div>
 							</div>`;
 				}
-
-				// range.setEnd(blockquote, range.startOffset + headingSeparator.length);
-				// range.extractContents();
-				// blockquote.attachShadow({mode: open})
 			}
 		}
 	}
 
-	/** @type {IterableIterator<HTMLQuoteElement>} */
-	const matchedTails = fragment.querySelectorAll(
-		// 'blockquote[blockquote-level]+:not(blockquote)[blockquote-level]')
+	// TODO: Figure out why we need all this…
+	for (const lastBlockquote of /** @type {Iterable<BlockQuote>} */ (fragment.querySelectorAll(
 		':not(blockquote)[blockquote-level]+blockquote[blockquote-level]',
-	);
-
-	// return;
-	for (const lastBlockquote of matchedTails) {
+	))) {
 		nextBlockquote = lastBlockquote;
-
-		(previousNode = undefined);
-
+		previousBlockquote = previousNode = undefined;
 		lastBlockquote.blockquoteLevel = parseFloat(lastBlockquote.getAttribute('blockquote-level'));
 
 		node = lastBlockquote.previousSibling;
@@ -353,11 +337,13 @@ content.normalizeBlockquotesInFragment = fragment => {
 			)
 		) {
 			content.normalizeBlockquotesInFragment.log({node, lastBlockquote, nextBlockquote, previousBlockquote});
-			// debugger;
 			continue;
 		}
 
-		while (node != null && (node.nodeName !== 'BLOCKQUOTE' || !(previousBlockquote = node))) {
+		while (
+			node != null &&
+			(node.nodeName !== 'BLOCKQUOTE' || !(previousBlockquote = /** @type {BlockQuote } */ (node)))
+		) {
 			node.blockquoteLevel =
 				node.nodeType === ELEMENT_NODE
 					? parseFloat(node.getAttribute('blockquote-level'))
@@ -365,22 +351,18 @@ content.normalizeBlockquotesInFragment = fragment => {
 			previousNode = node.previousSibling;
 			if (node.blockquoteLevel === nextBlockquote.blockquoteLevel) ; else if (node.blockquoteLevel > nextBlockquote.blockquoteLevel) {
 				previousBlockquote = nextBlockquote;
-				nextBlockquote = document.createElement('blockquote');
+				nextBlockquote = /** @type {BlockQuote } */ (document.createElement('blockquote'));
 				nextBlockquote.setAttribute('blockquote-level', (nextBlockquote.blockquoteLevel = node.blockquoteLevel));
-				// debugger;
 				previousBlockquote.prepend(nextBlockquote);
 			} else if (node.blockquoteLevel < nextBlockquote.blockquoteLevel) {
 				if (node.blockquoteLevel < lastBlockquote.blockquoteLevel) {
 					// TODO: Is it safer to coerce or superseede?!
-					// debugger;
 					node.blockquoteLevel = lastBlockquote.blockquoteLevel;
 				}
 				while (
 					nextBlockquote.blockquoteLevel >= lastBlockquote.blockquoteLevel &&
-					node.blockquoteLevel <
-						nextBlockquote.blockquoteLevel(
-							nextBlockquote.parentElement.blockquoteLevel < nextBlockquote.blockquoteLevel,
-						)
+					node.blockquoteLevel < nextBlockquote.blockquoteLevel &&
+					nextBlockquote.parentElement.blockquoteLevel < nextBlockquote.blockquoteLevel
 				) {
 					nextBlockquote = nextBlockquote.parentElement;
 				}
@@ -395,30 +377,21 @@ content.normalizeBlockquotesInFragment = fragment => {
 					? previousBlockquote.blockquoteLevel
 					: (previousBlockquote.blockquoteLevel = parseFloat(previousBlockquote.getAttribute('blockquote-level')))) > 0
 			) {
-				if (previousBlockquote.blockquoteLevel < lastBlockquote.blockquoteLevel) {
-					// TODO: Is it safer to coerce or superseede?!
-					// debugger;
-					continue;
-				}
+				// TODO: Is it safer to coerce or superseede?!
+				if (previousBlockquote.blockquoteLevel < lastBlockquote.blockquoteLevel) continue;
 
 				if (previousBlockquote.blockquoteLevel === lastBlockquote.blockquoteLevel) {
-					if (
-						previousBlockquote.childElementCount === 1 &&
-						previousBlockquote.firstElementChild.nodeName === 'DETAILS'
-					) {
-						previousBlockquote.firstElementChild.append(...lastBlockquote.childNodes);
-					} else {
-						previousBlockquote.append(...lastBlockquote.childNodes);
-					}
+					previousBlockquote.childElementCount === 1 && previousBlockquote.firstElementChild.nodeName === 'DETAILS'
+						? previousBlockquote.firstElementChild.append(...lastBlockquote.childNodes)
+						: previousBlockquote.append(...lastBlockquote.childNodes);
 					lastBlockquote.remove();
 				}
 			} else if (!previousBlockquote.hasAttribute('blockquote-level')) {
 				previousBlockquote.setAttribute(
 					'blockquote-level',
-					(previousBlockquote.blockquoteLevel = lastBlockquote.blockquoteLevel),
+					`${(previousBlockquote.blockquoteLevel = lastBlockquote.blockquoteLevel)}`,
 				);
 				// TODO: Figure out if we can merge!
-				// debugger;
 			}
 		}
 	}
@@ -455,7 +428,7 @@ const normalizeChecklistsInFragment = fragment => {
 				parentChecklist.querySelector(':scope li[type=checkbox]:not([checked]):not([indeterminate])')
 					? parentChecklist.querySelector(':scope  li[type=checkbox][checked]')
 						? (parentChecklist.removeAttribute('checked'), parentChecklist.setAttribute('indeterminate', ''))
-						: (parentChecklist.removeAttribute('checked'), parentChecklist.removeAttribute('indeterminate', ''))
+						: (parentChecklist.removeAttribute('checked'), parentChecklist.removeAttribute('indeterminate'))
 					: !parentChecklist.querySelector(':scope li[type=checkbox][checked]') ||
 					  (parentChecklist.removeAttribute('indeterminate'), parentChecklist.setAttribute('checked', '')));
 
@@ -489,7 +462,7 @@ content.normalizeParagraphsInBlock = block => {
 
 /** @param {Fragment} fragment */
 const normalizeParagraphsInFragment = fragment => {
-	if ((fragment.markoutContentFlags || content.defaults).BLOCK_PARAGRAPH_NORMALIZATION)
+	if ((fragment.markoutContentFlags || defaults).BLOCK_PARAGRAPH_NORMALIZATION)
 		for (const block of fragment.querySelectorAll('li:not(:empty), blockquote:not(:empty)'))
 			content.normalizeParagraphsInBlock(block);
 	for (const empty of fragment.querySelectorAll('p:empty')) empty.remove();
@@ -507,7 +480,24 @@ content.normalizeChecklistsInFragment = normalizeChecklistsInFragment;
 content.normalizeParagraphsInFragment = normalizeParagraphsInFragment;
 content.normalizeDeclarativeStylingInFragment = normalizeDeclarativeStylingInFragment;
 
+content.selectors.HeadingsInFragment =
+	'h1:not([id]):not(:empty),h2:not([id]):not(:empty),h3:not([id]):not(:empty),h4:not([id]):not(:empty),h5:not([id]):not(:empty),h6:not([id]):not(:empty)';
+content.selectors.SubheadingsInFragment = 'h1+h2, h2+h3, h3+h4, h4+h5, h5+h6';
+content.selectors.BlockHeadingNodesInFragment = ['i:first-child > b', 'b:first-child > i', 'b', 'i']
+	.flatMap(selector => [
+		`:scope > ${(selector = `${selector}:first-child:not(:empty)`)}`,
+		`p:first-child > ${selector}`,
+	])
+	.join(',');
+
 /** @typedef {import('../types').Fragment} Fragment */
+/** @typedef {import('../types').Fragment.Heading} Heading */
+/** @typedef {import('../types').Fragment.Headings} Headings */
+/** @typedef {import('../types').Fragment.Anchor} Anchor */
+/** @typedef {import('../types').Fragment.BlockQuote} BlockQuote */
+/** @typedef {Node & {[name: string]: any}} NodeLike */
+/** @typedef {Element & {[name: string]: any}} ElementLike */
+/** @typedef {Range & {[name: string]: any}} RangeLike */
 
 //@ts-check
 
@@ -633,9 +623,12 @@ content.flattenTokensInFragment = flattenTokensInFragment;
 /** @typedef {import('./types').Fragment.Link} Link */
 /** @typedef {import('./types').Fragment.Links} Links */
 
+//@ts-check
+
 class MarkoutContent extends Component {
 	/** @type {{[name: string]: boolean | undefined}} */
 	static get flags() {
+		//@ts-ignore
 		const flags = Object.create(super.flags || null);
 
 		for (const flag in content.defaults.flags) {
@@ -661,7 +654,7 @@ class MarkoutContent extends Component {
 	}
 
 	static get shadowRoot() {
-		return super.set('shadowRoot', {mode: 'closed'});
+		return super.set('shadowRoot', /** @type {ShadowRootInit} */ ({mode: 'closed'}));
 	}
 
 	static get assets() {
@@ -727,13 +720,18 @@ class MarkoutContent extends Component {
 		super();
 
 		this.flags = new.target.flags;
+		//@ts-ignore
 		this.name = `${this.tagName}-${++new.target.instance}`.toLocaleLowerCase();
 
 		/** @type {HTMLSlotElement} */ const slot = this['::'];
 		slot &&
-			slot.addEventListener('slotchange', event => this.isConnected && this.updateMarkoutContent(slot), {
-				passive: true,
-			});
+			slot.addEventListener(
+				'slotchange',
+				/** @param {Event} event */ event => this.isConnected && this.updateMarkoutContent(slot),
+				{
+					passive: true,
+				},
+			);
 	}
 
 	connectedCallback() {
@@ -744,10 +742,11 @@ class MarkoutContent extends Component {
 	scrollToAnchor(anchor) {
 		/** @type {HTMLAnchorElement} */
 		let target;
-		const {'::content': content} = this;
+		//@ts-ignore
+		const {'::content': contentSlot} = this;
 		if (typeof anchor === 'string' && (anchor = anchor.trim()) !== '') {
 			anchor = anchor.toLocaleLowerCase().replace(/^the-/, '');
-			(target = content.querySelector(`a[id="${anchor}"]`))
+			(target = contentSlot.querySelector(`a[id="${anchor}"]`))
 				? target.scrollIntoView({behavior: 'smooth', block: 'start', inline: 'nearest'})
 				: console.warn('scrollIntoView: %o', {anchor, target});
 		}
@@ -769,6 +768,7 @@ class MarkoutContent extends Component {
 		/** @type {string} */
 		let sourceURL;
 
+		//@ts-ignore
 		({'::content': contentSlot, '#wrapper': wrapperSlot, sourceURL} = this);
 
 		arguments.length || (sourceText = this.sourceText);
@@ -810,8 +810,10 @@ class MarkoutContent extends Component {
 		contentSlot.classList.remove('hide');
 		contentSlot.hidden = false;
 
+		//@ts-ignore
 		if (this.rewriteAnchors) {
 			const anchors = contentSlot.querySelectorAll('a[href]');
+			//@ts-ignore
 			anchors && this.rewriteAnchors([...anchors]);
 		}
 	}
@@ -918,6 +920,7 @@ class MarkoutContent extends Component {
 
 	/// Properties
 	get sourceText() {
+		//@ts-ignore
 		const {childNodes, firstElementChild, renderedText} = this;
 		if (renderedText || renderedText === '') return renderedText;
 

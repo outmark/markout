@@ -334,9 +334,10 @@ const Component = (() => {
 
     // Those properties are meant for bundling
     /** @type {import('./templates.js')['css']} */
-    Component.html = components.html;
-    /** @type {import('./templates.js')['html']} */
     Component.css = components.css;
+    /** @type {import('./templates.js')['html']} */
+    //@ts-ignore
+    Component.html = components.html;
     /** @type {import('./styling.js')['styling']} */
     Component.styling = components.styling;
     /** @type {import('./assets.js')['Assets']} */

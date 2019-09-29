@@ -1,5 +1,5 @@
-﻿import dynamicImport from '/browser/dynamic-import.js';
-// import * as content from '../lib/content/dom.js';
+﻿//@ts-check
+import dynamicImport from '/browser/dynamic-import.js';
 import '../lib/content/dom.js';
 import {content} from '../lib/content.js';
 import {Component} from '../lib/components.js';
@@ -7,6 +7,7 @@ import {Component} from '../lib/components.js';
 export class MarkoutContent extends Component {
 	/** @type {{[name: string]: boolean | undefined}} */
 	static get flags() {
+		//@ts-ignore
 		const flags = Object.create(super.flags || null);
 
 		for (const flag in content.defaults.flags) {
@@ -32,7 +33,7 @@ export class MarkoutContent extends Component {
 	}
 
 	static get shadowRoot() {
-		return super.set('shadowRoot', {mode: 'closed'});
+		return super.set('shadowRoot', /** @type {ShadowRootInit} */ ({mode: 'closed'}));
 	}
 
 	static get assets() {
@@ -98,13 +99,18 @@ export class MarkoutContent extends Component {
 		super();
 
 		this.flags = new.target.flags;
+		//@ts-ignore
 		this.name = `${this.tagName}-${++new.target.instance}`.toLocaleLowerCase();
 
 		/** @type {HTMLSlotElement} */ const slot = this['::'];
 		slot &&
-			slot.addEventListener('slotchange', event => this.isConnected && this.updateMarkoutContent(slot), {
-				passive: true,
-			});
+			slot.addEventListener(
+				'slotchange',
+				/** @param {Event} event */ event => this.isConnected && this.updateMarkoutContent(slot),
+				{
+					passive: true,
+				},
+			);
 	}
 
 	connectedCallback() {
@@ -115,10 +121,11 @@ export class MarkoutContent extends Component {
 	scrollToAnchor(anchor) {
 		/** @type {HTMLAnchorElement} */
 		let target;
-		const {'::content': content} = this;
+		//@ts-ignore
+		const {'::content': contentSlot} = this;
 		if (typeof anchor === 'string' && (anchor = anchor.trim()) !== '') {
 			anchor = anchor.toLocaleLowerCase().replace(/^the-/, '');
-			(target = content.querySelector(`a[id="${anchor}"]`))
+			(target = contentSlot.querySelector(`a[id="${anchor}"]`))
 				? target.scrollIntoView({behavior: 'smooth', block: 'start', inline: 'nearest'})
 				: console.warn('scrollIntoView: %o', {anchor, target});
 		}
@@ -140,6 +147,7 @@ export class MarkoutContent extends Component {
 		/** @type {string} */
 		let sourceURL;
 
+		//@ts-ignore
 		({'::content': contentSlot, '#wrapper': wrapperSlot, sourceURL} = this);
 
 		arguments.length || (sourceText = this.sourceText);
@@ -181,8 +189,10 @@ export class MarkoutContent extends Component {
 		contentSlot.classList.remove('hide');
 		contentSlot.hidden = false;
 
+		//@ts-ignore
 		if (this.rewriteAnchors) {
 			const anchors = contentSlot.querySelectorAll('a[href]');
+			//@ts-ignore
 			anchors && this.rewriteAnchors([...anchors]);
 		}
 	}
@@ -289,6 +299,7 @@ export class MarkoutContent extends Component {
 
 	/// Properties
 	get sourceText() {
+		//@ts-ignore
 		const {childNodes, firstElementChild, renderedText} = this;
 		if (renderedText || renderedText === '') return renderedText;
 
