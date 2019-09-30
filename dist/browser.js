@@ -611,7 +611,7 @@ const AssetNodeMap = Enum({
 });
 
 const AssetNodeSelector = ['script', 'style', ...Object.keys(AssetNodeMap)]
-	.map(tag => `${tag.toUpperCase()}[src]:not([slot])`)
+	.map(tag => `${tag.toUpperCase()}[src]:not([slot]),${tag.toUpperCase()}[srcset]:not([slot])`)
 	.join(',');
 
 content.AssetNodeSelector = AssetNodeSelector;
@@ -862,13 +862,16 @@ class MarkoutContent extends Component {
 			const baseURL = fragment.baseURL || fragment.baseURI;
 
 			for (const link of fragment.assets) {
-				const {base: baseAttribute, src: srcAttribute} = link.attributes;
-				const src = srcAttribute.value;
+				const {base: baseAttribute, [link.nodeName === 'SOURCE' ? 'srcset' : 'src']: srcAttribute} = link.attributes;
 				const base = baseAttribute ? baseAttribute.value : baseURL;
 				baseAttribute && link.removeAttribute('base');
 				link.setAttribute('link-base', base);
-				link.setAttribute('link-src', src);
-				link.setAttribute('src', (link.src = new URL(src, base)));
+				if (srcAttribute) {
+					const attribute = srcAttribute.name;
+					const [href] = srcAttribute.value.split(/\s/, 1);
+					link.setAttribute(`link-${attribute}`, href);
+					link.setAttribute(attribute, (link[attribute] = new URL(href, base)));
+				}
 			}
 
 			fragment.assets.stylesheets &&
