@@ -58,6 +58,7 @@
 	--blockquote--background--: var(--band-fill\-\-);
 	--blockquote--color--: var(--band-text\-\-);
 	--blockquote--opacity--: var(--band-text\-\-);
+	--blockquote--inset--: 1em;
 
 	--section--background--: var(--markout--section-background, #ffffffee);
 	--section--color--: var(--markout--section-text, #000);
@@ -353,8 +354,8 @@ blockquote {
 
 	border: 0 var(--band-line) solid;
 	border-inline-start-width: var(--inline-start-border-width);
-	padding-inline-start: 1em;
-	padding-inline-end: 1em;
+	padding-inline-start: var(--blockquote--inset--, 1em);
+	padding-inline-end: var(--blockquote--inset--, 1em);
 
 	color: var(--band-text\-\-);
 }
