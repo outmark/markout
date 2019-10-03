@@ -1,22 +1,210 @@
-/* @import './styles.css'; */
 @import './markdown.css';
 @import './markup.css';
-/* @import 'markout.css'; */
 
-body.vscode-body > code.language-tsv code div,
-body.vscode-body > code.language-log code div {
+.vscode-body .language-tsv code,
+.vscode-body .language-log code {
 	-webkit-tab-size: 12 !important;
 	-moz-tab-size: 12 !important;
 	tab-size: 12 !important;
 }
 
-html {
-	background-color: #99999911 !important;
-	/* padding: 1em; */
+.vscode-body {
+	margin: 1em auto;
+	box-shadow: 0 1px 2px -0.75px #0006, 0 1px 10px -5px #000;
 }
 
-body.vscode-body {
-	color: var(--vscode-editor-foreground);
+html {
+	background-color: #0003;
+}
+
+.vscode-body .highlight pre,
+.vscode-body table tr:nth-child(2n),
+.vscode-body > code,
+.vscode-body :not(pre):not(code) code,
+.vscode-body kbd,
+.vscode-body blockquote,
+.vscode-body pre {
+	background-color: #9991 !important;
+}
+
+.vscode-body table tr,
+.vscode-body img,
+.vscode-body {
 	background-color: var(--vscode-editor-background);
-	margin: 1em auto;
+}
+
+.vscode-body h1 .octicon-link,
+.vscode-body h2 .octicon-link,
+.vscode-body h3 .octicon-link,
+.vscode-body h4 .octicon-link,
+.vscode-body h5 .octicon-link,
+.vscode-body h6 .octicon-link,
+.vscode-body pre,
+.vscode-body pre code,
+.vscode-body kbd,
+.vscode-body blockquote,
+.vscode-body {
+	color: var(--vscode-editor-foreground);
+}
+
+.vscode-body h1,
+.vscode-body h2,
+.vscode-body h3,
+.vscode-body h4,
+.vscode-body h5,
+.vscode-body h6 {
+	border-bottom-color: var(--vscode-editor-foreground);
+}
+
+.vscode-body h6 {
+	color: #999c;
+}
+
+.vscode-body hr {
+	border-bottom-color: transparent;
+	background-color: var(--vscode-editor-foreground);
+}
+
+.vscode-body kbd {
+	border-color: #ccc3;
+	border-bottom-color: #6666;
+	box-shadow: inset 0 -0.15em 0 #9996;
+}
+
+.vscode-body blockquote {
+	border-left-color: #6666;
+}
+.vscode-body table tr {
+	border-top-color: #6666;
+}
+
+/** SEE: file:///Users/daflair/.vscode/extensions/bierner.markdown-preview-github-styles-0.1.6/github-markdown.css */
+
+.vscode-body .pl-c {
+	color: #6a737d;
+}
+
+.vscode-body .pl-c1,
+.vscode-body .pl-s .pl-v {
+	color: #005cc5;
+}
+
+.vscode-body .pl-e,
+.vscode-body .pl-en {
+	color: #6f42c1;
+}
+
+.vscode-body .pl-smi,
+.vscode-body .pl-s .pl-s1 {
+	color: #24292e;
+}
+
+.vscode-body .pl-ent {
+	color: #22863a;
+}
+
+.vscode-body .pl-k {
+	color: #d73a49;
+}
+
+.vscode-body .pl-s,
+.vscode-body .pl-pds,
+.vscode-body .pl-s .pl-pse .pl-s1,
+.vscode-body .pl-sr,
+.vscode-body .pl-sr .pl-cce,
+.vscode-body .pl-sr .pl-sre,
+.vscode-body .pl-sr .pl-sra {
+	color: #032f62;
+}
+
+.vscode-body .pl-v,
+.vscode-body .pl-smw {
+	color: #e36209;
+}
+
+.vscode-body .pl-bu {
+	color: #b31d28;
+}
+
+.vscode-body .pl-ii {
+	color: #fafbfc;
+	background-color: #b31d28;
+}
+
+.vscode-body .pl-c2 {
+	color: #fafbfc;
+	background-color: #d73a49;
+}
+
+.vscode-body .pl-sr .pl-cce {
+	color: #22863a;
+}
+
+.vscode-body .pl-ml {
+	color: #735c0f;
+}
+
+.vscode-body .pl-mh,
+.vscode-body .pl-mh .pl-en,
+.vscode-body .pl-ms {
+	color: #005cc5;
+}
+
+.vscode-body .pl-mi {
+	font-style: italic;
+	color: #24292e;
+}
+
+.vscode-body .pl-mb {
+	color: #24292e;
+}
+
+.vscode-body .pl-md {
+	color: #b31d28;
+	background-color: #ffeef0;
+}
+
+.vscode-body .pl-mi1 {
+	color: #22863a;
+	background-color: #f0fff4;
+}
+
+.vscode-body .pl-mc {
+	color: #e36209;
+	background-color: #ffebda;
+}
+
+.vscode-body .pl-mi2 {
+	color: #f6f8fa;
+	background-color: #005cc5;
+}
+
+.vscode-body .pl-mdr {
+	color: #6f42c1;
+}
+
+.vscode-body .pl-ba {
+	color: #586069;
+}
+
+.vscode-body .pl-sg {
+	color: #959da5;
+}
+
+.vscode-body .pl-corl {
+	color: #032f62;
+}
+
+.vscode-body a {
+	color: #0366d6;
+	background-color: transparent;
+}
+
+.vscode-body .full-commit .btn-outline:not(:disabled):hover {
+	color: #005cc5;
+	border-color: #005cc5;
+}
+
+.vscode-body :checked + .radio-label {
+	border-color: #0366d6;
 }
