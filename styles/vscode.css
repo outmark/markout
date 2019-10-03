@@ -1,0 +1,22 @@
+/* @import './styles.css'; */
+@import './markdown.css';
+@import './markup.css';
+/* @import 'markout.css'; */
+
+body.vscode-body > code.language-tsv code div,
+body.vscode-body > code.language-log code div {
+	-webkit-tab-size: 12 !important;
+	-moz-tab-size: 12 !important;
+	tab-size: 12 !important;
+}
+
+html {
+	background-color: #99999911 !important;
+	/* padding: 1em; */
+}
+
+body.vscode-body {
+	color: var(--vscode-editor-foreground);
+	background-color: var(--vscode-editor-background);
+	margin: 1em auto;
+}
