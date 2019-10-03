@@ -52,12 +52,15 @@
 
 	--fence--border--: var(--microline) solid var(--band-line);
 	--fence--background--: var(--band-fill\-\-);
-	--fence--color--: var(--band-text);
+	/* --fence--color--: var(--band-text); */
+	--fence--color--: inherit;
 	--code--background--: var(--band-fill\-);
-	--code--color--: var(--band-text);
+	/* --code--color--: var(--band-text); */
+	--code--color--: inherit;
 	--blockquote--background--: var(--band-fill\-\-);
-	--blockquote--color--: var(--band-text\-\-);
-	--blockquote--opacity--: var(--band-text\-\-);
+	--blockquote--color--: var(--band-text\-);
+	--blockquote--stroke--: var(--band-line);
+	--blockquote--opacity--: 0.9;
 	--blockquote--inset--: 1em;
 
 	--section--background--: var(--markout--section-background, #ffffffee);
@@ -352,12 +355,12 @@ table {
 blockquote {
 	--inline-start-border-width: 0.25em;
 
-	border: 0 var(--band-line) solid;
+	border: 0 var(--blockquote--stroke--) solid;
 	border-inline-start-width: var(--inline-start-border-width);
 	padding-inline-start: var(--blockquote--inset--, 1em);
 	padding-inline-end: var(--blockquote--inset--, 1em);
 
-	color: var(--band-text\-\-);
+	color: var(--blockquote--color--);
 }
 
 blockquote > p {
@@ -377,7 +380,7 @@ blockquote > q + cite {
 @media only screen {
 	blockquote > q + cite,
 	blockquote {
-		opacity: 0.9;
+		opacity: var(--blockquote--opacity--, 0.9);
 	}
 }
 
@@ -519,11 +522,22 @@ iframe {
 	/* box-sizing: border-box; */
 }
 
+pre {
+	color: inherit;
+}
+
 pre,
 code,
 kbd,
 samp {
 	color: var(--code--color--);
+}
+
+a kbd,
+a code,
+a pre,
+a samp {
+	color: var(--band-text);
 }
 
 pre,
