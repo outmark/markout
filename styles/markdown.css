@@ -224,6 +224,16 @@ table {
 	margin-block-end: var(--block-margin);
 }
 
+details > :not(summary):last-child {
+	margin-block-end: var(--block-margin);
+}
+
+details > summary + :first-child,
+details > :not(summary):first-child {
+	margin-block-start: var(--block-margin);
+}
+
+
 figcaption {
 	margin: 0.25em;
 }
