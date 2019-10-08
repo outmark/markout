@@ -255,10 +255,8 @@ li > ul {
 /* li > li:last-child:first-child, */
 li > ul + ol,
 li > ol + ol,
-li > p + ol,
 li > ul + ul,
 li > ol + ul,
-li > p + ul,
 li > :first-child {
 	margin-block-start: 0;
 }
