@@ -1,5 +1,5 @@
 import { entities as entities$1 } from '/markup/dist/tokenizer.browser.js';
-import { c as content, d as defaults, D as DOM_MUTATIONS, B as BREAK_NORMALIZATION, H as HEADING_NORMALIZATION, P as PARAGRAPH_NORMALIZATION, a as BLOCK_PARAGRAPH_NORMALIZATION, C as CHECKLIST_NORMALIZATION, b as BLOCKQUOTE_NORMALIZATION, e as BLOCKQUOTE_HEADING_NORMALIZATION, T as TOKEN_FLATTENING, f as DECLARATIVE_STYLING, S as SOURCE_TEXT_RENDERING, A as ASSET_REMAPPING, g as ASSET_INITIALIZATION, h as flags, r as render, t as tokenize, n as normalize, E as Enum } from './common.js';
+import { c as content, d as defaults, D as DOM_MUTATIONS, B as BREAK_NORMALIZATION, H as HEADING_NORMALIZATION, P as PARAGRAPH_NORMALIZATION, a as BLOCK_PARAGRAPH_NORMALIZATION, L as LIST_PARAGRAPH_NORMALIZATION, C as CHECKLIST_NORMALIZATION, b as BLOCKQUOTE_NORMALIZATION, e as BLOCKQUOTE_HEADING_NORMALIZATION, T as TOKEN_FLATTENING, f as DECLARATIVE_STYLING, S as SOURCE_TEXT_RENDERING, A as ASSET_REMAPPING, g as ASSET_INITIALIZATION, h as flags, r as render, t as tokenize, n as normalize, E as Enum } from './common.js';
 import { debugging } from '/markout/lib/helpers.js';
 import { styling, Component } from './components.js';
 
@@ -111,6 +111,7 @@ const {
 }))(entities$1.es);
 
 const entities = /*#__PURE__*/Object.freeze({
+	__proto__: null,
 	UnicodeIdentifier: UnicodeIdentifier,
 	MarkdownIdentityPrefixer: MarkdownIdentityPrefixer,
 	MarkdownIdentityJoiner: MarkdownIdentityJoiner,
@@ -128,6 +129,7 @@ const normalizeRenderedFragment = (fragment, flags$1) => {
 		HEADING_NORMALIZATION: fragment.markoutContentFlags.HEADING_NORMALIZATION = HEADING_NORMALIZATION,
 		PARAGRAPH_NORMALIZATION: fragment.markoutContentFlags.PARAGRAPH_NORMALIZATION = PARAGRAPH_NORMALIZATION,
 		BLOCK_PARAGRAPH_NORMALIZATION: fragment.markoutContentFlags.BLOCK_PARAGRAPH_NORMALIZATION = BLOCK_PARAGRAPH_NORMALIZATION,
+		LIST_PARAGRAPH_NORMALIZATION: fragment.markoutContentFlags.LIST_PARAGRAPH_NORMALIZATION = LIST_PARAGRAPH_NORMALIZATION,
 		CHECKLIST_NORMALIZATION: fragment.markoutContentFlags.CHECKLIST_NORMALIZATION = CHECKLIST_NORMALIZATION,
 		BLOCKQUOTE_NORMALIZATION: fragment.markoutContentFlags.BLOCKQUOTE_NORMALIZATION = BLOCKQUOTE_NORMALIZATION,
 		BLOCKQUOTE_HEADING_NORMALIZATION: fragment.markoutContentFlags.BLOCKQUOTE_HEADING_NORMALIZATION = BLOCKQUOTE_HEADING_NORMALIZATION,
@@ -465,6 +467,12 @@ const normalizeParagraphsInFragment = fragment => {
 	if ((fragment.markoutContentFlags || defaults).BLOCK_PARAGRAPH_NORMALIZATION)
 		for (const block of fragment.querySelectorAll('li:not(:empty), blockquote:not(:empty)'))
 			content.normalizeParagraphsInBlock(block);
+	if ((fragment.markoutContentFlags || defaults).LIST_PARAGRAPH_NORMALIZATION)
+		for (const list of fragment.querySelectorAll(
+			'li > p:first-child:last-child > ol:last-child, li > p:first-child:last-child > ul:last-child',
+		))
+			list.parentElement.after(list);
+
 	for (const empty of fragment.querySelectorAll('p:empty')) empty.remove();
 };
 
