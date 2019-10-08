@@ -243,13 +243,13 @@ li > ul {
 }
 
 li > ol:last-child:first-child,
-li > li:last-child:first-child,
+li > ul:last-child:first-child,
 li > p:first-child {
 	margin-block-start: 0;
 }
 
 li > ol:last-child:first-child,
-li > li:last-child:first-child,
+li > ul:last-child:first-child,
 li > p:last-child:first-child {
 	margin-block-end: 0;
 }
