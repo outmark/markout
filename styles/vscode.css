@@ -53,7 +53,8 @@ html {
 .vscode-body h4,
 .vscode-body h5,
 .vscode-body h6 {
-	border-bottom-color: var(--vscode-editor-foreground);
+	/* border-bottom-color: var(--vscode-editor-foreground); */
+	border: none;
 }
 
 .vscode-body h6 {
