@@ -468,10 +468,18 @@ const normalizeParagraphsInFragment = fragment => {
 		for (const block of fragment.querySelectorAll('li:not(:empty), blockquote:not(:empty)'))
 			content.normalizeParagraphsInBlock(block);
 	if ((fragment.markoutContentFlags || defaults).LIST_PARAGRAPH_NORMALIZATION)
-		for (const list of fragment.querySelectorAll(
+		for (const {parentElement: paragraph} of fragment.querySelectorAll(
 			'li > p:first-child:last-child > ol:last-child, li > p:first-child:last-child > ul:last-child',
-		))
-			list.parentElement.after(list);
+		)) {
+			while (
+				(paragraph.lastElementChild.nodeName === 'OL' || paragraph.lastElementChild.nodeName === 'UL') &&
+				(paragraph.lastChild === paragraph.lastElementChild ||
+					paragraph.lastChild.nodeType === paragraph.COMMENT_NODE ||
+					paragraph.lastChild.textContent.trim() === '')
+			) {
+				paragraph.after(paragraph.lastElementChild);
+			}
+		}
 
 	for (const empty of fragment.querySelectorAll('p:empty')) empty.remove();
 };
