@@ -233,7 +233,6 @@ details > :not(summary):first-child {
 	margin-block-start: var(--block-margin);
 }
 
-
 figcaption {
 	margin: 0.25em;
 }
@@ -252,22 +251,34 @@ li > ul {
 	margin-block-end: var(--block-margin);
 }
 
-li > ol:last-child:first-child,
-li > ul:last-child:first-child,
-li > p:first-child {
+/* li > ol:last-child:first-child, */
+/* li > li:last-child:first-child, */
+li > ul + ol,
+li > ol + ol,
+li > p + ol,
+li > ul + ul,
+li > ol + ul,
+li > p + ul,
+li > :first-child {
 	margin-block-start: 0;
 }
 
-li > ol:last-child:first-child,
-li > ul:last-child:first-child,
-li > p:last-child:first-child {
+/* li > ol:last-child:first-child, */
+/* li > li:last-child:first-child, */
+/* li > :not(ol):not(ul):last-child */
+li > :not(ol):not(ul):last-child:first-child,
+li > ol:not(:last-child),
+li > ul:not(:last-child) {
 	margin-block-end: 0;
 }
 
 li > div:first-child,
 li > figure:first-child,
 li > pre:first-child {
-	margin: 0;
+	/* margin: 0; */
+	margin-inline-start: 0;
+	margin-end-start: 0;
+	margin-block-start: 0;
 }
 
 ol,
