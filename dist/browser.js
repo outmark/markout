@@ -1007,7 +1007,7 @@ const rewriteAnchors = (
 			anchor.target || (anchor.target = '_blank');
 		}
 
-		if (debugging && hash) debugger;
+		// if (debugging && hash) debugger;
 		debugging && dirxml(anchor);
 	}
 
