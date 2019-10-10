@@ -18,24 +18,25 @@ class Matcher extends RegExp {
       pattern.entities &&
       Symbol.iterator in pattern.entities &&
       ((!entities && (entities = pattern.entities)) || entities === pattern.entities)) ||
-      Object.freeze((entities = (entities && Symbol.iterator in entities && [...entities]) || []));
+      Object.freeze(
+        Object.assign((entities = (entities && Symbol.iterator in entities && [...entities]) || []), {
+          flags,
+          meta: Matcher.metaEntitiesFrom(entities),
+          identities: Matcher.identityEntitiesFrom(entities),
+        }),
+      );
+
     /** @type {MatcherEntities} */
     this.entities = entities;
     this.state = state;
     this.exec = this.exec;
+    this.capture = this.capture;
+
     ({DELIMITER: this.DELIMITER = Matcher.DELIMITER, UNKNOWN: this.UNKNOWN = Matcher.UNKNOWN} = new.target);
   }
 
-  /**
-   * @param {string} source
-   */
-  exec(source) {
-    /** @type {MatcherExecArray} */
-    let match;
-
-    // @ts-ignore
-    match = super.exec(source);
-
+  /** @param {MatcherExecArray} match */
+  capture(match) {
     // @ts-ignore
     if (match === null) return null;
 
@@ -60,6 +61,37 @@ class Matcher extends RegExp {
   }
 
   /**
+   * @param {string} source
+   */
+  exec(source) {
+    const match = /** @type {MatcherExecArray} */ (super.exec(source));
+    match == null || this.capture(match);
+    return match;
+  }
+
+  /** @returns {entity is MatcherMetaEntity} */
+  static isMetaEntity(entity) {
+    return typeof entity === 'string' && entity.endsWith('?');
+  }
+
+  /** @returns {entity is MatcherIdentityEntity} */
+  static isIdentityEntity(entity) {
+    return typeof entity === 'string'
+      ? entity !== '' && entity.trim() === entity && !entity.endsWith('?')
+      : typeof entity === 'symbol';
+  }
+
+  static metaEntitiesFrom(entities) {
+    return /** @type {MatcherEntitySet<MatcherMetaEntity>} */ (new Set([...entities].filter(Matcher.isMetaEntity)));
+  }
+
+  static identityEntitiesFrom(entities) {
+    return /** @type {MatcherEntitySet<MatcherIdentityEntity>} */ (new Set(
+      [...entities].filter(Matcher.isIdentityEntity),
+    ));
+  }
+
+  /**
    * @param {MatcherPatternFactory} factory
    * @param {MatcherFlags} [flags]
    * @param {PropertyDescriptorMap} [properties]
@@ -79,6 +111,8 @@ class Matcher extends RegExp {
         entities.push(((entity != null || undefined) && entity) || undefined);
       }
     });
+    entities.meta = Matcher.metaEntitiesFrom(entities);
+    entities.identities = Matcher.identityEntitiesFrom(entities);
     flags = Matcher.flags('g', flags == null ? pattern.flags : flags, entities.flags);
     const matcher = new ((this && (this.prototype === Matcher.prototype || this.prototype instanceof RegExp) && this) ||
       Matcher)(pattern, flags, entities);
@@ -154,13 +188,8 @@ class Matcher extends RegExp {
   }
 
   static get matchAll() {
-    /**
-     * @template {RegExp} T
-     * @type {(string: MatcherText, matcher: T) => MatcherIterator<T> }
-     */
-    // //@ts-ignore
+    /** @template {RegExp} T @type {(string: MatcherText, matcher: T) => MatcherIterator<T> } */
     // const matchAll = (string, matcher) => new MatcherState(string, matcher);
-    //@ts-ignore
     const matchAll = (() =>
       Function.call.bind(
         // String.prototype.matchAll || // TODO: Uncomment eventually
@@ -203,9 +232,9 @@ class Matcher extends RegExp {
 
 const {
   /** Identity for delimiter captures (like newlines) */
-  DELIMITER = (Matcher.DELIMITER = 'DELIMITER'),
+  DELIMITER = (Matcher.DELIMITER = 'DELIMITER?'),
   /** Identity for unknown captures */
-  UNKNOWN = (Matcher.UNKNOWN = 'UNKNOWN'),
+  UNKNOWN = (Matcher.UNKNOWN = 'UNKNOWN?'),
 } = Matcher;
 
 //@ts-check
@@ -979,11 +1008,13 @@ class MarkoutBlockNormalizer {
 						((list = ComposableList.create(listProperties)).parent = parent)
 							? parent.push(list)
 							: lists.push((top = list));
-					}
+					} else if (depth !== list.listDepth && list.listDepth !== undefined) ;
 
 					// console.log(text, [matchedMarker, list.listStyle, like]);
 
-					if (!list) break;
+					if (!list)
+						// debugger;
+						break;
 
 					'listInset' in list ||
 						((list.listInset = matchedInset),
@@ -1076,19 +1107,23 @@ const isNotBlank = text => typeof text === 'string' && !(text === '' || text.tri
 class MarkoutSegmentNormalizer extends MarkoutBlockNormalizer {
 	/**
 	 * @param {string} sourceText
-	 * @param {{ aliases?: { [name: string]: alias } }} [state]
+	 * @param {{ sources?: *, aliases?: { [name: string]: * } }} [state]
 	 */
 	normalizeSegments(sourceText, state = {}) {
-		const {sources = (state.sources = []), aliases = (state.aliases = {})} = state;
 		try {
+			state.sources || (state.sources = []);
+			state.aliases || (state.aliases = {});
 			// TODO: Implement Markout's Matcher-based segment normalization
-			// for (const segment of matchAll(sourceText, MarkoutSegments)) {}
-			// state.segments = [...matchAll(sourceText, MarkoutSegments)];
-
+			// setTimeout(() => this.debugSegments(sourceText), 5000);
 			return this.normalizeBlocks(sourceText, state);
 		} finally {
+			//@ts-ignore
 			import.meta['debug:markout:segment-normalization'] && console.log('normalizeSegments:', state);
 		}
+	}
+
+	async debugSegments(sourceText) {
+		(await import('../../../../../../../markout/lib/experimental/markout-segmenter.js')).MarkoutSegments.debug({sourceText});
 	}
 }
 
