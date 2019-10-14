@@ -1,4 +1,5 @@
-﻿import dynamicImport from '/browser/dynamic-import.js';
+﻿import '/browser/legacy.js';
+import dynamicImport from '/browser/dynamic-import.js';
 import {resizeFrameElement} from '/browser/markout-frame.js';
 // import {darkMode} from '/browser/dark-mode.js#autoOnly';
 
