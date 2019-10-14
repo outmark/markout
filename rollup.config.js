@@ -1,5 +1,6 @@
-﻿import nodeResolve from 'rollup-plugin-node-resolve';
+﻿// import nodeResolve from 'rollup-plugin-node-resolve';
 
+const logging = 0;
 const root = __dirname.replace(/(?:\/packages)?\/markout\/?$/, '');
 const scope = `${__dirname}/packages/markout`;
 // const [root, scope] = __dirname.split(/(?=(?:\/packages)?\/markout\/?$|$)/, 2);
@@ -38,7 +39,7 @@ const resolver = new (class RollupHooks {
 			if (id !== specifier) return (returned = {id});
 			return (returned = null);
 		} finally {
-			if (resolution) {
+			if (resolution && logging > 0) {
 				console.group(
 					`\n\nresolveId(${'\n  %O, '.repeat(arguments.length).slice(0, -2)}\n) => %O\n`,
 					...arguments,
