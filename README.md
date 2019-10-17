@@ -274,43 +274,80 @@ Current experimental efforts divide the rendering into two phases, the first por
 
 </summary>
 
-- [x] Markdown-Style References
-
-<div column-grid font-size:=75%>
-
-```md
-[unreferenced]: ./README.md
-[referenced]: ./README.md
-```
-
-<figure debug=all>
-
-> **Note**: renders as hidden anchors
-
-[unreferenced]: ./README.md
-[referenced]: ./README.md
-</figure>
-
-</div>
-
 - [x] Markdown-Style Links
 
 <div column-grid font-size:=75%>
 
 ```md
+- [Link]()
+- [Link](?)
+- [Link](#)
 - [Link](./README.md)
-- [Referenced Link][referenced]
-- [Not Referenced Link]
-- [Not Referenced Link][not-referenced]
+- [Link](.)
+- [Link](..)
+- [Link](/)
 ```
 
 <figure debug=all>
 
+- [Link]()
+- [Link](?)
+- [Link](#)
 - [Link](./README.md)
-- [Referenced Link][referenced]
-- [Not Referenced Link]
-- [Not Referenced Link][not-referenced]
+- [Link](.)
+- [Link](..)
+- [Link](/)
 
+</figure>
+
+</div>
+
+- [x] Markdown-Style References
+
+<div column-grid font-size:=75%>
+
+```md
+- [Alias Reference][referenced-alias]
+- [Not Alias Reference]
+- [Non-Aliased Reference][undefined-alias]
+
+[unreferenced-alias]: ./README.md
+[referenced-alias]: ./README.md
+```
+
+<figure debug=all>
+
+- [Alias Reference][referenced-alias]
+- [Not Alias Reference]
+- [Non-Aliased Reference][undefined-alias]
+
+[unreferenced-alias]: ./README.md
+[referenced-alias]: ./README.md
+
+> **Note**: aliases render as hidden anchors
+</figure>
+
+</div>
+
+- [x] Markout-Style References
+
+<div column-grid font-size:=75%>
+
+```md
+- [[Reference Link]]
+- [Reference Link][]
+
+[Reference Link]: ?
+```
+
+<figure debug=all>
+
+- [[Reference Link]]
+- [Reference Link][]
+
+[Reference Link]: ?
+
+> **Note**: aliases render as hidden anchors
 </figure>
 
 </div>
@@ -345,7 +382,7 @@ Current experimental efforts divide the rendering into two phases, the first por
 
     a) `    a) Latin     (auto)   `
       iv. `  iv. Roman  (coerced)`
-      11. `  11. Arabic (coerced)`
+      1.  `  11. Arabic (coerced)`
       g.  `  g.  Latin  (coerced)`
       a.  `  h.  Latin  (auto)   `
 
