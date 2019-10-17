@@ -341,7 +341,8 @@ const patterns = {};
 const partials = {};
 
 {
-	const {sequence, escape, join} = Matcher;
+	ranges.Brackets = atoms.split('()[]');
+	ranges.Braces = atoms.split('{}');
 
 	Insets: {
 		ranges.Inseter = atoms.split('\t >'); // 0=tab 1=space 2=quote
@@ -353,7 +354,7 @@ const partials = {};
 		//			 fencing or strikethrough here make it harder
 		//			 to retain intent and traceablility.
 		ranges.FenceMarks = atoms.split('`'); // 0=grave 1=tilde
-		partials.BlockFence = join(...ranges.FenceMarks.map(fence => escape(fence.repeat(3))));
+		partials.BlockFence = join(...ranges.FenceMarks.map(fence => escape$1(fence.repeat(3))));
 	}
 
 	Lists: {
@@ -377,10 +378,10 @@ const partials = {};
 		//   NOTE: Markers are not semantically interchangeable
 		//
 		//   1. Matching Square character (ie `-` per popular notation):
-		partials.SquareMark = escape(ranges.ListMarkers[0]);
+		partials.SquareMark = escape$1(ranges.ListMarkers[0]);
 		//
 		//   2. Matching Disc character (ie `*` per lesser popular notation):
-		partials.DiscMark = escape(ranges.ListMarkers[1]);
+		partials.DiscMark = escape$1(ranges.ListMarkers[1]);
 		//
 		//   Unordered mark is the range of Square/Disc characters:
 		partials.UnorderedMark = range(...ranges.ListMarkers);
@@ -517,8 +518,7 @@ const partials = {};
 		matchers.HTMLTags = new RegExp(sequences.HTMLTags, 'g');
 
 		sequences.NormalizableParagraphs = sequence/* regexp */ `
-      ^
-      ((?:[ \t]*\n(${partials.Inset}*))+)
+      ^((?:[ \t]*\n(${partials.Inset}*))+)
       ($|(?:
 				(?:
 					</?(?:span|small|big|kbd)\b${partials.HTMLTagBody}*?>
@@ -534,15 +534,14 @@ const partials = {};
 		matchers.NormalizableParagraphs = new RegExp(sequences.NormalizableParagraphs, 'gmu');
 
 		sequences.RewritableParagraphs = sequence/* regexp */ `
-      ^
-      ([ \t]*[^\-\*#>\n].*?)
+      ^([ \t]*[^\-\*#>\n].*?)
       (\b.*[^:\n\s>]+|\b)
       [ \t]*\n[ \t>]*?
       (?=(
 				</?(?:span|small|big|kbd)\b${partials.HTMLTagBody}*?>[^-#>|~\n].*
         |\b(?!(?:${sequences.HTMLTags}))
-        |${escape('[')}.*?${escape(']')}[^:\n]?
-        |[^#${'`'}${escape('[')}\n]
+        |\[.*?\][^:\n]?
+        |[^#${'`'}\[\n]
       ))
     `;
 
@@ -566,21 +565,33 @@ const partials = {};
 
 		// We guard against the special case for checklists
 		sequences.NormalizableReferences = sequence/* regexp */ `
-		  (?!${escape('[')}[- xX]${escape(']')} )
-      !?
-      ${escape('[')}(\S.*?\S)${escape(']')}
-      (?:
-        ${escape('(')}(\S[^\n${escape('()[]')}]*?\S)${escape(')')}
-        |${escape('[')}(\S[^\n${escape('()[]')}]*\S)${escape(']')}
-      )
+		  (?!\[[- xX]\] )
+			(?:\[(?=\[\S.*?\S\]\])|!?)
+      \[
+			(
+				[^\s\n\\].*?[^\s\n\\](?=\]\])
+				|[^\s\n\\].*?[^\s\n\\](?=
+					\]\(([^\s\n\\][^\n${escape$1('()[]')}]*?[^\s\n\\]|[^\s\n\\]|)\)
+					|\]\[([^\s\n\\][^\n${escape$1('()[]')}]*[^\s\n\\]|)\]
+				)
+			)\]{1,2}
+      (?:\(\2\)|\[\3\]|)
 		`;
 		// NOTE: Safari seems to struggle with /\S|\s/gmu
 		matchers.NormalizableReferences = new RegExp(sequences.NormalizableReferences, 'g');
 
 		sequences.RewritableAliases = sequence/* regexp */ `
-      ^
-      (${partials.Inset}*)
-      ${escape('[')}(\S.*?\S)${escape(']')}:\s+
+      ^(${partials.Inset}*)
+      \[(\S.*?\S)\]:\s+
+      (\S+)(?:
+        \s+${'"'}([^\n]*)${'"'}
+        |\s+${"'"}([^\n]*)${"'"}
+        |
+      )\s*$
+		`;
+		sequences.RewritableAliases = sequence/* regexp */ `
+      ^(${partials.Inset}*)
+      \[(\S.*?\S)\]:\s+
       (\S+)(?:
         \s+${'"'}([^\n]*)${'"'}
         |\s+${"'"}([^\n]*)${"'"}
@@ -591,7 +602,7 @@ const partials = {};
 		matchers.RewritableAliases = new RegExp(sequences.RewritableAliases, 'gm');
 
 		sequences.NormalizableLink = sequence/* regexp */ `
-      \s*((?:\s?[^${`'"`}${escape('()[]')}}\s\n]+))
+      \s*((?:\s?[^${`'"`}${escape$1('()[]')}}\s\n]+))
       (?:\s+[${`'"`}]([^\n]*)[${`'"`}]|)
 		`; // (?:\s+{([^\n]*)}|)
 		// NOTE: Safari seems to struggle with /\S|\s/gmu
@@ -952,9 +963,17 @@ class MarkoutBlockNormalizer {
 		const {aliases = (state.aliases = {})} = state;
 
 		return sourceText.replace(matchers.NormalizableReferences, (m, text, link, alias, index) => {
-			const reference = (alias && (alias = alias.trim())) || (link && (link = link.trim()));
+			const reference = alias
+				? (alias = alias.trim())
+				: link !== undefined
+				? (link = (link && link.trim()) || '')
+				: text
+				? (alias = text)
+				: undefined;
 
-			if (reference) {
+			// console.log('reference — %O ', {m, text, link, alias, index, reference, aliases});
+
+			if (reference !== undefined) {
 				let href, title, match;
 				// debugging && console.log(m, {text, link, alias, reference, index});
 				if (link) {
