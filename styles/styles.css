@@ -33,8 +33,11 @@ details > summary:first-child {
 	outline-width: 2px;
 	outline-color: Highlight;
 	outline-offset: 1px;
+	-webkit-margin-before: 0;
 	margin-block-start: 0;
+	-webkit-margin-start: 0;
 	margin-inline-start: 0;
+	-webkit-margin-end: 0;
 	margin-inline-end: 0;
 }
 

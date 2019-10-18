@@ -1,7 +1,5 @@
 ﻿@import './root.css';
 @import './overrides.css';
-/* @import './markdown.prefix.css'; */
-/* @import './primer-reset.css'; */
 
 /**/ /**/ /* VARIABLES */ /**/ /**/
 
@@ -94,9 +92,13 @@ dd,
 caption {
 	/* --block-margin: calc(1em * var(--body-spacing-size, 1)); */
 	--inline-margin: 0;
+	-webkit-margin-before: var(--block-margin);
 	margin-block-start: var(--block-margin);
+	-webkit-margin-after: var(--block-margin);
 	margin-block-end: var(--block-margin);
+	-webkit-margin-start: var(--inline-margin);
 	margin-inline-start: var(--inline-margin);
+	-webkit-margin-end: var(--inline-margin);
 	margin-inline-end: var(--inline-margin);
 	widows: 2;
 	orphans: 2;
@@ -167,6 +169,7 @@ li[type='checkbox']::before {
 	overflow: hidden;
 	padding: 0;
 	margin: 0;
+	-webkit-margin-end: -1.125em;
 	margin-inline-end: -1.125em;
 	/* position: absolute; */
 	display: inline-grid;
@@ -220,16 +223,20 @@ pre,
 details,
 table {
 	--block-margin: calc(1em * var(--body-offset-size, 2));
+	-webkit-margin-before: var(--block-margin);
 	margin-block-start: var(--block-margin);
+	-webkit-margin-after: var(--block-margin);
 	margin-block-end: var(--block-margin);
 }
 
 details > :not(summary):last-child {
+	-webkit-margin-after: var(--block-margin);
 	margin-block-end: var(--block-margin);
 }
 
 details > summary + :first-child,
 details > :not(summary):first-child {
+	-webkit-margin-before: var(--block-margin);
 	margin-block-start: var(--block-margin);
 }
 
@@ -238,6 +245,7 @@ figcaption {
 }
 
 figcaption + * {
+	-webkit-margin-before: 0;
 	margin-block-start: 0;
 }
 
@@ -247,7 +255,9 @@ img:first-child:last-child {
 
 li > ol,
 li > ul {
+	-webkit-margin-before: var(--block-margin);
 	margin-block-start: var(--block-margin);
+	-webkit-margin-after: var(--block-margin);
 	margin-block-end: var(--block-margin);
 }
 
@@ -258,6 +268,7 @@ li > ol + ol,
 li > ul + ul,
 li > ol + ul,
 li > :first-child {
+	-webkit-margin-before: 0;
 	margin-block-start: 0;
 }
 
@@ -267,6 +278,7 @@ li > :first-child {
 li > :not(ol):not(ul):last-child:first-child,
 li > ol:not(:last-child),
 li > ul:not(:last-child) {
+	-webkit-margin-after: 0;
 	margin-block-end: 0;
 }
 
@@ -274,8 +286,11 @@ li > div:first-child,
 li > figure:first-child,
 li > pre:first-child {
 	/* margin: 0; */
+	-webit-margin-start: 0;
 	margin-inline-start: 0;
+	-webkit-margin-end: 0;
 	margin-end-start: 0;
+	-webkit-margin-before: 0;
 	margin-block-start: 0;
 }
 
@@ -283,8 +298,11 @@ ol,
 ul {
 	--inline-margin: 0;
 	--inline-inset: calc(1em * var(--list-indent-size, 2));
+	-webkit-padding-start: var(--inline-inset);
 	padding-inline-start: var(--inline-inset);
+	-webkit-margin-start: var(--inline-margin);
 	margin-inline-start: var(--inline-margin);
+	-webkit-margin-end: var(--inline-margin);
 	margin-inline-end: var(--inline-margin);
 }
 
@@ -304,12 +322,15 @@ hgroup h3,
 hgroup h4,
 hgroup h5,
 hgroup h6 {
+	-webkit-margin-before: 0;
 	margin-block-start: 0;
+	-webkit-margin-after: 0;
 	margin-block-end: 0;
 	/* --block-margin: 0; */
 }
 
 *:not(a) > *:first-child:last-child {
+	-webkit-margin-before: 0;
 	margin-block-start: 0;
 }
 
@@ -343,7 +364,9 @@ aside,
 pre {
 	--block-margin: calc(1em * var(--body-spacing-size, 1));
 	margin: 0;
+	-webkit-margin-before: var(--block-margin);
 	margin-block-start: var(--block-margin);
+	-webkit-margin-after: var(--block-margin);
 	margin-block-end: var(--block-margin);
 	border: var(--fence--border--);
 	shape-rendering: geometricPrecision;
@@ -367,6 +390,7 @@ table {
 	position: relative;
 	margin: var(--block-margin);
 	padding: 1em 2em;
+	-webkit-padding-start: 2em;
 	padding-inline-start: 2em;
 	overflow: hidden;
 }
@@ -375,8 +399,11 @@ blockquote {
 	--inline-start-border-width: 0.25em;
 
 	border: 0 var(--blockquote--stroke--) solid;
+	-webkit-border-start-width: var(--inline-start-border-width);
 	border-inline-start-width: var(--inline-start-border-width);
+	-webkit-padding-start: var(--blockquote--inset--, 1em);
 	padding-inline-start: var(--blockquote--inset--, 1em);
+	-webkit-padding-end: var(--blockquote--inset--, 1em);
 	padding-inline-end: var(--blockquote--inset--, 1em);
 
 	color: var(--blockquote--color--);
@@ -407,8 +434,11 @@ hr {
 	--block-margin: calc(1em * var(--body-offset-size, 2));
 	--block-start-border-width: var(--markout-rule-width);
 	border: 0 solid var(--band-line);
+	-webkit-border-before-width: var(--block-start-border-width);
 	border-block-start-width: var(--block-start-border-width);
+	-webkit-margin-before: var(--block-margin);
 	margin-block-start: var(--block-margin);
+	-webkit-margin-after: var(--block-margin);
 	margin-block-end: var(--block-margin);
 }
 
@@ -435,23 +465,28 @@ tfoot,
 thead > tr,
 tfoot > tr {
 	--cell-border-inline: var(--hairline);
+	-webkit-border-start-width: var(--cell-border-inline);
 	border-inline-start-width: var(--cell-border-inline);
+	-webkit-border-inline-end-width: var(--cell-border-inline);
 	border-inline-end-width: var(--cell-border-inline);
 }
 
 th + th,
 tfoot > td + td {
 	--cell-border-before: var(--microline);
+	-webkit-border-start-width: var(--cell-border-before);
 	border-inline-start-width: var(--cell-border-before);
 }
 
 thead > tr + tr {
 	--cell-border-before: var(--microline);
+	-webkit-border-before-width: var(--cell-border-before);
 	border-block-start-width: var(--cell-border-before);
 }
 
 thead:first-of-type {
 	--cell-border-before: var(--hairline);
+	-webkit-border-before-width: var(--cell-border-before);
 	border-block-start-width: var(--cell-border-before);
 }
 
@@ -461,6 +496,7 @@ tfoot ~ tbody,
 tbody > tr:first-child > th:first-child:last-child,
 tfoot:last-of-type {
 	--cell-border-after: var(--hairline);
+	-webkit-border-after-width: var(--cell-border-after);
 	border-block-end-width: var(--cell-border-after);
 }
 
@@ -470,6 +506,7 @@ tfoot + tfoot > tr:first-child,
 tfoot + tfoot > tr:last-child,
 tbody + tbody > tr:first-child {
 	--cell-border-before: var(--hairline);
+	-webkit-border-before-width: var(cell-border-before);
 	border-block-start-width: var(cell-border-before);
 }
 

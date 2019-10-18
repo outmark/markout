@@ -65,6 +65,7 @@ pre.markup[line-numbers] > .markup-line {
 }
 
 pre.markup[line-numbers] {
+	-webkit-padding-start: 0;
 	padding-inline-start: 0;
 	/* max-height: 75vh; */
 }

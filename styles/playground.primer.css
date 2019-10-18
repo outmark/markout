@@ -17,15 +17,21 @@
 }
 
 [markout-class='primer'] {
+	-webkit-margin-before: var(--block--offset--);
 	margin-block-start: var(--block--offset--);
+	-webkit-margin-after: var(--block--offset--);
 	margin-block-end: var(--block--offset--);
 }
 
 [markout-class='primer'] section,
 [markout-class='primer'] article {
+	-webkit-padding-start: var(--block--inset--);
 	padding-inline-start: var(--block--inset--);
+	-webkit-padding-end: var(--block--inset--);
 	padding-inline-end: var(--block--inset--);
+	-webkit-margin-before: var(--block--offset--);
 	margin-block-start: var(--block--offset--);
+	-webkit-margin-after: var(--block--offset--);
 	margin-block-end: var(--block--offset--);
 	border-radius: calc(var(--thinline, 1px) * 2);
 }
@@ -49,14 +55,18 @@
 [markout-class='primer'] hgroup,
 [markout-class='primer'] blockquote,
 [markout-class='primer'] hr {
+	-webkit-margin-before: var(--block--offset--);
 	margin-block-start: var(--block--offset--);
+	-webkit-margin-after: var(--block--offset--);
 	margin-block-end: var(--block--offset--);
 }
 
 [markout-class='primer'] article > p,
 [markout-class='primer'] section > p,
 [markout-class='primer'] > p {
+	-webkit-margin-before: var(--body--offset--);
 	margin-block-start: var(--body--offset--);
+	-webkit-margin-after: var(--body--offset--);
 	margin-block-end: var(--body--offset--);
 }
 
@@ -64,16 +74,20 @@
 [markout-class='primer'] :not(pre):not(section):not(article) > :last-child:not(:first-child),
 [markout-class='primer'] iframe:not(:last-child),
 [markout-class='primer'] pre:not(:last-child) {
+	-webkit-margin-after: 0;
 	margin-block-end: 0;
 }
 
 [markout-class='primer'] pre + p {
+	-webkit-margin-before: calc(var(--body--offset--) * 2);
 	margin-block-start: calc(var(--body--offset--) * 2);
 }
 
 [markout-class='primer'] iframe + blockquote,
 [markout-class='primer'] pre + blockquote {
+	-webkit-margin-before: 0.5em;
 	margin-block-start: 0.5em;
+	-webkit-margin-after: calc(var(--body--offset--) * 2);
 	margin-block-end: calc(var(--body--offset--) * 2);
 	font-size: calc(100% * var(--ß));
 	break-before: avoid;
@@ -89,6 +103,7 @@
 }
 
 [markout-class='primer'] details[open] {
+	-webkit-padding-block-end: 1em;
 	padding-block-end: 1em;
 }
 
@@ -127,20 +142,26 @@
 [markout-class='primer'] pre[data-markout-open-tag]::before {
 	content: attr(data-markout-open-tag);
 	content: attr(data-markout-fence) attr(data-markout-header);
+	-webkit-margin-before: -0.75em;
 	margin-block-start: -0.75em;
+	-webkit-margin-after: 0.25em;
 	margin-block-end: 0.25em;
 }
 
 [markout-class='primer'] pre[data-markout-close-tag]::after {
 	content: attr(data-markout-close-tag);
 	content: attr(data-markout-fence);
+	-webkit-margin-before: 0.25em;
 	margin-block-start: 0.25em;
+	-webkit-margin-after: -0.75em;
 	margin-block-end: -0.75em;
 	justify-self: flex-end;
 }
 
 [markout-class='primer'] pre[line-numbers] .markup-line {
+	-webkit-border-start-color: #9993;
 	border-inline-start-color: #9993;
+	-webkit-border-start-width: 0.5pt;
 	border-inline-start-width: 0.5pt;
 }
 
@@ -201,6 +222,7 @@
 
 	[markout-class='primer'] pre[line-numbers] .markup-line {
 		--markup-line-number-color: #9999;
+		-webkit-border-start-color: #9993;
 		border-inline-start-color: #9993;
 		break-inside: avoid;
 		break-after: avoid;
@@ -219,13 +241,17 @@
 
 	[markout-class='primer'] pre[data-markout-open-tag]::before {
 		border-bottom-width: 1pt;
+		-webkit-padding-block-end: 0.25em;
 		padding-block-end: 0.25em;
+		-webkit-margin-after: 1em;
 		margin-block-end: 1em;
 	}
 
 	[markout-class='primer'] pre[data-markout-open-tag]::after {
 		border-top-width: 1pt;
+		-webkit-padding-block-start: 0.25em;
 		padding-block-start: 0.25em;
+		-webkit-margin-before: 1em;
 		margin-block-start: 1em;
 	}
 
@@ -262,6 +288,7 @@
 
 	[markout-class='primer'] pre[line-numbers] .markup-line {
 		--markup-line-number-color: #9999;
+		-webkit-border-start-color: #9991;
 		border-inline-start-color: #9991;
 	}
 
