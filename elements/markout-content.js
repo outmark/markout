@@ -118,6 +118,11 @@ export class MarkoutContent extends Component {
 		super.connectedCallback();
 	}
 
+	disconnectedCallback() {
+		if (super.disconnectedCallback) super.disconnectedCallback();
+		if (this.untilDisclosed.resolver) this.untilDisclosed.resolver();
+	}
+
 	scrollToAnchor(anchor) {
 		/** @type {HTMLAnchorElement} */
 		let target;
@@ -168,6 +173,14 @@ export class MarkoutContent extends Component {
 		wrapperSlot.hidden = false;
 
 		contentSlot.textContent = '';
+
+		await this.untilVisible();
+		if (!this.isDisclosed) {
+			this.renderedText = '';
+			return;
+		}
+		console.count('rendered');
+
 		const fragment = (this['(markout fragment)'] = await this.appendMarkoutContent(sourceText, contentSlot, sourceURL));
 
 		this['(markout source)'] = sourceText;
@@ -195,6 +208,59 @@ export class MarkoutContent extends Component {
 			//@ts-ignore
 			anchors && this.rewriteAnchors([...anchors]);
 		}
+	}
+
+	async untilVisible() {
+		return this.untilDisclosed();
+		// const promises = [];
+		// if (this.matches('details:not[open] *')) {
+		// 	promises.push(new Promise(resolve => this.addEventListener('toggle', )
+		// }
+	}
+
+	async untilDisclosed() {
+		let promise, closure, node;
+		if (!this.hasOwnProperty('untilDisclosed')) {
+			Object.defineProperties(this, {
+				untilDisclosed: {value: this.untilDisclosed.bind(this), writable: false},
+			});
+			Object.defineProperties(this.untilDisclosed, {
+				awaiter: {
+					value: (resolver, rejecter) =>
+						void ((this.untilDisclosed.resolver = resolver), (this.untilDisclosed.rejecter = rejecter)),
+					writable: false,
+					configurable: false,
+				},
+				rejecter: {value: undefined, writable: true, configurable: false},
+				resolver: {value: undefined, writable: true, configurable: false},
+				promise: {value: undefined, writable: true, configurable: false},
+			});
+		}
+		node = this;
+		if (this.isConnected) {
+			while (!!node && node !== this.ownerDocument && !(closure = node.closest('details:not([open])'))) {
+				node = node.getRootNode();
+				node.host && (node = node.host);
+			}
+		}
+		promise = this.untilDisclosed.promise;
+		this.isDisclosed = this.isConnected && !closure;
+		if (closure) {
+			if (!promise) {
+				closure.addEventListener('toggle', this.untilDisclosed, {once: true});
+				await (promise = this.untilDisclosed.promise = new Promise(this.untilDisclosed.awaiter));
+				if (this.untilDisclosed.promise === promise) {
+					this.untilDisclosed.resolver = this.untilDisclosed.rejecter = this.untilDisclosed.promise = undefined;
+				}
+			} else {
+				await promise;
+			}
+		} else if (promise) {
+			this.untilDisclosed.resolver();
+			// this.untilDisclosed.resolver = this.untilDisclosed.rejecter = this.untilDisclosed.promise = undefined;
+		}
+		// await promise;
+		return this;
 	}
 
 	/** @param {string} sourceText @param {HTMLSlotElement} contentSlot @param {string} baseURL */
