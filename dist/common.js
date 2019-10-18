@@ -673,7 +673,7 @@ class ComposableList extends Array {
 					// listRows.push(text.replace(/^(.+?)(?=(<\/p>)|<[a-z]+\b|\n+))/, (m, a, b) => (a ? `<p>${a}${b || '</p>'}` : m)));
 				}
 			} else {
-				const [, checked, content] = /^\s*(?:\[([-xX]| )\] |)(.+?)\s*$/.exec(item);
+				const [, checked, content] = /^\s*(?:\[([-xX]| )\] |)([^]+?)\s*$/.exec(item);
 
 				content &&
 					listRows.push(

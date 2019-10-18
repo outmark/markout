@@ -499,11 +499,13 @@ content.normalizeDeclarativeStylingInFragment = normalizeDeclarativeStylingInFra
 content.selectors.HeadingsInFragment =
 	'h1:not([id]):not(:empty),h2:not([id]):not(:empty),h3:not([id]):not(:empty),h4:not([id]):not(:empty),h5:not([id]):not(:empty),h6:not([id]):not(:empty)';
 content.selectors.SubheadingsInFragment = 'h1+h2, h2+h3, h3+h4, h4+h5, h5+h6';
-content.selectors.BlockHeadingNodesInFragment = ['i:first-child > b', 'b:first-child > i', 'b', 'i']
-	.flatMap(selector => [
-		`:scope > ${(selector = `${selector}:first-child:not(:empty)`)}`,
-		`p:first-child > ${selector}`,
-	])
+content.selectors.BlockHeadingNodesInFragment = []
+	.concat(
+		...['i:first-child > b', 'b:first-child > i', 'b', 'i'].map(selector => [
+			`:scope > ${(selector = `${selector}:first-child:not(:empty)`)}`,
+			`p:first-child > ${selector}`,
+		]),
+	)
 	.join(',');
 
 /** @typedef {import('../types').Fragment} Fragment */
@@ -755,6 +757,11 @@ class MarkoutContent extends Component {
 		super.connectedCallback();
 	}
 
+	disconnectedCallback() {
+		if (super.disconnectedCallback) super.disconnectedCallback();
+		if (this.untilDisclosed.resolver) this.untilDisclosed.resolver();
+	}
+
 	scrollToAnchor(anchor) {
 		/** @type {HTMLAnchorElement} */
 		let target;
@@ -805,6 +812,14 @@ class MarkoutContent extends Component {
 		wrapperSlot.hidden = false;
 
 		contentSlot.textContent = '';
+
+		await this.untilVisible();
+		if (!this.isDisclosed) {
+			this.renderedText = '';
+			return;
+		}
+		console.count('rendered');
+
 		const fragment = (this['(markout fragment)'] = await this.appendMarkoutContent(sourceText, contentSlot, sourceURL));
 
 		this['(markout source)'] = sourceText;
@@ -832,6 +847,59 @@ class MarkoutContent extends Component {
 			//@ts-ignore
 			anchors && this.rewriteAnchors([...anchors]);
 		}
+	}
+
+	async untilVisible() {
+		return this.untilDisclosed();
+		// const promises = [];
+		// if (this.matches('details:not[open] *')) {
+		// 	promises.push(new Promise(resolve => this.addEventListener('toggle', )
+		// }
+	}
+
+	async untilDisclosed() {
+		let promise, closure, node;
+		if (!this.hasOwnProperty('untilDisclosed')) {
+			Object.defineProperties(this, {
+				untilDisclosed: {value: this.untilDisclosed.bind(this), writable: false},
+			});
+			Object.defineProperties(this.untilDisclosed, {
+				awaiter: {
+					value: (resolver, rejecter) =>
+						void ((this.untilDisclosed.resolver = resolver), (this.untilDisclosed.rejecter = rejecter)),
+					writable: false,
+					configurable: false,
+				},
+				rejecter: {value: undefined, writable: true, configurable: false},
+				resolver: {value: undefined, writable: true, configurable: false},
+				promise: {value: undefined, writable: true, configurable: false},
+			});
+		}
+		node = this;
+		if (this.isConnected) {
+			while (!!node && node !== this.ownerDocument && !(closure = node.closest('details:not([open])'))) {
+				node = node.getRootNode();
+				node.host && (node = node.host);
+			}
+		}
+		promise = this.untilDisclosed.promise;
+		this.isDisclosed = this.isConnected && !closure;
+		if (closure) {
+			if (!promise) {
+				closure.addEventListener('toggle', this.untilDisclosed, {once: true});
+				await (promise = this.untilDisclosed.promise = new Promise(this.untilDisclosed.awaiter));
+				if (this.untilDisclosed.promise === promise) {
+					this.untilDisclosed.resolver = this.untilDisclosed.rejecter = this.untilDisclosed.promise = undefined;
+				}
+			} else {
+				await promise;
+			}
+		} else if (promise) {
+			this.untilDisclosed.resolver();
+			// this.untilDisclosed.resolver = this.untilDisclosed.rejecter = this.untilDisclosed.promise = undefined;
+		}
+		// await promise;
+		return this;
 	}
 
 	/** @param {string} sourceText @param {HTMLSlotElement} contentSlot @param {string} baseURL */
@@ -1050,7 +1118,7 @@ debugging('hashout', import.meta, [
 			const rootNode = this;
 			const {sourceURL, baseURL = `/markout/`} = rootNode;
 			const search = location.search || '';
-			rewriteAnchors(anchors.flat(), {debugging, sourceURL, baseURL, search, rootNode});
+			rewriteAnchors([].concat(...anchors), {debugging, sourceURL, baseURL, search, rootNode});
 		}
 	};
 
