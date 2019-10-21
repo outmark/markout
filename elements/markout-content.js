@@ -179,7 +179,8 @@ export class MarkoutContent extends Component {
 			this.renderedText = '';
 			return;
 		}
-		console.count('rendered');
+
+		import.meta['debug:markout-content:rendered-counter'] && console.count('rendered');
 
 		const fragment = (this['(markout fragment)'] = await this.appendMarkoutContent(sourceText, contentSlot, sourceURL));
 
@@ -212,10 +213,6 @@ export class MarkoutContent extends Component {
 
 	async untilVisible() {
 		return this.untilDisclosed();
-		// const promises = [];
-		// if (this.matches('details:not[open] *')) {
-		// 	promises.push(new Promise(resolve => this.addEventListener('toggle', )
-		// }
 	}
 
 	async untilDisclosed() {
@@ -403,3 +400,11 @@ try {
 } catch (exception) {
 	console.warn(exception);
 }
+
+/// Debugging
+import {debugging} from '/markout/lib/helpers.js';
+
+debugging('markout-content', import.meta, [
+	typeof location === 'object' && /[?&]debug(?=[&#]|=[^&]*\bmarkout-content|$)\b/.test(location.search),
+	'rendered-counter',
+]);
