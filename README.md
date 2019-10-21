@@ -288,7 +288,7 @@ Current experimental efforts divide the rendering into two phases, the first por
 - [Link](/)
 ```
 
-<figure debug=all>
+<figure debug=all onclick="event.preventDefault();">
 
 - [Link]()
 - [Link](?)
@@ -315,7 +315,7 @@ Current experimental efforts divide the rendering into two phases, the first por
 [referenced-alias]: ./README.md
 ```
 
-<figure debug=all>
+<figure debug=all onclick="event.preventDefault();">
 
 - [Alias Reference][referenced-alias]
 - [Not Alias Reference]
@@ -340,7 +340,7 @@ Current experimental efforts divide the rendering into two phases, the first por
 [Reference Link]: ?
 ```
 
-<figure debug=all>
+<figure debug=all onclick="event.preventDefault();">
 
 - [[Reference Link]]
 - [Reference Link][]
