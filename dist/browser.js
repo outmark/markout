@@ -818,7 +818,8 @@ class MarkoutContent extends Component {
 			this.renderedText = '';
 			return;
 		}
-		console.count('rendered');
+
+		import.meta['debug:markout-content:rendered-counter'] && console.count('rendered');
 
 		const fragment = (this['(markout fragment)'] = await this.appendMarkoutContent(sourceText, contentSlot, sourceURL));
 
@@ -851,10 +852,6 @@ class MarkoutContent extends Component {
 
 	async untilVisible() {
 		return this.untilDisclosed();
-		// const promises = [];
-		// if (this.matches('details:not[open] *')) {
-		// 	promises.push(new Promise(resolve => this.addEventListener('toggle', )
-		// }
 	}
 
 	async untilDisclosed() {
@@ -1043,31 +1040,47 @@ try {
 	console.warn(exception);
 }
 
-// const RewritableURL = /^(\.*(?=\/)[^?#\n]*\/)(?:([^/?#\n]+?)(?:(\.[a-z]+)|)|)(\?[^#]+|)(#.*|)$|/i;
-const RewritableURL = /^(\.*(?=\/)[^?#\n]*\/|)(?:(?:([^/?#\n]+?)(?:(\.[a-z]+)|)|)|)(\?[^#]+|)(#.*|)$|/i;
+debugging('markout-content', import.meta, [
+	typeof location === 'object' && /[?&]debug(?=[&#]|=[^&]*\bmarkout-content|$)\b/.test(location.search),
+	'rendered-counter',
+]);
 
-const {dir, dirxml, group, groupCollapsed, groupEnd, log} = console;
+/** @param {HTMLAnchorElement} anchor */
 
 const rewriteAnchors = (
 	anchors,
-	{sourceURL, baseURL, search, rootNode = document, debugging = import.meta['debug:hashout:anchor-rewrite']},
+	{
+		RewritableURL = rewriteAnchors.defaults.RewritableURL,
+		sourceURL,
+		baseURL,
+		search,
+		rootNode = document,
+		debugging = import.meta['debug:hashout:anchor-rewrite'],
+	},
 ) => {
-	debugging && groupCollapsed('%O ‹anchors› ', rootNode);
+	debugging && console.groupCollapsed('%O ‹anchors› ', rootNode);
 
 	for (const anchor of anchors) {
 		const [matched, parent, name, extension = '.md', query = '', hash = ''] = RewritableURL.exec(
 			anchor.getAttribute('href'),
 		);
 
-		debugging && log({matched, parent, name, extension, query, hash});
+		// const alias = getAliasForAnchor(anchor);
+		// const baseNode = (alias && getBaseForAnchor(alias)) || getBaseForAnchor(anchor);
+		// const base = (alias && alias.name && /^\/\S+\/$/.test(alias.name) && baseNode && baseNode.href) || sourceURL;
+		const base = sourceURL;
 
-		if (parent) {
+		debugging && console.log({matched, parent, name, extension, query, hash, base});
+
+		if (base !== sourceURL) {
+			anchor.href = new URL(matched, base);
+			anchor.target || (anchor.target = '_blank');
+		} else if (parent) {
 			const pathname = `${parent}${name ? `${name}${extension}` : ''}`;
-
 			const href =
 				name && extension.toLowerCase() === '.md'
-					? `${baseURL}${search}#${new URL(pathname, sourceURL).pathname}${hash}`
-					: new URL(`${pathname}${query || ((!hash && search) || '')}${hash}`, sourceURL);
+					? `${baseURL}${search}#${new URL(pathname, base).pathname}${hash}`
+					: new URL(`${pathname}${query || ((!hash && search) || '')}${hash}`, base);
 			anchor.href = href;
 		} else if (hash) {
 			anchor.href = `${location}${matched}`;
@@ -1076,10 +1089,14 @@ const rewriteAnchors = (
 		}
 
 		// if (debugging && hash) debugger;
-		debugging && dirxml(anchor);
+		debugging && console.dirxml(anchor);
 	}
 
-	debugging && groupEnd();
+	debugging && console.groupEnd();
+};
+
+rewriteAnchors.defaults = {
+	RewritableURL: /^(\.*(?=\/)[^?#\n]*\/|)(?:(?:([^/?#\n]+?)(?:(\.[a-z]+)|)|)|)(\?[^#]+|)(#.*|)$|/i,
 };
 
 debugging('hashout', import.meta, [

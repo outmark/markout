@@ -853,7 +853,7 @@ class MarkoutBlockNormalizer {
 				// TODO: Figure out anchors: https://www.w3.org/TR/2017/REC-html52-20171214/links.html
 				return alias && alias.trim()
 					? (aliased.push((sourceAliases[alias] = aliases[alias] = match)),
-					  `<a hidden rel="alias" name="${alias}" href="${href}">${title || ''}</a>`)
+					  `<a hidden rel="alias" name="${alias}" href="${href}" ref="${href}">${title || ''}</a>`)
 					: (unaliased.push(match), text);
 			};
 
@@ -987,10 +987,12 @@ class MarkoutBlockNormalizer {
 				if (m[0] === '!') {
 					return ` <img${href ? ` src="${encodeURI(href)}"` : ''}${
 						text || title ? ` title="${text || title}"` : ''
-					} />`;
+					}${(alias && ` alias="${alias}"`) || ''} />`;
 				} else {
 					text = text || encodeEntities(href);
-					return ` <a${href ? ` href="${href}"` : ''}${title ? ` title="${title}"` : ''}>${text || reference}</a>`;
+					return ` <a${href ? ` href="${href}"` : ''}${title ? ` title="${title}"` : ''}${(alias &&
+						` alias="${alias}"`) ||
+						''}>${text || reference}</a>`;
 				}
 			}
 			return m;
