@@ -121,6 +121,49 @@ const entities = /*#__PURE__*/Object.freeze({
 
 //@ts-check
 
+/** @template {selector} T @extends Array<T> */
+//@ts-ignore
+class Selectors extends Array {
+	// /**
+	//  * @template {T} U
+	//  * @template This
+	//  * @param {(value: T, index: number, array: T[]) => selector|selectors} callbackFunction
+	//  * @param {This} [thisArgument]
+	//  * @returns {Selectors<T>}
+	//  */
+	//@ts-ignore
+	get flatMap() {
+		Object.defineProperty(
+			Selectors.prototype,
+			'flatMap',
+			Object.getOwnPropertyDescriptor(Array.prototype, 'flatMap') ||
+				Object.getOwnPropertyDescriptor(
+					class extends Array {
+						flatMap(callbackFunction, thisArgument) {
+							return this.concat(...this.map(callbackFunction, thisArgument));
+						}
+					}.prototype,
+					'flatMap',
+				),
+		);
+
+		return this.flatMap;
+		// return this.concat(...super.map(callbackFunction, thisArgument));
+	}
+
+	toString() {
+		return this.join(',');
+	}
+	static get [Symbol.species]() {
+		return this;
+	}
+}
+
+/** @typedef {string} selector */
+/** @typedef {Selectors|selector[]} selectors */
+
+//@ts-check
+
 /** @param {Fragment} fragment @param {Record<string, boolean>} [flags] */
 const normalizeRenderedFragment = (fragment, flags$1) => {
 	flags$1 = {
@@ -247,7 +290,7 @@ const normalizeHeadingsInFragment = fragment => {
 };
 
 // const content.matchers.BlockParts = /^(?:(\w+(?: \w+)*)(:| - | — |)|)(.*)$/u;
-content.matchers.BlockParts = /^[*_]*?(?:(\*{1,2}|_{1,2}|)(\w+(?: \w+)*)\1(: | - | — |)|)(.*)$|/u;
+content.matchers.BlockParts = /^[*_]*?(?:(\*{1,2}|_{1,2}|)(\w+(?: \w+)*)\1(: | - | — |)|)([^]*)$|/u;
 
 /** @param {Fragment} fragment */
 content.normalizeBlockquotesInFragment = fragment => {
@@ -259,6 +302,8 @@ content.normalizeBlockquotesInFragment = fragment => {
 	let node;
 	/** @type {NodeLike | ElementLike} */
 	let previousNode;
+	/** @type {NodeLike | ElementLike} */
+	let blockNode;
 	/** @type {RangeLike} */
 	let range;
 	let heading, delimiter, headingSeparator, body;
@@ -267,11 +312,15 @@ content.normalizeBlockquotesInFragment = fragment => {
 	for (const blockquote of /** @type {Iterable<BlockQuote>} */ (fragment.querySelectorAll('blockquote:not(:empty)'))) {
 		node = blockquote.querySelector(content.selectors.BlockHeadingNodesInFragment);
 
+		// if (/\w+:/.test(blockquote.innerText) && node == null) debugger;
+
 		node == null ||
 			(body = blockquote.textContent.trim()) === '' ||
 			([, delimiter = '', heading = '', headingSeparator = '', body = ''] = content.matchers.BlockParts.exec(body));
 
-		// console.log(`%o — ${delimiter}%s${delimiter}${headingSeparator}${body}`, {blockquote, node}, node.textContent);
+		// console.log(`${content.selectors.BlockHeadingNodesInFragment}`, node);
+
+		console.log(`%o — ${delimiter}%s${delimiter}${headingSeparator}${body}`, {blockquote, node});
 
 		body === '' || (blockquote.blockBody = body);
 
@@ -285,9 +334,13 @@ content.normalizeBlockquotesInFragment = fragment => {
 				range.setStartAfter(node);
 				previousNode = node;
 
-				do {
-					range.setEndAfter((node = node.nextSibling));
-				} while (!(range.text = range.toString()).startsWith(headingSeparator));
+				while (!(range.text = range.toString()).startsWith(headingSeparator) && (node = node.nextSibling) != null)
+					range.setEndAfter(node);
+
+				node = null;
+				// if (node.nextSibling) do {
+				// 	range.setEndAfter((node = node.nextSibling));
+				// } while (!(range.text = range.toString()).startsWith(headingSeparator) && node.nextSibling != null);
 
 				if (range.text !== headingSeparator) {
 					console.log(
@@ -301,20 +354,26 @@ content.normalizeBlockquotesInFragment = fragment => {
 					node.textContent = headingSeparator;
 					node.slot = 'block-heading-separator';
 					range.deleteContents();
-					previousNode.after(node);
-					previousNode.parentElement.attachShadow({
+					// previousNode.after(node);
+					blockNode = previousNode.parentElement;
+					while (blockNode.parentElement !== blockquote) blockNode = blockNode.parentElement;
+					blockNode.attachShadow({
 						mode: 'open',
 					}).innerHTML =
 						//
 						/* html */ `
-							<style>:host {padding: 0.5em;}</style>
-							<div style="display: grid; grid-template-columns: min-content auto; grid-gap: 1em;">
-								<div>
+							<style>:host {padding: 0.5em;}#contents:slotted(p:first-child) {margin-block-start: 0;-webkit-margin-before:0;}</style>
+							<div style="display: grid; grid-template-columns: var(--block-heading-span, auto) 1fr; grid-gap: 1em;">
+								<div style="text-align:right;">
 									<slot name="block-heading"></slot>
 									<slot name="block-heading-separator" hidden></slot>
 								</div>
-								<div><slot></slot></div>
+								<div><slot id=contents></slot></div>
 							</div>`;
+					blockNode.remove();
+					blockNode.append(previousNode, node, ...blockquote.childNodes);
+					blockquote.appendChild(blockNode);
+					// blockquote.style.display = 'table-row';
 				}
 			}
 		}
@@ -472,10 +531,11 @@ const normalizeParagraphsInFragment = fragment => {
 			'li > p:first-child:last-child > ol:last-child, li > p:first-child:last-child > ul:last-child',
 		)) {
 			while (
-				(paragraph.lastElementChild.nodeName === 'OL' || paragraph.lastElementChild.nodeName === 'UL') &&
-				(paragraph.lastChild === paragraph.lastElementChild ||
-					paragraph.lastChild.nodeType === paragraph.COMMENT_NODE ||
-					paragraph.lastChild.textContent.trim() === '')
+				paragraph.lastElementChild != null &&
+				((paragraph.lastElementChild.nodeName === 'OL' || paragraph.lastElementChild.nodeName === 'UL') &&
+					(paragraph.lastChild === paragraph.lastElementChild ||
+						paragraph.lastChild.nodeType === paragraph.COMMENT_NODE ||
+						paragraph.lastChild.textContent.trim() === ''))
 			) {
 				paragraph.after(paragraph.lastElementChild);
 			}
@@ -496,17 +556,24 @@ content.normalizeChecklistsInFragment = normalizeChecklistsInFragment;
 content.normalizeParagraphsInFragment = normalizeParagraphsInFragment;
 content.normalizeDeclarativeStylingInFragment = normalizeDeclarativeStylingInFragment;
 
-content.selectors.HeadingsInFragment =
-	'h1:not([id]):not(:empty),h2:not([id]):not(:empty),h3:not([id]):not(:empty),h4:not([id]):not(:empty),h5:not([id]):not(:empty),h6:not([id]):not(:empty)';
-content.selectors.SubheadingsInFragment = 'h1+h2, h2+h3, h3+h4, h4+h5, h5+h6';
-content.selectors.BlockHeadingNodesInFragment = []
-	.concat(
-		...['i:first-child > b', 'b:first-child > i', 'b', 'i'].map(selector => [
-			`:scope > ${(selector = `${selector}:first-child:not(:empty)`)}`,
-			`p:first-child > ${selector}`,
-		]),
-	)
-	.join(',');
+content.selectors.HeadingsInFragment = new Selectors(
+	'h1:not([id]):not(:empty)',
+	'h2:not([id]):not(:empty)',
+	'h3:not([id]):not(:empty)',
+	'h4:not([id]):not(:empty)',
+	'h5:not([id]):not(:empty)',
+	'h6:not([id]):not(:empty)',
+);
+content.selectors.SubheadingsInFragment = new Selectors('h1+h2', 'h2+h3', 'h3+h4', 'h4+h5', 'h5+h6');
+content.selectors.BlockHeadingNodes = new Selectors('i:first-child > b', 'b:first-child > i', 'b', 'i');
+
+// `details:first-child > summary:first-child > ${selector}`,
+// `details:first-child > summary:first-child > p:first-child > ${selector}`,
+content.selectors.BlockHeadingNodesInFragment = content.selectors.BlockHeadingNodes.flatMap(selector => [
+	`:scope > ${(selector = `${selector}:first-child:not(:empty)`)}`,
+	`:scope > p:first-child > ${selector}`,
+	// `:scope > p:first-child > p:first-child > ${selector}`,
+]);
 
 /** @typedef {import('../types').Fragment} Fragment */
 /** @typedef {import('../types').Fragment.Heading} Heading */
@@ -847,6 +914,16 @@ class MarkoutContent extends Component {
 			const anchors = contentSlot.querySelectorAll('a[href]');
 			//@ts-ignore
 			anchors && this.rewriteAnchors([...anchors]);
+		}
+
+		for (const details of contentSlot.querySelectorAll(
+			`${
+				//@ts-ignore
+				/\?.*?\bdetails(?:=open|)\b/.test(location) ? ':scope > details:not([markout-details=normal]):not([open]),' : ''
+			} details:not(open)[markout-details=open]`,
+		)) {
+			//@ts-ignore
+			details.open = true;
 		}
 	}
 

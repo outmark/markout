@@ -209,6 +209,16 @@ export class MarkoutContent extends Component {
 			//@ts-ignore
 			anchors && this.rewriteAnchors([...anchors]);
 		}
+
+		for (const details of contentSlot.querySelectorAll(
+			`${
+				//@ts-ignore
+				/\?.*?\bdetails(?:=open|)\b/.test(location) ? ':scope > details:not([markout-details=normal]):not([open]),' : ''
+			} details:not(open)[markout-details=open]`,
+		)) {
+			//@ts-ignore
+			details.open = true;
+		}
 	}
 
 	async untilVisible() {
