@@ -6,15 +6,15 @@
 
 <!-- any CSS property can be inlined using the `:=` notation without a leading space -->
 
-<img display:=block min-width=25em max-height:=25vh title="smotaal.io/markout" src="./assets/markout-icon.svg"/>
+<img display:=block width=25% max-height:=25vh title="smotaal.io/markout" src="./assets/markout-icon.svg"/>
 
 <!-- !["smotaal.io/markout"](./assets/markout-icon.svg 'min-width:25em;max-height:25vh') -->
 
 <!-- sometimes elements can have special styling facilities like `<img/>` with `width` and `height` -->
 
-HTML-flavoured Markdown-inspired client-side renderer
+**Markout**<br/>HTML-flavoured Markdown
 
-<kbd>`Markdown` Previewed</kbd> <kbd>`Markout` Unleashed</kbd>
+<!-- <kbd>`Markdown` Previewed</kbd> <kbd>`Markout` Unleashed</kbd> -->
 
 <!-- Markout is a lot more fogriving about mysterious rules like needing linebreaks when you open tags — if you are targeting markdown renderers you should adhere to them  -->
 
@@ -85,7 +85,7 @@ Current experimental efforts divide the rendering into two phases, the first por
 
 ## Features
 
-<markout-details open><summary type=checkbox>
+<details markout-details=open><summary type=checkbox>
 
 ### Styles
 
@@ -93,6 +93,7 @@ Current experimental efforts divide the rendering into two phases, the first por
 
 <!-- prettier-ignore-start -->
 <div>
+
 
 - [x] <figcaption>Markout Attribute Styles</figcaption> <figure columns:=20em font-size:=90%>
 
@@ -266,9 +267,9 @@ Current experimental efforts divide the rendering into two phases, the first por
 </div>
 <!-- prettier-ignore-end -->
 
-</markout-details>
+</details>
 
-<markout-details open><summary type=checkbox>
+<details markout-details=open><summary type=checkbox>
 
 ### Links
 
@@ -351,16 +352,17 @@ Current experimental efforts divide the rendering into two phases, the first por
 </figure>
 
 </div>
-</markout-details>
+</details>
 
-<markout-details open><summary type=checkbox>
+<details markout-details=open><summary type=checkbox>
 
 ### Lists
 
 </summary>
 
-> **Note**: Markdown handles this differently
+> **Note**: Markdown has limited support for this!
 
+<div hidden display:=contents>
 
 - [x] <figcaption>Markout's Unordered Lists</figcaption> <figure columns:=20em>
 
@@ -425,60 +427,13 @@ Current experimental efforts divide the rendering into two phases, the first por
       - [-] `- [-] Indeterminate`
       - [ ] `- [ ] Unchecked    `
 
-</markout-details>
-
-<!-- prettier-ignore-start -->
-
-<markout-details open><summary type=checkbox>
-
-### Heading Groups
-
-</summary>
-
-- [x] Heading groups are created from well-chained heading blocks
-
-<div column-grid font-size:=75%>
-
-```md
-# Heading 1
-## Subheading
----
-## Heading 2
-### Subheading
-#### Subsubheading
----
-# Heading 1
-### Heading 3
----
-# Heading 1
-
-## Heading 2
-```
-
-<figure debug=all><div font-size:=75%>
-
-# Heading 1
-## Subheading
----
-## Heading 2
-### Subheading
-#### Subsubheading
----
-# Heading 1
-### Heading 3
----
-# Heading 1
-
-## Heading 2
-</div></figure>
 </div>
-</markout-details>
 
-<!-- prettier-ignore-end -->
+</details>
 
 <!-- prettier-ignore-start -->
 
-<markout-details open><summary type=checkbox>
+<details markout-details=open><summary type=checkbox>
 
 ### Headings
 
@@ -529,16 +484,22 @@ Current experimental efforts divide the rendering into two phases, the first por
 
 ```md
 <h1>Heading 1</h1>
+
 ---
 <h2>Heading 2</h2>
+
 ---
 <h3>Heading 3</h3>
+
 ---
 <h4>Heading 4</h4>
+
 ---
 <h5>Heading 5</h5>
+
 ---
 <h6>Heading 6</h6>
+
 ---
 <h7>No Heading 7</h7>
 ```
@@ -546,23 +507,89 @@ Current experimental efforts divide the rendering into two phases, the first por
 <figure debug=all><div font-size:=75%>
 
 <h1>Heading 1</h1>
+
 ---
 <h2>Heading 2</h2>
+
 ---
 <h3>Heading 3</h3>
+
 ---
 <h4>Heading 4</h4>
+
 ---
 <h5>Heading 5</h5>
+
 ---
 <h6>Heading 6</h6>
+
 ---
 <h7>No Heading 7</h7>
 
 </div></figure>
 </div>
 
-</markout-details>
+</details>
+
+<!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
+<details markout-details=open><summary type=checkbox>
+
+### Heading Groups
+
+</summary>
+
+> **Note**: Markdown does not support this!
+
+<div hidden display:=contents>
+
+- [x] Heading groups are created from well-chained heading blocks
+
+<div column-grid font-size:=75%>
+
+```md
+# Heading 1
+## Subheading
+
+---
+## Heading 2
+### Subheading
+#### Subsubheading
+
+---
+# Heading 1
+### Heading 3
+
+---
+# Heading 1
+
+## Heading 2
+```
+
+<figure debug=all><div font-size:=75%>
+
+# Heading 1
+## Subheading
+
+---
+## Heading 2
+### Subheading
+#### Subsubheading
+
+---
+# Heading 1
+### Heading 3
+
+---
+# Heading 1
+
+## Heading 2
+</div></figure>
+</div>
+</div>
+</details>
 
 <!-- prettier-ignore-end -->
 
