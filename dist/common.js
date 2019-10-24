@@ -1357,7 +1357,7 @@ const encodeEscapedEntities = ((Escapes, replace) => text => text.replace(Escape
 
 const FencedBlockHeader = /^(?:(\w+)(?:\s+(.*?)\s*|)$|)/m;
 const URLPrefix = /^(?:https?:|HTTPS?:)\/\/\S+$|^(?:[A-Za-z][!%\-0-9A-Z_a-z~]+\.)+(?:[a-z]{2,5}|[A-Z]{2,5})(?:\/\S*|)$/u;
-const URLString = /^\s*(?:(?:https?:|HTTPS?:)\/\/\S+|(?:[A-Za-z][!%\-0-9A-Z_a-z~]+\.)+(?:[a-z]{2,5}|[A-Z]{2,5})\/\S*)\s*$/u;
+const URLString = /^\s*(?:(?:https?:|HTTPS?:)\/\/\S+|(?:[A-Za-z][!%\-0-9A-Z_a-z~]+\.)+(?:[a-z]{2,5}|[A-Z]{2,5})\/\S*?)(?:[?][^\S(){}\[\]]*?|)(?:[#][^\S(){}\[\]]*?|)\s*$/u;
 const URLScheme = /^https?:|HTTPS?:/;
 //
 const SPAN = 'span';
@@ -1405,6 +1405,10 @@ class MarkoutRenderer {
 	}
 
 	// renderCommentToken(token, context) {}
+
+	encodeURL(url) {
+		return `${url}`.replace(/[\\"]/g, encodeURIComponent);
+	}
 
 	renderTokens(tokens, context = new MarkoutRenderingContext(this)) {
 		let text, type, punctuator, lineBreaks, hint, previous, body, tag, classes, before, after, meta;
@@ -1464,17 +1468,17 @@ class MarkoutRenderer {
 					}
 					continue;
 				} else if (context.url) {
-					if (type === 'text') {
+					if (type === 'text' || /^[~]/.test(text)) {
 						context.passthru += text;
 						continue;
 					}
 					if (URLString.test(context.passthru)) {
-						[before, context.url, after] = context.passthru.split(/(\S+)/);
-						context.renderedText += `${before}<span href="${encodeURI(
+						[before, context.url, after] = context.passthru.split(/(\S+?(?=(\.?\s*$|$)))/);
+						// context.url && console.log(context.url, {text, token, before, context, after});
+						context.renderedText += `${before}<span href="${this.encodeURL(
 							URLScheme.test(context.url) ? context.url : `https://${context.url}`,
-						)}">${context.url}</span>${after}`;
+						)}"><samp class=url>${context.url}</samp></span>${after}`;
 						before = after = undefined;
-						// console.log(context.passthru, token);
 					} else {
 						context.renderedText += context.passthru;
 					}
