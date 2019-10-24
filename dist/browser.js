@@ -320,7 +320,7 @@ content.normalizeBlockquotesInFragment = fragment => {
 
 		// console.log(`${content.selectors.BlockHeadingNodesInFragment}`, node);
 
-		console.log(`%o — ${delimiter}%s${delimiter}${headingSeparator}${body}`, {blockquote, node});
+		// console.log(`%o — ${delimiter}%s${delimiter}${headingSeparator}${body}`, {blockquote, node});
 
 		body === '' || (blockquote.blockBody = body);
 
