@@ -1139,7 +1139,7 @@ const rewriteAnchors = (
 
 	for (const anchor of anchors) {
 		const [matched, parent, name, extension = '.md', query = '', hash = ''] = RewritableURL.exec(
-			anchor.getAttribute('href'),
+			anchor.href.replace(/%23|%3F/g, decodeURIComponent),
 		);
 
 		// const alias = getAliasForAnchor(anchor);
