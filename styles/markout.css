@@ -25,6 +25,15 @@ pre.markup > .markup-line {
 	min-width: max-content;
 }
 
+samp.url {
+	word-break: break-all;
+	letter-spacing: -0.1ex;
+}
+
+a:any-link > samp.url:hover {
+	color: inherit;
+}
+
 :host {
 	font-family: var(--markout--body-font-family);
 }
