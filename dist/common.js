@@ -344,12 +344,12 @@ const partials = {};
 	ranges.Brackets = atoms.split('()[]');
 	ranges.Braces = atoms.split('{}');
 
-	Insets: {
+	 {
 		ranges.Inseter = atoms.split('\t >'); // 0=tab 1=space 2=quote
 		partials.Inset = range(...ranges.Inseter);
 	}
 
-	Fences: {
+	 {
 		// NOTE: Ambiguities when testing if `~` is meant for
 		//			 fencing or strikethrough here make it harder
 		//			 to retain intent and traceablility.
@@ -357,7 +357,7 @@ const partials = {};
 		partials.BlockFence = join(...ranges.FenceMarks.map(fence => escape$1(fence.repeat(3))));
 	}
 
-	Lists: {
+	 {
 		ranges.ListMarkers = atoms.split('-*'); // 0=square 1=disc
 		[ranges.CheckMarks, ranges.LowerCheckMarks, ranges.UpperCheckMarks] = atoms.split.cases(' x-'); // 0=unchecked 1=checked 2=indeterminate
 		ranges.NumberingSeparators = atoms.split('.)');
@@ -494,7 +494,7 @@ const partials = {};
 	// console.log({sequences, ranges, partials});
 	// TODO: Document partials and sequences
 
-	Matchers: {
+	 {
 		sequences.NormalizableBlocks = sequence/* regexp */ `
       (?:^|\n)(${partials.Inset}*(?:${partials.BlockFence}))[^]+?(?:(?:\n\1[ \t]*)+\n?|$)
       |(?:^|\n)(${partials.Inset}*)(?:
@@ -712,7 +712,7 @@ const ListTypes = {
 	'decimal-leading-zero': '1',
 };
 
-LATIN: {
+ {
 	const parseLatin = latin => parseLatin.mappings[latin] || NaN;
 
 	parseLatin.mappings = {};
@@ -724,7 +724,7 @@ LATIN: {
 	ComposableList.parseLatin = parseLatin;
 }
 
-ROMAN: {
+ {
 	const parseRoman = roman =>
 		/[^ivxlcdm]/i.test((roman = String(roman)))
 			? NaN
@@ -827,7 +827,7 @@ class MarkoutBlockNormalizer {
 
 		// ({body: sourceText, comments: state.comments} = decomment(sourceText));
 
-		Blocks: {
+		 {
 			const {
 				sourceText,
 				[BLOCKS]: sourceBlocks,
@@ -872,7 +872,7 @@ class MarkoutBlockNormalizer {
 			// console.log(matchedBlocks);
 		}
 
-		Normalization: {
+		 {
 			/** @type {{[BLOCKS]: {[MATCHES]: MatchedBlock[]}}} */
 			const {[BLOCKS]: sourceBlocks} = source;
 			for (const matchedBlock of sourceBlocks[MATCHES]) {

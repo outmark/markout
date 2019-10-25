@@ -76,7 +76,10 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 						(referrer = section.sourceURL || `${location}`),
 					)}`);
 
+				hash && (hash = decodeURIComponent(hash));
+
 				if (source === location && hash && hash.length > 1) {
+					hash = decodeURIComponent(hash);
 					[, head, tail, entry = 'README', extension = '.md', fragment = ''] =
 						/^#([^#]*)(\/(?:([^#\/.][^#\/]*?)(?:(\.\w+)|))?)(#.*|)$/.exec(hash) || '';
 
@@ -95,7 +98,7 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 
 				// console.log({hashes, hash, referrer, href, src});
 
-				history.replaceState({hashes}, title, `${location}`);
+				history.replaceState({hashes}, title, referrer);
 
 				if (href === section.sourceURL) return;
 
