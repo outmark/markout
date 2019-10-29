@@ -102,6 +102,8 @@ export class MarkoutContent extends Component {
 		//@ts-ignore
 		this.name = `${this.tagName}-${++new.target.instance}`.toLocaleLowerCase();
 
+		this.renderedText = /** @type {string} */ (undefined);
+
 		/** @type {HTMLSlotElement} */ const slot = this['::'];
 		slot &&
 			slot.addEventListener(
@@ -114,7 +116,7 @@ export class MarkoutContent extends Component {
 	}
 
 	connectedCallback() {
-		'renderedText' in this || (this.rendered = this.renderMarkoutContent(this.sourceText));
+		if (this === undefined) this.rendered = this.renderMarkoutContent(this.sourceText);
 		super.connectedCallback();
 	}
 
@@ -174,6 +176,8 @@ export class MarkoutContent extends Component {
 
 		contentSlot.textContent = '';
 
+		this['(markout source)'] = sourceText;
+
 		await this.untilVisible();
 		if (!this.isDisclosed) {
 			this.renderedText = '';
@@ -184,7 +188,7 @@ export class MarkoutContent extends Component {
 
 		const fragment = (this['(markout fragment)'] = await this.appendMarkoutContent(sourceText, contentSlot, sourceURL));
 
-		this['(markout source)'] = sourceText;
+		// this['(markout source)'] = sourceText;
 
 		const timeout = new Promise(resolve => setTimeout(resolve, 150));
 
