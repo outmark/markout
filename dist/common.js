@@ -1694,7 +1694,7 @@ const createLookups = (
 	blocks = {['-']: 'li', ['>']: 'blockquote', ['#']: 'h*', ['```']: 'pre'},
 	spans = {['*']: 'i', ['**']: 'b', ['~~']: 's', ['`']: 'code'},
 	tags = ['<', '>', '<!--', '-->', '<?', '?>', '</', '/>'],
-	elements = {'markout-details': 'details', 'markout-blockquote': 'blockquote'},
+	elements = {'markout-iframe': 'iframe', 'markout-details': 'details', 'markout-blockquote': 'blockquote'},
 ) => {
 	const symbols = new Set([...Object.keys(repeats), ...Object.keys(entities)]);
 	for (const symbol of symbols) {
