@@ -11,27 +11,21 @@ const Component = (() => {
 
   class Component extends HTMLElement {
     constructor() {
-      /** @typedef {this} element */
-      /** @type {ComponentStyleElement} */
-      let style;
-      /** @type {DocumentFragment} */
-      let fragment;
-      /** @type {(this | ShadowRoot)} */
-      let root;
+      /** @type {ComponentStyleElement} */ let style;
+      /** @type {DocumentFragment}      */ let fragment;
+      /** @type {(this | ShadowRoot)}   */ let root;
 
       super();
 
       root = new.target.shadowRoot ? this.attachShadow(new.target.shadowRoot) : this;
 
-      //@ts-ignore
       fragment = new.target.template
-        ? new.target.template.cloneNode(true)
-        : root !== this || document.createDocumentFragment();
+        ? /** @type {DocumentFragment} */ (new.target.template.cloneNode(true))
+        : root === this && this.ownerDocument.createDocumentFragment();
 
       if (new.target.styles) {
         root === this && (this.style.visibility = COMPONENT_LOADING_VISIBILITY);
-        // this.style.visibility = COMPONENT_LOADING_VISIBILITY;
-        (fragment || root).prepend((style = initializeComponentStyles(this, new.target)));
+        (fragment || root).prepend((style = ComponentStyle.for(this, new.target)));
       }
 
       if (new.target.attributes && new.target.attributes.length) {
@@ -40,23 +34,14 @@ const Component = (() => {
       }
 
       if (new.target.template) {
-        // for (const template of /** @type {Iterable<HTMLTemplateElement>} */ (fragment.querySelectorAll(
-        //   '* > template[shadow-root]:not([inert])',
-        // )))
-        //   template.parentElement
-        //     .attachShadow({
-        //       mode: /\bclosed\b/i.test(template.getAttribute('shadow-root')) ? 'closed' : 'open',
-        //       delegatesFocus: /\bdelegates-focus\b/i.test(template.getAttribute('shadow-root')),
-        //     })
-        //     .appendChild(template.content) &&
-        //     template.setAttribute('inert', '');
-
         for (const element of fragment.querySelectorAll('[id]')) this[`#${element.id}`] = element;
         for (const element of fragment.querySelectorAll('slot'))
           `::${element.name || ''}` in this || (this[`::${element.name || ''}`] = element);
       }
 
       new.target.initializeRoot(this, fragment, style, root);
+
+      fragment = style = root = null;
     }
 
     connectedCallback() {
@@ -153,48 +138,104 @@ const Component = (() => {
   const StyleElement = Symbol('styles.element');
 
   /**
-   * @template {typeof Component} C
-   * @param {InstanceType<C>} component
-   * @param {C} constructor
+   * TODO: Define behaviours for ComponentStyles instances
+   *  SEE: https://wicg.github.io/construct-stylesheets/
    */
-  const initializeComponentStyles = (component, constructor) => {
-    /** @type {ComponentStyleElement} */
-    const componentStyleElement =
-      constructor[StyleElement] ||
-      (constructor.styles &&
-        (constructor[StyleElement] = createComponentStyleElement(constructor.styles)));
+  class ComponentStyle {
+    /**
+     * @template {typeof Component} C
+     * @param {InstanceType<C>} component
+     * @param {C} constructor
+     */
+    static for(component, constructor) {
+      const This =
+        /** @type {typeof ComponentStyle} */ ((this !== undefined &&
+          ComponentStyle.isPrototypeOf(this) &&
+          this) ||
+        ComponentStyle);
+      /** @type {ComponentStyleElement} */
+      const componentStyleElement =
+        constructor[StyleElement] ||
+        (constructor.styles &&
+          (constructor[StyleElement] = This.createStyleElement(
+            constructor.styles,
+            component.ownerDocument,
+          )));
 
-    if (componentStyleElement) return componentStyleElement.cloneStyleSheet();
-  };
+      if (componentStyleElement) return componentStyleElement.cloneStyleSheet();
+    }
 
-  /** @param {string} textContent */
-  const createComponentStyleElement = textContent => {
-    /** @type {ComponentStyleElement} */
-    const style = document.createElement('style');
+    /**
+     * @param {string} textContent
+     * @param {Document} [ownerDocument = document]
+     * @param {boolean} [strict]
+     * @throws - Where `!!strict` when `style.ownerDocument !== ownerDocument`
+     * @throws - Where `!!strict` when `style.nodeName !== "STYLE"`
+     */
+    static createStyleElement(textContent, ownerDocument, strict) {
+      let nodeName, nodeOwnerDocument;
 
-    style.loaded = new Promise(resolve => {
-      const handler = event => {
-        style.removeEventListener('load', handler);
-        style.removeEventListener('error', handler);
-        style.removeEventListener('abort', handler);
-        resolve();
+      if (ownerDocument == null) ownerDocument = document;
+
+      /** @type {ComponentStyleElement} */
+      const style = ownerDocument.createElement('style');
+
+      ({nodeName, ownerDocument: nodeOwnerDocument} = style);
+
+      if (ownerDocument !== nodeOwnerDocument || nodeName !== 'STYLE') {
+        const details = {
+          style,
+          ...(nodeOwnerDocument !== ownerDocument && {
+            '{ownerDocument} actual': nodeOwnerDocument,
+            '{ownerDocument} expected': ownerDocument,
+          }),
+          ...(nodeName !== 'STYLE' && {
+            '{nodeName} actual': nodeName,
+            '{nodeName} expected': 'STYLE',
+          }),
+        };
+
+        if (!strict) {
+          console.warn('Potentially unsafe <style> creation: %O', details);
+        } else {
+          throw Object.assign(
+            Error(
+              [
+                'Unsafe <style> element creation',
+                ownerDocument !== nodeOwnerDocument &&
+                  'mismatching ownerDocument and <style>.ownerDocument.',
+                nodeName !== 'STYLE' && '<style>.nodeName !== "STYLE".',
+              ]
+                .filter(Boolean)
+                .join(' - '),
+            ),
+            {details},
+          );
+        }
+      }
+
+      style.loaded = new Promise(resolve => {
+        const handler = event => {
+          for (const event of ['load', 'error', 'abort']) style.removeEventListener(event, handler);
+          resolve();
+        };
+        handler.options = {capture: true, passive: false, once: true};
+        for (const event of ['load', 'error', 'abort'])
+          style.addEventListener(event, handler, handler.options);
+      });
+
+      style.cloneStyleSheet = () => {
+        /** @type {any} */
+        const clone = style.cloneNode(true);
+        clone.loaded = style.loaded;
+        return clone;
       };
-      style.addEventListener('load', handler, {capture: true, passive: false, once: true});
-      style.addEventListener('error', handler, {capture: true, passive: false, once: true});
-      style.addEventListener('abort', handler, {capture: true, passive: false, once: true});
-    });
 
-    style.cloneStyleSheet = () => {
-      /** @type {any} */
-      const clone = style.cloneNode(true);
-      clone.loaded = style.loaded;
-      return clone;
-    };
+      style.textContent = textContent;
 
-    style.textContent = textContent;
-
-    return style;
-  };
+      return style;
+    }
+  }
 
   {
     const hasOwnProperty = Function.call.bind(Object.prototype.hasOwnProperty);
@@ -347,6 +388,9 @@ const Component = (() => {
 
     /** @type {<T, R, U>(attributeName: string, nextValue?: T, previousValue?: T | R) => U} */
     Component.prototype.updateAttribute = undefined;
+
+    /** @type {{(): void}} */
+    Component.prototype.disconnectedCallback = undefined;
   }
 
   return Component;
