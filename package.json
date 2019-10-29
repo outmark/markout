@@ -12,6 +12,7 @@
 	"type": "module",
 	"exports": {},
 	"main": "lib/markout.js",
+	"types": "types.d.ts",
 	"scripts": {
 		"bundle": "rollup -c rollup.config.js"
 	},
