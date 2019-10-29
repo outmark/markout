@@ -117,6 +117,9 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 			const url = new URL(import.meta.url);
 			location.search.length > 1 && (url.search += `${url.search ? '&' : '?'}${location.search.slice(1)}`);
 			url.search && (url.search = `?${[...new Set(url.search.slice(1).split('&'))].sort().join('&')}`);
+
+			/[?&]embed\b/.test(url.search) && document.documentElement.classList.add('embedded');
+
 			const DEV = /[?&]dev\b/.test(url.search);
 			const LIB = `${base}${DEV ? 'lib/browser.js' : 'dist/browser.js'}${url.search}`;
 			dynamicImport(new URL(LIB, base));
