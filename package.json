@@ -17,6 +17,7 @@
     "bundle": "rollup -c rollup.config.js"
   },
   "devDependencies": {
+    "@smotaal.io/prettier.config": "*",
     "@types/node": "*",
     "http-server": "*",
     "prettier": "*",
