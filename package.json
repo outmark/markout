@@ -1,28 +1,28 @@
 {
-	"private": true,
-	"name": "@smotaal/markout",
-	"description": "smotaal.io/markout",
-	"version": "0.0.0-alpha.2",
-	"author": "Saleh Abdel Motaal <saleh@grasppe.com>",
-	"repository": {
-		"url": "https://github.com/SMotaal/smotaal.github.io.git",
-		"path": "/markout"
-	},
-	"license": "MIT",
-	"type": "module",
-	"exports": {},
-	"main": "lib/markout.js",
-	"types": "types.d.ts",
-	"scripts": {
-		"bundle": "rollup -c rollup.config.js"
-	},
-	"devDependencies": {
-		"@types/node": "*",
-		"http-server": "*",
-		"prettier": "*",
-		"rollup": "*",
-		"rollup-plugin-node-resolve": "*",
-		"typescript": "*",
-		"@smotaal/esm": "SMotaal/esm"
-	}
+  "private": true,
+  "name": "@smotaal/markout",
+  "description": "smotaal.io/markout",
+  "version": "0.0.0-alpha.2",
+  "author": "Saleh Abdel Motaal <saleh@grasppe.com>",
+  "repository": {
+    "url": "https://github.com/SMotaal/smotaal.github.io.git",
+    "path": "/markout"
+  },
+  "license": "MIT",
+  "type": "module",
+  "exports": {},
+  "main": "lib/markout.js",
+  "types": "types.d.ts",
+  "scripts": {
+    "bundle": "rollup -c rollup.config.js"
+  },
+  "devDependencies": {
+    "@types/node": "*",
+    "http-server": "*",
+    "prettier": "*",
+    "rollup": "*",
+    "rollup-plugin-node-resolve": "*",
+    "typescript": "*",
+    "@smotaal/esm": "SMotaal/esm"
+  }
 }
