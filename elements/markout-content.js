@@ -217,7 +217,7 @@ export class MarkoutContent extends Component {
 		for (const details of contentSlot.querySelectorAll(
 			`${
 				//@ts-ignore
-				/\?.*?\bdetails(?:=open|)\b/.test(location) ? ':scope > details:not([markout-details=normal]):not([open]),' : ''
+				/\?.*?\bdetails(?:=open|)\b/.test(location) ? 'details:not([markout-details=normal]):not([open]),' : ''
 			} details:not(open)[markout-details=open]`,
 		)) {
 			//@ts-ignore
