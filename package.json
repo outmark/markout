@@ -17,13 +17,12 @@
     "bundle": "rollup -c rollup.config.js"
   },
   "devDependencies": {
-    "@smotaal.io/prettier.config": "*",
+    "@smotaal.io/tools": "*",
     "@types/node": "*",
     "http-server": "*",
     "prettier": "*",
     "rollup": "*",
     "rollup-plugin-node-resolve": "*",
-    "typescript": "*",
-    "@smotaal/esm": "SMotaal/esm"
+    "typescript": "*"
   }
 }
