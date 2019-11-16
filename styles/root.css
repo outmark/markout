@@ -1,184 +1,202 @@
 ﻿@import url('/fonts/iosevka.css');
 
 @font-face {
-	font-family: markout-sans-serif;
-	/* --apple-system, BlinkMacSystemFont */
-	/* 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', */
-	/* 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif; */
-	src: local('☺︎'), local('.SF NS Text'), local('.HelveticaNeueDeskInterface'), local('.LucidaGrandeUI'),
-		local('Segoe UI'), local('Ubuntu'), local('Roboto'), local('DroidSans'), local('Tahoma');
+  font-family: markout-os;
+  src: local('â˜ºï¸Ž') /* SEE: https://www.apple.com/wss/fonts?families=SF+Pro,v2|SF+Pro+Icons,v1 */,
+    local('.SF NS Text'), local('.SF NS'), local('.SFNS'), local('.SFNS-Regular'), local('.HelveticaNeueDeskInterface'),
+    local('.LucidaGrandeUI'), local('Segoe UI'), local('Ubuntu'), local('Roboto'), local('DroidSans'), local('Tahoma');
 }
 
 @font-face {
-	font-family: markout-monospace;
-	/* src: local('Iosevka Web'), local('Iosevka'), local('Fira Code'), local('Input'), local('Source Code Pro'); */
-	src: local('☺︎'), local(Iosevka);
+  font-family: markout-mac;
+  src: local('â˜ºï¸Ž') /* SEE: https://www.apple.com/wss/fonts?families=SF+Pro,v2|SF+Pro+Icons,v1 */,
+    local('.SF NS Text'), local('.SF NS'), local('.SFNS'), local('.SFNS-Regular'), local('.HelveticaNeueDeskInterface'),
+    local('.LucidaGrandeUI');
+}
+
+@font-face {
+  font-family: markout-monospace;
+  src: local('Iosevka');
+}
+
+@font-face {
+  font-family: markout-emoji;
+  /** SEE: https://docs.microsoft.com/_themes/docs.theme/master/en-us/_themes/styles/bc2535e8.site-ltr.css */
+  src: local('Apple Color Emoji'), local('Noto Color Emoji'), local('Android Emoji'), local('Segoe UI Emoji'),
+    local('Segoe UI Symbol'), local(EmojiSymbols), local(Symbola);
+  unicode-range:
+		/** SEE: https://gist.github.com/travis-g/f5caf7f6d5756da1fa90368d33da3362 */
+	  /* misc symbols + pictographs ********************* */ U+1f300-1f5ff,
+    /* supplemental *********************************** */ U+1f910-1f918, U+1f980-1f984,
+    /* emoticons ************************************** */ U+1f600-1f64f,
+    /* transport ************************************** */ U+1f680-1f6ff,
+    /* misc ******************************************* */ U+2600-26ff,
+    /* dingbats *************************************** */ U+2700-27bf;
 }
 
 :root {
-	--markout--cell-padding: 1em;
-	--markout--code-tab-size: 2;
-	/* --markout--code-line-height: 1.5em; */
-	--markout--code-line-height: 1.75;
+  --markout--cell-padding: 1em;
+  --markout--code-tab-size: 2;
+  /* --markout--code-line-height: 1.5em; */
+  --markout--code-line-height: 1.75;
 
-	--markout--system-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif,
-		'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
-	--markout--sans-serif: -apple-system, system-ui, markout-sans-serif, sans-serif;
-	--markout--monospace: Iosevka, markout-monospace, monospace;
+  --markout--system-ui: markout-mac, -apple-system, BlinkMacSystemFont, system-ui, markout-os, sans-serif, markout-emoji;
+  --markout--sans-serif: var(--markout--system-ui);
+  --markout--monospace: Iosevka, markout-monospace, monospace;
 
-	--markout--body-font-family: var(--markout--sans-serif, cursive);
-	--markout--code-font-family: var(--markout--monospace, cursive);
+  --markout--body-font-family: var(--markout--sans-serif, cursive);
+  --markout--code-font-family: var(--markout--monospace, cursive);
 
-	--markout--section-padding: 2ex 4ex;
-	--markout--section-spacing: 12px;
-	--markout--section-spacing-collapsed: 4px;
+  --markout--section-padding: 2ex 4ex;
+  --markout--section-spacing: 12px;
+  --markout--section-spacing-collapsed: 4px;
 }
 
 :root {
-	--markout\resolution: normal;
-	--markout--microline: thin;
-	/* --markout--microline: 0.06vmax; */
-	--markout--hairline: 1px;
-	--markout--thinline: 1px;
-	--markout--thickline: 2px;
+  --markout\resolution: normal;
+  --markout--microline: thin;
+  /* --markout--microline: 0.06vmax; */
+  --markout--hairline: 1px;
+  --markout--thinline: 1px;
+  --markout--thickline: 2px;
 }
 
 :root {
-	--light--markout--section-shadow: #0003;
-	--dark--markout--section-shadow: #0006;
-	--light--markout--section-text: #000;
-	--dark--markout--section-text: #ccc;
-	--light--markout--section-band: #0002;
-	--dark--markout--section-band: #fff2;
-	--light--markout--section-overlay: #fffa;
-	--dark--markout--section-overlay: #333a;
-	--light--markout--section-background: #ffffffee;
-	--dark--markout--section-background: #1f1f1fee;
-	--light--markout--band-line: #9993;
-	--dark--markout--band-line: #9993;
-	--light--markout--band-stroke: #ccc;
-	--dark--markout--band-stroke: var(--shade, #eee);
-	--light--markout--band-fill: #c6c6c636;
-	--dark--markout--band-fill: #6c6c6c36;
-	--light--markout--band-fill\-: #d6d6d636;
-	--dark--markout--band-fill\-: #5c5c5c36;
-	--light--markout--band-fill\-\-: #e6e6e636;
-	--dark--markout--band-fill\-\-: #2c2c2c36;
-	--light--markout--band-fade: #fff3;
-	--dark--markout--band-fade: #0003;
-	--light--markout--band-fade\-: #fff2;
-	--dark--markout--band-fade\-: #0002;
-	--light--markout--band-fade\-\-: #fff1;
-	--dark--markout--band-fade\-\-: #0001;
-	--light--markout--band-text: #000e;
-	--dark--markout--band-text: #fffe;
-	--light--markout--band-text\-: #000b;
-	--dark--markout--band-text\-: #fffb;
-	--light--markout--band-text\-\-: #0009;
-	--dark--markout--band-text\-\-: #fff9;
-	--light--markout--field-fill: #ffffff66;
-	--dark--markout--field-fill: var(--shade, #eee);
-	--light--markout--field-stroke: #666666cc;
-	--dark--markout--field-stroke: #666666cc;
-	--light--markout--field-line: #66666666;
-	--dark--markout--field-line: #99999966;
-	--light--markout--field-line\-: #66666633;
-	--dark--markout--field-line\-: #99999933;
-	--light--markout--link-text: #36c;
-	--dark--markout--link-text: #69f;
-	--light--markout--visited-link-text: #c0c;
-	--dark--markout--visited-link-text: #f3f;
-	--light--markout--active-link-text: #c93;
-	--dark--markout--active-link-text: #f96;
+  --light--markout--section-shadow: #0003;
+  --dark--markout--section-shadow: #0006;
+  --light--markout--section-text: #000;
+  --dark--markout--section-text: #ccc;
+  --light--markout--section-band: #0002;
+  --dark--markout--section-band: #fff2;
+  --light--markout--section-overlay: #fffa;
+  --dark--markout--section-overlay: #333a;
+  --light--markout--section-background: #ffffffee;
+  --dark--markout--section-background: #1f1f1fee;
+  --light--markout--band-line: #9993;
+  --dark--markout--band-line: #9993;
+  --light--markout--band-stroke: #ccc;
+  --dark--markout--band-stroke: var(--shade, #eee);
+  --light--markout--band-fill: #c6c6c636;
+  --dark--markout--band-fill: #6c6c6c36;
+  --light--markout--band-fill\-: #d6d6d636;
+  --dark--markout--band-fill\-: #5c5c5c36;
+  --light--markout--band-fill\-\-: #e6e6e636;
+  --dark--markout--band-fill\-\-: #2c2c2c36;
+  --light--markout--band-fade: #fff3;
+  --dark--markout--band-fade: #0003;
+  --light--markout--band-fade\-: #fff2;
+  --dark--markout--band-fade\-: #0002;
+  --light--markout--band-fade\-\-: #fff1;
+  --dark--markout--band-fade\-\-: #0001;
+  --light--markout--band-text: #000e;
+  --dark--markout--band-text: #fffe;
+  --light--markout--band-text\-: #000b;
+  --dark--markout--band-text\-: #fffb;
+  --light--markout--band-text\-\-: #0009;
+  --dark--markout--band-text\-\-: #fff9;
+  --light--markout--field-fill: #ffffff66;
+  --dark--markout--field-fill: var(--shade, #eee);
+  --light--markout--field-stroke: #666666cc;
+  --dark--markout--field-stroke: #666666cc;
+  --light--markout--field-line: #66666666;
+  --dark--markout--field-line: #99999966;
+  --light--markout--field-line\-: #66666633;
+  --dark--markout--field-line\-: #99999933;
+  --light--markout--link-text: #36c;
+  --dark--markout--link-text: #69f;
+  --light--markout--visited-link-text: #c0c;
+  --dark--markout--visited-link-text: #f3f;
+  --light--markout--active-link-text: #c93;
+  --dark--markout--active-link-text: #f96;
 }
 
 @supports (color: -webkit-text) or (-moz-box-flex: initial) {
-	:root {
-		--light--markout--section-shadow: #0006;
-		--dark--markout--section-shadow: #0009;
-		--light--markout--section-band: #0004;
-		--dark--markout--section-band: #fff4;
-		--light--markout--band-fill: #c3c3c336;
-		--dark--markout--band-fill: #6e6e6e36;
-		--light--markout--band-fill\-: #d3d3d336;
-		--dark--markout--band-fill\-: #5e5e5e36;
-		--light--markout--band-fill\-\-: #e3e3e336;
-		--dark--markout--band-fill\-\-: #2e2e2e36;
-		--light--markout--field-stroke: #636363cc;
-		--dark--markout--field-stroke: #636363cc;
-		--light--markout--field-line: #63636366;
-		--dark--markout--field-line: #96969666;
-		--light--markout--field-line\-: #63636333;
-		--dark--markout--field-line\-: #96969633;
-	}
+  :root {
+    --light--markout--section-shadow: #0006;
+    --dark--markout--section-shadow: #0009;
+    --light--markout--section-band: #0004;
+    --dark--markout--section-band: #fff4;
+    --light--markout--band-fill: #c3c3c336;
+    --dark--markout--band-fill: #6e6e6e36;
+    --light--markout--band-fill\-: #d3d3d336;
+    --dark--markout--band-fill\-: #5e5e5e36;
+    --light--markout--band-fill\-\-: #e3e3e336;
+    --dark--markout--band-fill\-\-: #2e2e2e36;
+    --light--markout--field-stroke: #636363cc;
+    --dark--markout--field-stroke: #636363cc;
+    --light--markout--field-line: #63636366;
+    --dark--markout--field-line: #96969666;
+    --light--markout--field-line\-: #63636333;
+    --dark--markout--field-line\-: #96969633;
+  }
 }
 
 :root {
-	--markout--section-shadow: var(--light--markout--section-shadow);
-	--markout--section-text: var(--light--markout--section-text);
-	--markout--section-band: var(--light--markout--section-band);
-	--markout--section-overlay: var(--light--markout--section-overlay);
-	--markout--section-background: var(--light--markout--section-background);
-	--markout--band-line: var(--light--markout--band-line);
-	--markout--band-stroke: var(--light--markout--band-stroke);
-	--markout--band-fill: var(--light--markout--band-fill);
-	--markout--band-fill\-: var(--light--markout--band-fill\-);
-	--markout--band-fill\-\-: var(--light--markout--band-fill\-\-);
-	--markout--band-fade: var(--light--markout--band-fade);
-	--markout--band-fade\-: var(--light--markout--band-fade\-);
-	--markout--band-fade\-\-: var(--light--markout--band-fade\-\-);
-	--markout--band-text: var(--light--markout--band-text);
-	--markout--band-text\-: var(--light--markout--band-text\-);
-	--markout--band-text\-\-: var(--light--markout--band-text\-\-);
-	--markout--field-fill: var(--light--markout--field-fill);
-	--markout--field-stroke: var(--light--markout--field-stroke);
-	--markout--field-line: var(--light--markout--field-line);
-	--markout--field-line\-: var(--light--markout--field-line\-);
-	--markout--field-text: var(--markout--band-text);
-	--markout--link-text: var(--light--markout--link-text);
-	--markout--visited-link-text: var(--light--markout--visited-link-text);
-	--markout--active-link-text: var(--light--markout--active-link-text);
+  --markout--section-shadow: var(--light--markout--section-shadow);
+  --markout--section-text: var(--light--markout--section-text);
+  --markout--section-band: var(--light--markout--section-band);
+  --markout--section-overlay: var(--light--markout--section-overlay);
+  --markout--section-background: var(--light--markout--section-background);
+  --markout--band-line: var(--light--markout--band-line);
+  --markout--band-stroke: var(--light--markout--band-stroke);
+  --markout--band-fill: var(--light--markout--band-fill);
+  --markout--band-fill\-: var(--light--markout--band-fill\-);
+  --markout--band-fill\-\-: var(--light--markout--band-fill\-\-);
+  --markout--band-fade: var(--light--markout--band-fade);
+  --markout--band-fade\-: var(--light--markout--band-fade\-);
+  --markout--band-fade\-\-: var(--light--markout--band-fade\-\-);
+  --markout--band-text: var(--light--markout--band-text);
+  --markout--band-text\-: var(--light--markout--band-text\-);
+  --markout--band-text\-\-: var(--light--markout--band-text\-\-);
+  --markout--field-fill: var(--light--markout--field-fill);
+  --markout--field-stroke: var(--light--markout--field-stroke);
+  --markout--field-line: var(--light--markout--field-line);
+  --markout--field-line\-: var(--light--markout--field-line\-);
+  --markout--field-text: var(--markout--band-text);
+  --markout--link-text: var(--light--markout--link-text);
+  --markout--visited-link-text: var(--light--markout--visited-link-text);
+  --markout--active-link-text: var(--light--markout--active-link-text);
 }
 
 @media screen and (prefers-color-scheme: dark) {
-	:root {
-		--markout--section-shadow: var(--dark--markout--section-shadow);
-		--markout--section-text: var(--dark--markout--section-text);
-		--markout--section-band: var(--dark--markout--section-band);
-		--markout--section-overlay: var(--dark--markout--section-overlay);
-		--markout--section-background: var(--dark--markout--section-background);
-		--markout--band-line: var(--dark--markout--band-line);
-		--markout--band-stroke: var(--dark--markout--band-stroke);
-		--markout--band-fill: var(--dark--markout--band-fill);
-		--markout--band-fill\-: var(--dark--markout--band-fill\-);
-		--markout--band-fill\-\-: var(--dark--markout--band-fill\-\-);
-		--markout--band-fade: var(--dark--markout--band-fade);
-		--markout--band-fade\-: var(--dark--markout--band-fade\-);
-		--markout--band-fade\-\-: var(--dark--markout--band-fade\-\-);
-		--markout--band-text: var(--dark--markout--band-text);
-		--markout--band-text\-: var(--dark--markout--band-text\-);
-		--markout--band-text\-\-: var(--dark--markout--band-text\-\-);
-		--markout--field-fill: var(--dark--markout--field-fill);
-		--markout--field-stroke: var(--dark--markout--field-stroke);
-		--markout--field-line: var(--dark--markout--field-line);
-		--markout--field-line\-: var(--dark--markout--field-line\-);
-		--markout--link-text: var(--dark--markout--link-text);
-		--markout--visited-link-text: var(--dark--markout--visited-link-text);
-		--markout--active-link-text: var(--dark--markout--active-link-text);
-	}
+  :root {
+    --markout--section-shadow: var(--dark--markout--section-shadow);
+    --markout--section-text: var(--dark--markout--section-text);
+    --markout--section-band: var(--dark--markout--section-band);
+    --markout--section-overlay: var(--dark--markout--section-overlay);
+    --markout--section-background: var(--dark--markout--section-background);
+    --markout--band-line: var(--dark--markout--band-line);
+    --markout--band-stroke: var(--dark--markout--band-stroke);
+    --markout--band-fill: var(--dark--markout--band-fill);
+    --markout--band-fill\-: var(--dark--markout--band-fill\-);
+    --markout--band-fill\-\-: var(--dark--markout--band-fill\-\-);
+    --markout--band-fade: var(--dark--markout--band-fade);
+    --markout--band-fade\-: var(--dark--markout--band-fade\-);
+    --markout--band-fade\-\-: var(--dark--markout--band-fade\-\-);
+    --markout--band-text: var(--dark--markout--band-text);
+    --markout--band-text\-: var(--dark--markout--band-text\-);
+    --markout--band-text\-\-: var(--dark--markout--band-text\-\-);
+    --markout--field-fill: var(--dark--markout--field-fill);
+    --markout--field-stroke: var(--dark--markout--field-stroke);
+    --markout--field-line: var(--dark--markout--field-line);
+    --markout--field-line\-: var(--dark--markout--field-line\-);
+    --markout--link-text: var(--dark--markout--link-text);
+    --markout--visited-link-text: var(--dark--markout--visited-link-text);
+    --markout--active-link-text: var(--dark--markout--active-link-text);
+  }
 }
 
 :host,
 body {
-	color: var(--markout--section-text, initial);
+  color: var(--markout--section-text, initial);
 }
 
 :link {
-	color: var(--markout--link-text, initial);
+  color: var(--markout--link-text, initial);
 }
 :visited {
-	color: var(--markout--visited-link-text, initial);
+  color: var(--markout--visited-link-text, initial);
 }
 :link:active {
-	color: var(--markout--active-link-text, initial);
+  color: var(--markout--active-link-text, initial);
 }

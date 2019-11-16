@@ -163,8 +163,8 @@ li[type='checkbox']::before {
 	content: var(--switch-marker);
 	background-color: var(--switch-background);
 	color: var(--switch-color);
-	font-family: system-ui, var(--markout--body-font-family);
-	/* font-family: var(--markout--system-ui); */
+	/* font-family: system-ui, var(--markout--body-font-family); */
+	font-family: var(--markout--system-ui);
 
 	overflow: hidden;
 	padding: 0;
