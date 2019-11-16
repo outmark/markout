@@ -85,7 +85,7 @@ Current experimental efforts divide the rendering into two phases, the first por
 
 ## Features
 
-<details markout-details=open><summary type=checkbox>
+<markout-details open><summary type=checkbox>
 
 ### Styles
 
@@ -267,9 +267,9 @@ Current experimental efforts divide the rendering into two phases, the first por
 </div>
 <!-- prettier-ignore-end -->
 
-</details>
+</markout-details>
 
-<details markout-details=open><summary type=checkbox>
+<markout-details open><summary type=checkbox>
 
 ### Links
 
@@ -352,9 +352,9 @@ Current experimental efforts divide the rendering into two phases, the first por
 </figure>
 
 </div>
-</details>
+</markout-details>
 
-<details markout-details=open><summary type=checkbox>
+<markout-details open><summary type=checkbox>
 
 ### Lists
 
@@ -429,11 +429,11 @@ Current experimental efforts divide the rendering into two phases, the first por
 
 </div>
 
-</details>
+</markout-details>
 
 <!-- prettier-ignore-start -->
 
-<details markout-details=open><summary type=checkbox>
+<markout-details open><summary type=checkbox>
 
 ### Headings
 
@@ -529,13 +529,13 @@ Current experimental efforts divide the rendering into two phases, the first por
 </div></figure>
 </div>
 
-</details>
+</markout-details>
 
 <!-- prettier-ignore-end -->
 
 <!-- prettier-ignore-start -->
 
-<details markout-details=open><summary type=checkbox>
+<markout-details open><summary type=checkbox>
 
 ### Heading Groups
 
@@ -589,7 +589,7 @@ Current experimental efforts divide the rendering into two phases, the first por
 </div></figure>
 </div>
 </div>
-</details>
+</markout-details>
 
 <!-- prettier-ignore-end -->
 
