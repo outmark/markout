@@ -285,7 +285,7 @@ body > main > * {
 	}
 
 	body {
-		overflow-y: scroll;
+		overflow-y: auto;
 		touch-action: pan-y;
 	}
 
@@ -304,7 +304,7 @@ body > main > * {
 	body > main > *.column-layout {
 		height: 100vh;
 		margin: 0;
-		/* overflow-x: scroll; */
+		/* overflow-x: auto; */
 		/* overflow-y: hidden; */
 	}
 

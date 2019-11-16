@@ -9,7 +9,7 @@ Playgrounds in Markout are as straightforward as it gets, and this is a walk-thr
 _See it in action and read the full story at [smotaal.io/#/markout/examples/Playground](smotaal.io/#/markout/examples/Playground)._
 
 </center>
-<div media=screen style:=fence border-radius:=0.25ex padding-block-start:=0><div max-height:=10em overflow-y:=scroll mask-image:="linear-gradient(black 75%, transparent)" padding:="0 1rem"><small>
+<div media=screen style:=fence border-radius:=0.25ex padding-block-start:=0><div max-height:=10em overflow-y:=auto mask-image:="linear-gradient(black 75%, transparent)" padding:="0 1rem"><small>
 
 ## The Backstory
 
@@ -226,7 +226,7 @@ document.currentScript.before(
 
 ---
 
-<div style:=fence border-radius:=0.25ex padding-block-start:=0><div max-height:=10em overflow-y:=scroll mask-image:="linear-gradient(black 75%, transparent)" padding:="0 1rem"><span>
+<div style:=fence border-radius:=0.25ex padding-block-start:=0><div max-height:=10em overflow-y:=auto mask-image:="linear-gradient(black 75%, transparent)" padding:="0 1rem"><span>
 
 **How about more serious attributes… say `type`?!** It's just too early to lock up the design space around attributes, and so expect those to be very intentionally awkward hacks for now.
 

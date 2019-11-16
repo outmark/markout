@@ -78,22 +78,22 @@ pre.markup[line-wrap] {
 @media only screen {
 	[small-block] {
 		max-height: calc(5vmax + 10vmin);
-		overflow: scroll;
+		overflow: auto;
 	}
 
 	[medium-block] {
 		max-height: calc(15vmax + 20vmin);
-		overflow: scroll;
+		overflow: auto;
 	}
 
 	[large-block] {
 		max-height: calc(25vmax + 30vmin);
-		overflow: scroll;
+		overflow: auto;
 	}
 
 	[huge-block] {
 		max-height: calc(35vmax + 40vmin);
-		overflow: scroll;
+		overflow: auto;
 	}
 }
 

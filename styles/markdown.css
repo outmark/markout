@@ -69,7 +69,7 @@
 :host {
 	box-sizing: border-box;
 	line-height: calc(100% * var(--markup-line-height));
-	overflow: scroll;
+	overflow: auto;
 	-webkit-text-size-adjust: 100%;
 	/* color: var(--markout-section-text); */
 }
@@ -624,7 +624,7 @@ pre {
 	background-color: var(--fence--background--);
 	/* padding: 1.25em; */
 	line-height: calc(100% * var(--markup-line-height));
-	overflow-x: scroll;
+	overflow-x: auto;
 	-webkit-overflow-scrolling: touch;
 	white-space: pre;
 	text-align: start;
@@ -694,6 +694,6 @@ tt.normalized-break {
 		max-height: -webkit-fill-available;
 		max-height: -moz-available;
 		max-height: fill-available;
-		overflow-y: scroll;
+		overflow-y: auto;
 	}
 }
