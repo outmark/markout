@@ -2,7 +2,17 @@
 
 # The First Markout Playground
 
-Playgrounds in Markout are as straightforward as it gets, and this is a walk-through of the underlying concepts behind Markout's Playgrounds. Here we are throwing everything together in a single playground, mainly to show how it holds up together. <!-- Consider [this walk-through](./Playgrounds.md) for more granular examples. -->
+Playgrounds in Markout are as straightforward as it gets, and this is a walk-through of the underlying concepts behind Markout's Playgrounds. Here we are throwing everything together in a single playground, mainly to show how it holds up together.
+
+<details media=screen><summary align=center>Explainer</summary>
+
+This example is a first step to start exploring the design space for creating highly interactive human readable Markdown-based content. A main focus here is explore the viability of the design space, and not to try to answer premature questions on product offering, enduse readiness, and/or packaging… etc.
+
+This effort makes it possible identify more concretely on some of the underlying use cases and associated technical requirements, while prototyping code. And those would eventually build an actual thing.
+
+Clearly state, the underlying design does not deliver, yet — see [Framework](../Framework.md).
+
+</details>
 
 <center media=print hidden>
 
@@ -193,14 +203,14 @@ You define a `<style>` tag using <code>\`\`\`css style</code> block.
 
 ```css style
 body > style:first-of-type::before {
-	/* Shows up in the playground frame if properly rendered */
-	content: 'First <style> tag… works!';
-	display: block;
+  /* Shows up in the playground frame if properly rendered */
+  content: 'First <style> tag… works!';
+  display: block;
 }
 body > style:first-of-type {
-	display: block;
-	height: 1.75em;
-	overflow: hidden;
+  display: block;
+  height: 1.75em;
+  overflow: hidden;
 }
 ```
 
@@ -215,10 +225,10 @@ You define a `<script>` tag using <code>\`\`\`js script</code> block.
 console.trace(document.currentScript);
 
 document.currentScript.before(
-	Object.assign(document.createElement('p'), {
-		/* Shows up in the playground frame if properly rendered */
-		textContent: 'First 𝘤𝘭𝘢𝘴𝘴𝘪𝘤 <script> tag… works!',
-	}),
+  Object.assign(document.createElement('p'), {
+    /* Shows up in the playground frame if properly rendered */
+    textContent: 'First 𝘤𝘭𝘢𝘴𝘴𝘪𝘤 <script> tag… works!',
+  }),
 );
 ```
 
@@ -267,12 +277,12 @@ And so at lease for now and just to pair nicely with those smelly and somewhat d
 ```js script=module
 // Prints trace in the console if properly rendered
 console.trace(
-	document.body.querySelector('script[type=module],:last-child').after(
-		Object.assign(document.createElement('p'), {
-			// Shows up in the playground frame if properly rendered
-			textContent: 'First 𝘮𝘰𝘥𝘶𝘭𝘦 <script> tag… works!',
-		}),
-	),
+  document.body.querySelector('script[type=module],:last-child').after(
+    Object.assign(document.createElement('p'), {
+      // Shows up in the playground frame if properly rendered
+      textContent: 'First 𝘮𝘰𝘥𝘶𝘭𝘦 <script> tag… works!',
+    }),
+  ),
 );
 ```
 
