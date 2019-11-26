@@ -12,9 +12,9 @@
   "type": "module",
   "exports": {},
   "main": "lib/markout.js",
-  "types": "types.d.ts",
   "scripts": {
     "bundle": "rollup -c rollup.config.js",
+    "prestart": "pushd public && ([ -d markout ] || ln -s .. markout) && popd;",
     "start": "npx http-server -d false --cors -s -c-1 -p 80"
   },
   "devDependencies": {
