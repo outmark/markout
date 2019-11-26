@@ -1,0 +1,33 @@
+{
+  "defaults": {
+    "cache": false,
+    "context": "this",
+    "output": {"sourcemap": true, "interop": false}
+  },
+  "scopes": {
+    "/markout/": "./",
+    "/markup/": "../markup/",
+    "/components/": "../components/"
+  },
+  "bundles": [
+    {
+      "input": {
+        "markout": "./lib/markout.js",
+        "components": "./lib/components.js",
+        "browser": "./lib/browser.js"
+      },
+      "output": {
+        "format": "esm",
+        "exports": "named",
+        "chunkFileNames": "[name].js",
+        "dir": "./dist/",
+        "paths": {
+          "/markout/lib/helpers.js": "../lib/helpers.js",
+          "/markup/dist/tokenizer.browser.js": "../../markup/dist/tokenizer.browser.js"
+        }
+      },
+      "external": ["/markup/dist/tokenizer.browser.js"],
+      "chunks": "scopes"
+    }
+  ]
+}

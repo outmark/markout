@@ -84,7 +84,7 @@ subresource containment of a Playground, where each Playground would have its ow
 
 </header>
 
-Current efforts have led to initial excitement and all the technical insights, but have so far not delivered on the more user-friendly expectations — see [The First Markout Playground](../examples/Playground.md).
+Current efforts have led to initial excitement and all the technical insights, but have so far not delivered on the more user-friendly expectations — see [The First Markout Playground](./examples/Playground.md).
 
 </article></section>
 

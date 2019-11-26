@@ -2,8 +2,8 @@
   "private": true,
   "name": "@smotaal/markout",
   "description": "smotaal.io/markout",
-  "version": "0.0.0-alpha.2",
-  "author": "Saleh Abdel Motaal <saleh@grasppe.com>",
+  "version": "0.0.1-pre.1",
+  "author": "Saleh Abdel Motaal <saleh@smotaal.io>",
   "repository": {
     "url": "https://github.com/SMotaal/smotaal.github.io.git",
     "path": "/markout"
@@ -14,15 +14,15 @@
   "main": "lib/markout.js",
   "types": "types.d.ts",
   "scripts": {
-    "bundle": "rollup -c rollup.config.js"
+    "bundle": "rollup -c rollup.config.js",
+    "start": "npx http-server -d false --cors -s -c-1 -p 80"
   },
   "devDependencies": {
     "@smotaal.io/tools": "*",
     "@types/node": "*",
-    "http-server": "*",
     "prettier": "*",
     "rollup": "*",
-    "rollup-plugin-node-resolve": "*",
-    "typescript": "*"
+    "typescript": "*",
+    "http-server": "*"
   }
 }

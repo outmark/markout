@@ -1,5 +1,4 @@
-import { encodeEntities, render as render$1, tokenize as tokenize$1, encodeEntity } from '/markup/dist/tokenizer.browser.js';
-import { debugging, normalizeString } from '/markout/lib/helpers.js';
+import { encodeEntities, render as render$1, tokenize as tokenize$1, encodeEntity } from '../../markup/dist/tokenizer.browser.js';
 
 //@ts-check
 const CurrentMatch = Symbol('CurrentMatch');
@@ -190,13 +189,16 @@ class Matcher extends RegExp {
     return match;
   }
 
-  /**
-   * @param {string} source
-   */
+  /** @param {string} source */
   exec(source) {
     const match = /** @type {MatcherExecArray} */ (super.exec(source));
     match == null || this.capture(match);
     return match;
+  }
+
+  /** @param {string} source */
+  matchAll(source) {
+    return /** @type {typeof Matcher} */ (this.constructor).matchAll(source, /** @type {any} */ (this));
   }
 
   /** @returns {entity is MatcherMetaEntity} */
@@ -293,7 +295,8 @@ class Matcher extends RegExp {
     sequence.span = value =>
       (value &&
         // TODO: Don't coerce to string here?
-        (typeof value !== 'symbol' && `${value}`)) ||
+        typeof value !== 'symbol' &&
+        `${value}`) ||
       '';
 
     sequence.WHITESPACE = /^\s+|\s*\n\s*|\s+$/g;
@@ -321,6 +324,7 @@ class Matcher extends RegExp {
     /** @template {RegExp} T @type {(string: MatcherText, matcher: T) => MatcherIterator<T> } */
     // const matchAll = (string, matcher) => new MatcherState(string, matcher);
     const matchAll = (() =>
+      // TODO: Find a cleaner way to reference RegExp.prototype[Symbol.matchAll]
       Function.call.bind(
         // String.prototype.matchAll || // TODO: Uncomment eventually
         {
@@ -396,10 +400,12 @@ class Matcher extends RegExp {
     const Species = !this || this === Matcher || !(this.prototype instanceof Matcher) ? Matcher : this;
 
     return Object.defineProperty(
-      ((state || (state = Object.create(null))).matcher = /** @type {typeof Matcher} */ (matcher &&
+      ((
+        state || (state = Object.create(null))
+      ).matcher = /** @type {typeof Matcher} */ (matcher &&
       matcher instanceof RegExp &&
       matcher.constructor &&
-      typeof /** @type {typeof Matcher} */ (matcher.constructor).clone !== 'function'
+      'function' !== typeof (/** @type {typeof Matcher} */ (matcher.constructor).clone) // prettier-ignore
         ? matcher.constructor
         : Species === Matcher || typeof Species.clone !== 'function'
         ? Matcher
@@ -419,9 +425,9 @@ class Matcher extends RegExp {
 
 const {
   /** Identity for delimiter captures (like newlines) */
-  DELIMITER = (Matcher.DELIMITER = 'DELIMITER?'),
+  DELIMITER = (Matcher.DELIMITER = Matcher.prototype.DELIMITER = /** @type {MatcherIdentityString} */ ('DELIMITER?')),
   /** Identity for unknown captures */
-  UNKNOWN = (Matcher.UNKNOWN = 'UNKNOWN?'),
+  UNKNOWN = (Matcher.UNKNOWN = Matcher.prototype.UNKNOWN = /** @type {MatcherIdentityString} */ ('UNKNOWN?')),
 } = Matcher;
 
 //@ts-check
@@ -503,6 +509,9 @@ const countInsetQuotes = inset => {
 	while (position++ < (position = inset.indexOf('>', position))) quotes++;
 	return quotes;
 };
+
+const MATCHES = Symbol('matches');
+const MATCH = Symbol('match');
 
 
 // /** @param {string} string */
@@ -998,7 +1007,10 @@ class MarkoutBlockNormalizer {
 	 * @param {{ aliases?: { [name: string]: alias } }} [state]
 	 */
 	normalizeBlocks(sourceText, state = {}) {
-		const {sources = (state.sources = []), [ALIASES]: aliases = (state[ALIASES] = {})} = state;
+		const {
+			sources = (state.sources = []),
+			[ALIASES]: aliases = (state[ALIASES] = {}),
+		} = state;
 
 		const source = {sourceText, [BLOCKS]: [], [ALIASES]: {}};
 		sources.push(source);
@@ -1280,7 +1292,7 @@ class MarkoutBlockNormalizer {
 	}
 }
 
-const MATCHES = Symbol('matches');
+// export const MATCHES = Symbol('matches');
 const ALIASES = 'aliases';
 const BLOCKS = 'blocks';
 
@@ -1303,51 +1315,215 @@ const isNotBlank = text => typeof text === 'string' && !(text === '' || text.tri
 /** @typedef {MatchedRecord<'text'|'fence'|'inset'|'unfenced'>} MatchedBlockRecord */
 /** @typedef {RegExpExecArray & MatchedBlockRecord} MatchedBlock */
 
-class MarkoutSegmentNormalizer extends MarkoutBlockNormalizer {
-	/**
-	 * @param {string} sourceText
-	 * @param {{ sources?: *, aliases?: { [name: string]: * } }} [state]
-	 */
-	normalizeSegments(sourceText, state = {}) {
-		try {
-			state.sources || (state.sources = []);
-			state.aliases || (state.aliases = {});
-			// TODO: Implement Markout's Matcher-based segment normalization
-			// setTimeout(() => this.debugSegments(sourceText), 5000);
-			return this.normalizeBlocks(sourceText, state);
-		} finally {
-			//@ts-ignore
-			import.meta['debug:markout:segment-normalization'] && console.log('normalizeSegments:', state);
-		}
-	}
+//@ts-check
 
-	async debugSegments(sourceText) {
-		(await import('../../../../../../../markout/lib/experimental/markout-segmenter.js')).MarkoutSegments.debug({sourceText});
-	}
+/** Segmenter for sub-match captures */
+class SegmentMatcher extends Matcher {
+  /**
+   * @param {MatcherPattern} pattern
+   * @param {MatcherFlags} [flags]
+   * @param {MatcherEntities} [entities]
+   * @param {{}} [state]
+   */
+  constructor(pattern, flags, entities, state) {
+    //@ts-ignore
+    super(pattern, flags, entities, state);
+    this.captureEntity = this.captureEntity;
+  }
+  /**
+   * @template {MatcherMatch} T
+   * @param {string} text
+   * @param {number} capture
+   * @param {T} match
+   * @returns {T}
+   */
+  captureEntity(text, capture, match) {
+    if (capture === 0) return void (match.capture = {});
+    if (text === undefined) return;
+    const index = capture - 1;
+    const {
+      entities: {[index]: entity, meta, identities},
+      state,
+    } = this;
+    // entity === INSET ||
+    // entity === LOOKAHEAD ||
+    // entity === Matcher.DELIMITER ||
+    // entity === Matcher.UNKNOWN ||
+    // debugger;
+    if (!entity) return;
+
+    if (typeof entity === 'function') {
+      match.entity = index;
+      entity(text, capture, match, state);
+      return;
+    }
+
+    if (meta.has(entity)) {
+      // match.entity || (match.entity = index);
+      match.meta = `${(match.meta && `${match.meta} `) || ''}${/** @type {string} */ (entity)}`;
+    } else if (identities.has(entity) && match.identity == null) {
+      match.entity = index;
+      match.identity = entity;
+    }
+    match.capture[/** @type {MatcherNamedEntity} */ (entity)] = text;
+  }
+
+  /** @param {MatcherExecArray} match */
+  capture(match) {
+    if (match === null) return null;
+
+    match.matcher = this;
+    match.capture = {};
+
+    match &&
+      (match.forEach(this.captureEntity || SegmentMatcher.prototype.captureEntity, this),
+      match.identity ||
+        (match.capture[
+          (/** @type {MatcherMatch} */(match)).identity = this.UNKNOWN || Matcher.UNKNOWN // prettier-ignore
+        ] = match[0]));
+
+    return match;
+  }
+
+  async debug(options) {
+    const job = {options, ...options};
+    try {
+      job.timestamp = `?${encodeURIComponent(Date.now())}`;
+      job.location =
+        (typeof globalThis === 'object' &&
+          globalThis &&
+          globalThis.location != null &&
+          typeof globalThis.location === 'object' &&
+          globalThis.location &&
+          globalThis.location.href) ||
+        /\/(?:node_modules\/(?:@.+?\/|)|)(?:Markdown\/|)lib\/.*$/[Symbol.replace](import.meta.url, '/');
+      if (job.specifier != null) {
+        job.sourceText = null;
+        job.url = new URL(job.specifier, job.location);
+        job.response = await (job.request = fetch(job.url));
+        if (!job.response.ok) throw Error(`Failed to fetch ${job.url}`);
+        job.sourceText = await job.response.text();
+      }
+      job.sourceText === null ||
+        /** @type {import('./debug.js')} */ (await import('./debug.js')).debugMatcher(
+          this, // SegmentMatcher.prototype,
+          job.sourceText,
+          (job.debugging = {}),
+        );
+    } catch (exception) {
+      throw (job.error = (exception.stack, exception));
+    } finally {
+      console.group('%o', job);
+      if (job.error) console.warn(job.error);
+      console.groupEnd();
+    }
+  }
 }
 
-debugging('markout', import.meta, [
-	// import.meta.url.includes('/markout/lib/') ||
-	typeof location === 'object' && /[?&]debug(?=[&#]|=[^&]*\bmarkout|$)\b/.test(location.search),
-	'segment-normalization',
-	'block-normalization',
-	'paragraph-normalization',
-	'anchor-normalization',
-	'break-normalization',
-]);
+const {
+  /** Identity for delimiter captures (like newlines) */
+  INSET = (SegmentMatcher.INSET = SegmentMatcher.prototype.INSET = /** @type {MatcherIdentityString} */ ('INSET?')),
+  /** Identity for unknown captures */
+  LOOKAHEAD = (SegmentMatcher.LOOKAHEAD = SegmentMatcher.prototype.LOOKAHEAD =
+    /** @type {MatcherIdentityString} */ ('LOOKAHEAD?')),
+} = SegmentMatcher;
 
-class MarkoutNormalizer extends MarkoutSegmentNormalizer {
-	normalizeSourceText(sourceText) {
-		const {normalized = (this.normalized = new Map())} = this;
-		let normalizedText = normalized.get(sourceText);
-		normalizedText !== undefined ||
-			normalized.set(
-				sourceText,
-				(normalizedText = normalizeString(this.normalizeSegments(normalizeString(sourceText)))),
-			);
-		return normalizedText;
-	}
-}
+// await (SegmentMatcher.prototype.debug['implementation'] ||
+//   (SegmentMatcher.prototype.debug['implementation'] = import(
+//     // TODO: Find a better way to resolve matcher/lib/debug.js
+//     '/markup/packages/matcher/lib/debug.js'
+//   ).catch(exception => {
+//     console.warn(exception);
+//     return new Proxy(Object.seal(Object.freeze(() => {})), {
+//       get() {
+//         return arguments[0];
+//       },
+//       apply: Reflect.apply.bind(console.warn, null, [exception], undefined),
+//     });
+//   })))
+
+// @ts-check
+
+const MarkdownSegmenter = (() => {
+  // SEE: https://github.github.com/gfm/#tables-extension-
+  const MarkdownLists = SegmentMatcher.sequence/* regexp */ `
+		[-*]
+		|[1-9]+\d*\.
+		|[ivx]+\.
+		|[a-z]\.
+	`;
+  const MarkdownMatter = SegmentMatcher.sequence/* regexp */ `
+		---(?=\n.+)(?:\n.*)+?\n---
+	`;
+  const MarkdownStub = SegmentMatcher.sequence/* regexp */ `
+		<!--[^]*?-->
+		|<!.*?>|<\?.*?\?>
+		|<%.*?%>
+		|<(?:\b|\/).*(?:\b|\/)>.*
+	`;
+  const MarkdownStart = SegmentMatcher.sequence/* regexp */ `
+		(?:
+			[^#${'`'}~<>|\n\s]
+			|${'`'}{1,2}(?!${'`'})
+			|~{1, 2}(?!~)
+		)
+	`;
+  // (?!(?:${MarkdownLists}) )
+
+  const MarkdownLine = SegmentMatcher.sequence/* regexp */ `
+		(?!(?:${MarkdownLists}) )
+		(?:${MarkdownStart})
+		(?:${MarkdownStub}|.*)*$
+	`;
+  const MarkdownDivider = SegmentMatcher.sequence/* regexp */ `
+		-{2,}
+		|={2,}
+		|\*{2,}
+		|(?:- ){2,}-
+		|(?:= ){2,}=
+		|(?:\* ){2,}\*
+	`;
+  const MarkdownATXStyleHeading = SegmentMatcher.sequence/* regexp */ `
+		#{1,6}(?= +\S)
+	`;
+  const MarkdownSetextHeading = SegmentMatcher.sequence/* regexp */ `
+		${MarkdownStart}.*\n(?=
+			\2\={3,}\n
+			|\2\-{3,}\n
+		)
+	`;
+
+  return /** @type {SegmentMatcher} */ (SegmentMatcher.define(
+    entity => SegmentMatcher.sequence/* regexp */ `^
+		  (?:
+		    ${entity(UNKNOWN)}(${MarkdownMatter}$|[ \t]*(?:${MarkdownStub})[ \t]*$)|
+		    (?:
+		      ${entity(INSET)}((?:  |\t)*?(?:> ?)*?(?:> ?| *))
+		      (?:
+		        ${entity('fence')}(?:(${'```'}|~~~)(?=.*\n)[^]*?\n\2\3.*$)|
+		        ${entity('heading')}(?:(${MarkdownATXStyleHeading}|${MarkdownSetextHeading}).*$)|
+		        ${entity('list')}(?:(${MarkdownLists}) +${MarkdownLine}(?:\n\2 {2,4}${MarkdownLine})*$)|
+		        ${entity('alias')}(?:(\[.+?\]: .+)$)|
+		        ${entity('divider')}(?:(${MarkdownDivider})$)|
+		        ${entity('feed')}(?:([ \t]*(?:\n\2[ \t])*)$)|
+						${entity('table')}(
+							[|](?=[ :-]).+[|]$(?:\n\2[|].+[|]$)+|
+							[^|\n]*?\|[^|\n].*$(?:\n\2[^|\n]*?\|[^|\n].*$)+
+						)|
+		        ${entity('paragraph')}(?:(${MarkdownLine}(?:\n\2 {0,2}${MarkdownLine})*)$)
+		      )|
+		      ${entity(UNKNOWN)}(.+?$)
+		    )
+		  )(?=${entity(LOOKAHEAD)}(\n?^.*$)?)
+		`,
+    'gmi',
+  ));
+})();
+
+typeof globalThis !== 'object' ||
+  !globalThis ||
+  (globalThis.$md = (specifier = '/markout/examples/markdown-testsuite.md') =>
+    MarkdownSegmenter.debug({specifier, matcher: MarkdownSegmenter}));
 
 //@ts-check
 
@@ -1365,6 +1541,22 @@ Enum.reflect = pairs => {
 
 	return pairs;
 };
+
+/** @param {string} context @param {object} meta @param {(string | boolean)[]} [flags] */
+const debugging = (context, meta, flags) =>
+	!(meta && context && flags) ||
+	typeof meta.url !== 'string' ||
+	typeof context !== 'string' ||
+	typeof flags !== 'object' ||
+	(Array.isArray(flags) && flags.includes(false)) ||
+	Object.entries(flags).reduce(
+		Array.isArray(flags)
+			? (meta, [, flag]) => (typeof flag === 'string' && (meta[`debug:${context}:${flag}`] = true), meta)
+			: (meta, [flag, value = meta[flag]]) => (
+					typeof flag === 'string' && (meta[`debug:${context}:${flag}`] = value), meta
+			  ),
+		meta,
+	);
 
 /** @type {(text: string, matcher: RegExp | string) => IterableIterator<RegExpExecArray>} */
 const matchAll$1 = Function.call.bind(
@@ -1390,6 +1582,107 @@ const matchAll$1 = Function.call.bind(
 		}.matchAll,
 );
 
+/** @param {string} string */
+const normalizeString = string => Object.keys({[string]: true})[0];
+
+class MarkoutSegmentNormalizer extends MarkoutBlockNormalizer {
+  /**
+   * @param {string} sourceText
+   * @param {{ sources?: *, aliases?: { [name: string]: * }, segments?: DocumentFragment }} [state]
+   */
+  normalizeSegments(sourceText, state = {}) {
+    const debugging = import.meta['debug:markout:segment-normalization'];
+    try {
+      state.sources || (state.sources = []);
+      state.aliases || (state.aliases = {});
+      state[SEGMENTS] || (state[SEGMENTS] = []);
+
+      // TODO: Implement Markout's Matcher-based segment normalization
+      // setTimeout(() => this.debugSegments(sourceText), 5000);
+      if (debugging) {
+        this.normalizeMarkdownSegments(sourceText, state);
+        setTimeout(() => console.log(state));
+      }
+
+      return this.normalizeBlocks(sourceText, state);
+    } finally {
+      //@ts-ignore
+      import.meta['debug:markout:segment-normalization'] && console.log('normalizeSegments:', state);
+    }
+  }
+
+  normalizeMarkdownSegments(sourceText, state) {
+    const {
+      [SEGMENTS]: segments = (state[SEGMENTS] = []),
+      [SEGMENTS]: {[MATCHES]: matches = (state[SEGMENTS][MATCHES] = [])},
+    } = state;
+    for (const match of MarkdownSegmenter.matchAll(sourceText)) {
+      const {
+        0: text,
+        identity,
+        capture: {[MarkdownSegmenter.INSET]: inset},
+      } = match;
+      const segment = {identity, text, inset, [MATCH]: match};
+      if (identity === 'table') {
+        this.normalizeMarkdownTableSegment(segment);
+        if (segment.identity === 'table') {
+          (state[TABLES] || (state[TABLES] = [])).push(segment);
+        }
+      }
+      segments.push(segment);
+      matches.push(match);
+    }
+  }
+
+  normalizeMarkdownTableSegment(segment) {
+    const {text, inset} = segment;
+    segment.lines = `\n${text}`.split(`\n${inset}`).slice(1);
+    segment.rows = [];
+    for (const text of segment.lines) {
+      const cells = text.replace(/^\s*(?:\|\s*)?|(?:\|\s*)?\s*$/g, '').split(/\s*\|\s*/);
+      cells.text = text;
+      cells.inset = inset;
+      if (segment.rows.length === 1 && !/[^-|: \t]/.test(text)) {
+        segment.rows.header = segment.rows[0];
+        segment.rows.format = cells;
+      } else {
+        cells.row = segment.rows.push(cells);
+      }
+    }
+  }
+
+  async debugSegments(sourceText, options) {
+    MarkdownSegmenter.debug({...options, sourceText});
+    // (await import('/markout/lib/markdown/markdown-segmenter.js')).MarkdownSegmenter.debug({sourceText});
+  }
+}
+
+const SEGMENTS = 'segments';
+const TABLES = 'tables';
+
+debugging('markout', import.meta, [
+  // import.meta.url.includes('/markout/lib/') ||
+  typeof location === 'object' && /[?&]debug(?=[&#]|=[^&]*\bmarkout|$)\b/.test(location.search),
+  'segment-normalization',
+  'block-normalization',
+  'paragraph-normalization',
+  'anchor-normalization',
+  'break-normalization',
+]);
+
+class MarkoutNormalizer extends MarkoutSegmentNormalizer {
+	normalizeSourceText(sourceText) {
+		const {normalized = (this.normalized = new Map())} = this;
+		let normalizedText = normalized.get(sourceText);
+		normalizedText !== undefined ||
+			normalized.set(
+				sourceText,
+				(normalizedText = normalizeString(this.normalizeSegments(normalizeString(sourceText)))),
+			);
+		return normalizedText;
+	}
+}
+
 const DOM_MUTATIONS = undefined;
 const BREAK_NORMALIZATION = undefined;
 const HEADING_NORMALIZATION = true;
@@ -1405,7 +1698,7 @@ const SOURCE_TEXT_RENDERING = true;
 const ASSET_REMAPPING = true;
 const ASSET_INITIALIZATION = true;
 
-const flags = /*#__PURE__*/Object.freeze({
+var flags = /*#__PURE__*/Object.freeze({
   __proto__: null,
   DOM_MUTATIONS: DOM_MUTATIONS,
   BREAK_NORMALIZATION: BREAK_NORMALIZATION,
@@ -1425,15 +1718,14 @@ const flags = /*#__PURE__*/Object.freeze({
 
 
 
-const defaults = /*#__PURE__*/Object.freeze({
+var defaults = /*#__PURE__*/Object.freeze({
   __proto__: null,
   flags: flags
 });
 
 //@ts-check
 
-/** @type {import('./types').content} */
-const content = {};
+const content = /** @type {import('./content').content} */ ({});
 
 Object.setPrototypeOf(content, null);
 
@@ -1953,5 +2245,5 @@ debugging('markout', import.meta, [
 	'fenced-block-header-rendering',
 ]);
 
-export { ASSET_REMAPPING as A, BREAK_NORMALIZATION as B, CHECKLIST_NORMALIZATION as C, DOM_MUTATIONS as D, Enum as E, HEADING_NORMALIZATION as H, LIST_PARAGRAPH_NORMALIZATION as L, PARAGRAPH_NORMALIZATION as P, SOURCE_TEXT_RENDERING as S, TOKEN_FLATTENING as T, BLOCK_PARAGRAPH_NORMALIZATION as a, BLOCKQUOTE_NORMALIZATION as b, content as c, defaults as d, BLOCKQUOTE_HEADING_NORMALIZATION as e, DECLARATIVE_STYLING as f, ASSET_INITIALIZATION as g, flags as h, normalize as n, render as r, tokenize as t };
-//# sourceMappingURL=common.js.map
+export { ASSET_REMAPPING as A, BREAK_NORMALIZATION as B, CHECKLIST_NORMALIZATION as C, DOM_MUTATIONS as D, Enum as E, HEADING_NORMALIZATION as H, LIST_PARAGRAPH_NORMALIZATION as L, MarkupAttributeMap as M, PARAGRAPH_NORMALIZATION as P, SOURCE_TEXT_RENDERING as S, TOKEN_FLATTENING as T, BLOCK_PARAGRAPH_NORMALIZATION as a, BLOCKQUOTE_NORMALIZATION as b, content as c, defaults as d, BLOCKQUOTE_HEADING_NORMALIZATION as e, DECLARATIVE_STYLING as f, ASSET_INITIALIZATION as g, flags as h, renderSourceText as i, debugging as j, normalize as n, render as r, tokenize as t };
+//# sourceMappingURL=renderer.js.map

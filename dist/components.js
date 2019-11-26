@@ -891,8 +891,7 @@ const resolve = (specifier, referrer) => {
   } catch (exception) {}
 };
 
-const preloading =
-  (!currentDocument && {}) || currentDocument.links['[[preload]]'] || (currentDocument.links['[[preload]]'] = {});
+const preloading = (!currentDocument && {}) || currentDocument.links['[[preload]]'] || (currentDocument.links['[[preload]]'] = {});
 
 const preload = (src => {
   const preload = (href, as) => {
@@ -907,21 +906,15 @@ const preload = (src => {
             return Promise.reject(
               new TypeError(
                 `Cannot preload "${url}"${
-                  extension
-                    ? ` - extension $"{extension}" is not supported`
-                    : ' - cannot infer type'
+                  extension ? ` - extension $"{extension}" is not supported` : ' - cannot infer type'
                 }.`,
               ),
             );
           as = preload.extensions[as];
         } else if (!types[(as = `${as}`.toLowerCase())]) {
-          return Promise.reject(
-            new TypeError(`Cannot preload "${url}" - type "${as}" is not supported.`),
-          );
+          return Promise.reject(new TypeError(`Cannot preload "${url}" - type "${as}" is not supported.`));
         }
-        promise =
-          preloading[url] ||
-          (promise = preloading[href] = preloading[url] = createPreloadPromise({href, as}));
+        promise = preloading[url] || (promise = preloading[href] = preloading[url] = createPreloadPromise({href, as}));
       } catch (exception) {
         return Promise.reject(exception);
       }
@@ -937,9 +930,10 @@ const preload = (src => {
     initiator = import.meta.url,
   }) => {
     if (!ownerDocument) {
-      currentDocument ||
-        preload.promise.warned ||
-        (preload.promise.warned = !console.warn('[preload]: Preload is not supported.'));
+      if (currentDocument && !preload.promise.warned) {
+        console.warn('[preload]: Preload is not supported.');
+        preload.promise.warned = true;
+      }
       return resolvedPromise;
     }
     const {head = currentDocument.head} = ownerDocument;
@@ -948,15 +942,9 @@ const preload = (src => {
 
     const preloads = head.querySelectorAll(`link[rel=preload][as="${type}"]`);
 
-    if (
-      type === 'style' &&
-      Array.prototype.find.call(ownerDocument.styleSheets, ({href}) => href === href)
-    ) {
+    if (type === 'style' && Array.prototype.find.call(ownerDocument.styleSheets, ({href}) => href === href)) {
       return resolvedPromise;
-    } else if (
-      type === 'script' &&
-      Array.prototype.find.call(ownerDocument.scripts, ({src}) => src === href)
-    ) {
+    } else if (type === 'script' && Array.prototype.find.call(ownerDocument.scripts, ({src}) => src === href)) {
       return resolvedPromise;
     } else if (preloads && preloads.length) {
       url.pathname && (url.pathname = url.pathname.replace(/\/+/g, '/'));
@@ -976,7 +964,8 @@ const preload = (src => {
           link.removeEventListener('load', done),
           (done = resolve()),
           (promise.loaded = event.type === 'load') ||
-            ((event.error && (promise.error = event.error)) || (promise[event.type] = true)));
+            (event.error && (promise.error = event.error)) ||
+            (promise[event.type] = true));
         link.addEventListener('abort', done, {once: true});
         link.addEventListener('error', done, {once: true});
         link.addEventListener('load', done, {once: true});
@@ -994,9 +983,7 @@ const preload = (src => {
     return promise;
   };
 
-  const base = (preload.base = `${(typeof location === 'object' &&
-    typeof location.href === 'string' &&
-    location) ||
+  const base = (preload.base = `${(typeof location === 'object' && typeof location.href === 'string' && location) ||
     new URL(src.replace(/\/lib\/.*?$/i, ''))}`);
   const types = (preload.types = {});
   const extensions = (preload.extensions = {});
