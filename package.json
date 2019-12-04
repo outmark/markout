@@ -1,5 +1,4 @@
 {
-  "private": true,
   "name": "@smotaal/markout",
   "description": "smotaal.io/markout",
   "version": "0.0.1-pre.1",
@@ -24,5 +23,8 @@
     "rollup": "*",
     "typescript": "*",
     "http-server": "*"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

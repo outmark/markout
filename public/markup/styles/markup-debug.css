@@ -45,9 +45,9 @@
     z-index: 2;
   }
 
-  .marked > .markup-line > [data-hint].markup.marked::after,
-  .markup-wrapper:not(.marked) > .markup-line > [data-hint].markup:hover::after {
-    content: attr(data-hint);
+  .marked > .markup-line > [data-markup-hint].markup.marked::after,
+  .markup-wrapper:not(.marked) > .markup-line > [data-markup-hint].markup:hover::after {
+    content: attr(data-markup-hint);
     display: block;
     position: absolute;
 
@@ -72,7 +72,7 @@
     --debug: var(--markup-faults-background, #f21);
   }
 
-  .markup-line > [data-hint].markup::after {
+  .markup-line > [data-markup-hint].markup::after {
     display: none;
 
     --padding: 1.75px;
