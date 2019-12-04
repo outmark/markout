@@ -1,43 +1,46 @@
-import { entities as entities$1 } from '../../markup/dist/tokenizer.browser.js';
+import '../../../browser/legacy.js';
+import { entities as entities$1 } from './markup.js';
 import { c as content, d as defaults, D as DOM_MUTATIONS, B as BREAK_NORMALIZATION, H as HEADING_NORMALIZATION, P as PARAGRAPH_NORMALIZATION, a as BLOCK_PARAGRAPH_NORMALIZATION, L as LIST_PARAGRAPH_NORMALIZATION, C as CHECKLIST_NORMALIZATION, b as BLOCKQUOTE_NORMALIZATION, e as BLOCKQUOTE_HEADING_NORMALIZATION, T as TOKEN_FLATTENING, f as DECLARATIVE_STYLING, S as SOURCE_TEXT_RENDERING, A as ASSET_REMAPPING, g as ASSET_INITIALIZATION, h as flags, r as render, t as tokenize, n as normalize, M as MarkupAttributeMap, i as renderSourceText, E as Enum, j as debugging } from './renderer.js';
 import { styling, Component } from './components.js';
 
+// import {entities} from '/markup/dist/tokenizer.browser.js';
+
 const {
-	UnicodeIdentifier,
-	MarkdownIdentityPrefixer,
-	MarkdownIdentityJoiner,
-	MarkdownIdentityWord,
-	MarkdownIdentity,
+  UnicodeIdentifier,
+  MarkdownIdentityPrefixer,
+  MarkdownIdentityJoiner,
+  MarkdownIdentityWord,
+  MarkdownIdentity,
 } = (({
-	raw = String.raw,
-	IdentifierStart,
-	IdentifierPart,
-	UnicodeIdentifierStart = IdentifierStart.slice(2),
-	UnicodeIdentifierPart = IdentifierPart.slice(2),
-	UnicodeIdentifier = raw`[\d${UnicodeIdentifierStart}][\d${UnicodeIdentifierPart}]*`,
-	MarkdownWordPrefixes = raw`$@`,
-	MarkdownWordPrefix = raw`[${MarkdownWordPrefixes}]?`,
-	MarkdownWord = raw`${MarkdownWordPrefix}${UnicodeIdentifier}`,
-	MarkdownWordJoiners = raw` \\\/:_\-\xA0\u2000-\u200B\u202F\u2060`,
-	MarkdownWordJoiner = raw`[${MarkdownWordJoiners}]+`,
-	// MarkdownIdentity = raw`(?:\s|\n|^)(${MarkdownWord}(?:${MarkdownWordJoiner}${MarkdownWord})*(?=\b[\s\n]|$))`,
-	MarkdownIdentity = raw`(?:\s|\n|^)(?:The (?=\w)|)(${MarkdownWord}(?:${MarkdownWordJoiner}${MarkdownWord})*)`,
+  raw = String.raw,
+  IdentifierStart,
+  IdentifierPart,
+  UnicodeIdentifierStart = IdentifierStart.slice(2),
+  UnicodeIdentifierPart = IdentifierPart.slice(2),
+  UnicodeIdentifier = raw`[\d${UnicodeIdentifierStart}][\d${UnicodeIdentifierPart}]*`,
+  MarkdownWordPrefixes = raw`$@`,
+  MarkdownWordPrefix = raw`[${MarkdownWordPrefixes}]?`,
+  MarkdownWord = raw`${MarkdownWordPrefix}${UnicodeIdentifier}`,
+  MarkdownWordJoiners = raw` \\\/:_\-\xA0\u2000-\u200B\u202F\u2060`,
+  MarkdownWordJoiner = raw`[${MarkdownWordJoiners}]+`,
+  // MarkdownIdentity = raw`(?:\s|\n|^)(${MarkdownWord}(?:${MarkdownWordJoiner}${MarkdownWord})*(?=\b[\s\n]|$))`,
+  MarkdownIdentity = raw`(?:\s|\n|^)(?:The (?=\w)|)(${MarkdownWord}(?:${MarkdownWordJoiner}${MarkdownWord})*)`,
 }) => ({
-	UnicodeIdentifier: new RegExp(UnicodeIdentifier, 'u'),
-	MarkdownIdentityPrefixer: new RegExp(raw`^[${MarkdownWordPrefixes}]?`, 'u'),
-	MarkdownIdentityJoiner: new RegExp(raw`[${MarkdownWordJoiners}]+`, 'ug'),
-	MarkdownIdentityWord: new RegExp(MarkdownWord, 'u'),
-	MarkdownIdentity: new RegExp(MarkdownIdentity, 'u'),
-	// MarkdownIdentitySeparators: new RegExp(raw`[${MarkdownWordPrefixes}${MarkdownWordJoiners}]+`, 'ug')
+  UnicodeIdentifier: new RegExp(UnicodeIdentifier, 'u'),
+  MarkdownIdentityPrefixer: new RegExp(raw`^[${MarkdownWordPrefixes}]?`, 'u'),
+  MarkdownIdentityJoiner: new RegExp(raw`[${MarkdownWordJoiners}]+`, 'ug'),
+  MarkdownIdentityWord: new RegExp(MarkdownWord, 'u'),
+  MarkdownIdentity: new RegExp(MarkdownIdentity, 'u'),
+  // MarkdownIdentitySeparators: new RegExp(raw`[${MarkdownWordPrefixes}${MarkdownWordJoiners}]+`, 'ug')
 }))(entities$1.es);
 
 var entities = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	UnicodeIdentifier: UnicodeIdentifier,
-	MarkdownIdentityPrefixer: MarkdownIdentityPrefixer,
-	MarkdownIdentityJoiner: MarkdownIdentityJoiner,
-	MarkdownIdentityWord: MarkdownIdentityWord,
-	MarkdownIdentity: MarkdownIdentity
+  __proto__: null,
+  UnicodeIdentifier: UnicodeIdentifier,
+  MarkdownIdentityPrefixer: MarkdownIdentityPrefixer,
+  MarkdownIdentityJoiner: MarkdownIdentityJoiner,
+  MarkdownIdentityWord: MarkdownIdentityWord,
+  MarkdownIdentity: MarkdownIdentity
 });
 
 //@ts-check
@@ -454,9 +457,9 @@ const normalizeParagraphsInFragment = fragment => {
       while (
         paragraph.lastElementChild != null &&
         (paragraph.lastElementChild.nodeName === 'OL' || paragraph.lastElementChild.nodeName === 'UL') &&
-          (paragraph.lastChild === paragraph.lastElementChild ||
-            paragraph.lastChild.nodeType === paragraph.COMMENT_NODE ||
-            paragraph.lastChild.textContent.trim() === '')
+        (paragraph.lastChild === paragraph.lastElementChild ||
+          paragraph.lastChild.nodeType === paragraph.COMMENT_NODE ||
+          paragraph.lastChild.textContent.trim() === '')
       ) {
         paragraph.after(paragraph.lastElementChild);
       }
@@ -467,7 +470,16 @@ const normalizeParagraphsInFragment = fragment => {
 
 /** @param {Fragment} fragment */
 const normalizeDeclarativeStylingInFragment = fragment => {
-  styling.apply.toFragment(fragment);
+  styling.apply.toFragment(fragment, normalizeDeclarativeStylingInFragment.defaults);
+};
+
+normalizeDeclarativeStylingInFragment.defaults = {
+  attributes: {
+    ['--band-fill:'](element, attribute, value, options) {
+      element.style.background = `var(--band-fill${value})`;
+      element.removeAttribute(attribute);
+    },
+  },
 };
 
 content.normalizeRenderedFragment = normalizeRenderedFragment;

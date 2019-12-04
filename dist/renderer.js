@@ -1,4 +1,4 @@
-import { encodeEntities, render as render$1, tokenize as tokenize$1, encodeEntity } from '../../markup/dist/tokenizer.browser.js';
+import { encodeEntities, render as render$1, tokenize as tokenize$1, encodeEntity } from './markup.js';
 
 //@ts-check
 const CurrentMatch = Symbol('CurrentMatch');
@@ -326,30 +326,33 @@ class Matcher extends RegExp {
     const matchAll = (() =>
       // TODO: Find a cleaner way to reference RegExp.prototype[Symbol.matchAll]
       Function.call.bind(
-        // String.prototype.matchAll || // TODO: Uncomment eventually
-        {
-          /**
-           * @this {string}
-           * @param {RegExp | string} pattern
-           */
-          *matchAll() {
-            const matcher =
-              arguments[0] &&
-              (arguments[0] instanceof RegExp
-                ? Object.setPrototypeOf(RegExp(arguments[0].source, arguments[0].flags || 'g'), arguments[0])
-                : RegExp(arguments[0], 'g'));
-            const string = String(this);
+        String.prototype.matchAll || // TODO: Uncomment eventually
+          {
+            /**
+             * @this {string}
+             * @param {RegExp | string} pattern
+             */
+            *matchAll() {
+              const matcher =
+                arguments[0] &&
+                (arguments[0] instanceof RegExp
+                  ? Object.setPrototypeOf(RegExp(arguments[0].source, arguments[0].flags || 'g'), arguments[0])
+                  : RegExp(arguments[0], 'g'));
+              const string = String(this);
 
-            if (!(matcher.flags.includes('g') || matcher.flags.includes('y'))) return void (yield matcher.exec(string));
+              if (!(matcher.flags.includes('g') || matcher.flags.includes('y')))
+                return void (yield matcher.exec(string));
 
-            for (
-              let match, lastIndex = -1;
-              lastIndex <
-              ((match = matcher.exec(string)) ? (lastIndex = matcher.lastIndex + (match[0].length === 0)) : lastIndex);
-              yield match, matcher.lastIndex = lastIndex
-            );
-          },
-        }.matchAll,
+              for (
+                let match, lastIndex = -1;
+                lastIndex <
+                ((match = matcher.exec(string))
+                  ? (lastIndex = matcher.lastIndex + (match[0].length === 0))
+                  : lastIndex);
+                yield match, matcher.lastIndex = lastIndex
+              );
+            },
+          }.matchAll,
       ))();
 
     Object.defineProperty(Matcher, 'matchAll', {value: Object.freeze(matchAll), enumerable: true, writable: false});
@@ -537,137 +540,145 @@ const patterns = {};
 const partials = {};
 
 {
-	ranges.Brackets = atoms.split('()[]');
-	ranges.Braces = atoms.split('{}');
+  ranges.Brackets = atoms.split('()[]');
+  ranges.Braces = atoms.split('{}');
 
-	 {
-		ranges.Inseter = atoms.split('\t >'); // 0=tab 1=space 2=quote
-		partials.Inset = range(...ranges.Inseter);
-	}
+   {
+    ranges.Inseter = atoms.split('\t >'); // 0=tab 1=space 2=quote
+    partials.Inset = range(...ranges.Inseter);
+  }
 
-	 {
-		// NOTE: Ambiguities when testing if `~` is meant for
-		//			 fencing or strikethrough here make it harder
-		//			 to retain intent and traceablility.
-		ranges.FenceMarks = atoms.split('`'); // 0=grave 1=tilde
-		partials.BlockFence = join(...ranges.FenceMarks.map(fence => escape$1(fence.repeat(3))));
-	}
+   {
+    // NOTE: Ambiguities when testing if `~` is meant for
+    //			 fencing or strikethrough here make it harder
+    //			 to retain intent and traceablility.
+    ranges.FenceMarks = atoms.split('`'); // 0=grave 1=tilde
+    partials.BlockFence = Matcher.join(...ranges.FenceMarks.map(fence => Matcher.escape(fence.repeat(3))));
+  }
 
-	 {
-		ranges.ListMarkers = atoms.split('-*'); // 0=square 1=disc
-		[ranges.CheckMarks, ranges.LowerCheckMarks, ranges.UpperCheckMarks] = atoms.split.cases(' x-'); // 0=unchecked 1=checked 2=indeterminate
-		ranges.NumberingSeparators = atoms.split('.)');
-		ranges.ArabicNumbers = atoms.split('0123456789');
-		// NOTE: Ambiguities when testing if `i.` is roman or
-		//       latin require temporary restrictions in favor
-		//       of the more popular latin form.
-		//
-		//       Only the subset of ['i', 'v', 'x', 'l'] is
-		//       used which excludes ['c', 'd', 'm'].
-		[ranges.RomanNumerals, ranges.LowerRomanNumerals, ranges.UpperRomanNumerals] = atoms.split.cases('ivxl');
-		[ranges.LatinLetters, ranges.LowerLatinLetters, ranges.UpperLatinLetters] = atoms.split.cases(
-			'abcdefghijklmnopqrstuvwxyz',
-		);
+   {
+    ranges.ListMarkers = atoms.split('-*'); // 0=square 1=disc
+    [ranges.CheckMarks, ranges.LowerCheckMarks, ranges.UpperCheckMarks] = atoms.split.cases(' x-'); // 0=unchecked 1=checked 2=indeterminate
+    ranges.NumberingSeparators = atoms.split('.)');
+    ranges.ArabicNumbers = atoms.split('0123456789');
+    // NOTE: Ambiguities when testing if `i.` is roman or
+    //       latin require temporary restrictions in favor
+    //       of the more popular latin form.
+    //
+    //       Only the subset of ['i', 'v', 'x', 'l'] is
+    //       used which excludes ['c', 'd', 'm'].
+    [ranges.RomanNumerals, ranges.LowerRomanNumerals, ranges.UpperRomanNumerals] = atoms.split.cases('ivxl');
+    [ranges.LatinLetters, ranges.LowerLatinLetters, ranges.UpperLatinLetters] = atoms.split.cases(
+      'abcdefghijklmnopqrstuvwxyz',
+    );
 
-		// Unordered lists are broken into two distinct classes:
-		//
-		//   NOTE: Markers are not semantically interchangeable
-		//
-		//   1. Matching Square character (ie `-` per popular notation):
-		partials.SquareMark = escape$1(ranges.ListMarkers[0]);
-		//
-		//   2. Matching Disc character (ie `*` per lesser popular notation):
-		partials.DiscMark = escape$1(ranges.ListMarkers[1]);
-		//
-		//   Unordered mark is the range of Square/Disc characters:
-		partials.UnorderedMark = range(...ranges.ListMarkers);
+    // Unordered lists are broken into two distinct classes:
+    //
+    //   NOTE: Markers are not semantically interchangeable
+    //
+    //   1. Matching Square character (ie `-` per popular notation):
+    partials.SquareMark = Matcher.escape(ranges.ListMarkers[0]);
+    //
+    //   2. Matching Disc character (ie `*` per lesser popular notation):
+    partials.DiscMark = Matcher.escape(ranges.ListMarkers[1]);
+    //
+    //   Unordered mark is the range of Square/Disc characters:
+    partials.UnorderedMark = range(...ranges.ListMarkers);
 
-		partials.NumberingSeparator = range(...ranges.NumberingSeparators);
+    partials.NumberingSeparator = range(...ranges.NumberingSeparators);
 
-		// Ordered lists are broken into three distinct classes:
-		//
-		//   NOTE: Ordered markers include both numbering and trailing sparator.
-		//
-		//   1. Matching Decimal characters (one or more with leading zeros)
-		//        NOTE: lookahead is necessary to exclude matching just zero(s)
-		partials.ArabicNumbering = sequence`(?=${ranges.ArabicNumbers[0]}*${range(
-			...ranges.ArabicNumbers.slice(1),
-		)})${range(...ranges.ArabicNumbers)}+`;
-		//
-		//      Matching Zero-leading Decimal characters (two or more):
-		//        NOTE: lookahead is necessary to exclude matching just zero(s)
-		partials.ZeroLeadingArabicNumbering = sequence`(?=${ranges.ArabicNumbers[0]}*${range(
-			...ranges.ArabicNumbers.slice(1),
-		)})${range(...ranges.ArabicNumbers)}{2,}`;
-		//
-		//      Matching Decimal marker (with any separator):
-		partials.ArabicMarker = sequence`${partials.ArabicNumbering}${partials.NumberingSeparator}`;
-		//
-		//      Matching Zero-leading Decimal marker (with any separator):
-		partials.ZeroLeadingArabicMarker = sequence`${partials.ZeroLeadingArabicNumbering}${partials.NumberingSeparator}`;
-		//
-		//   2. Matching Latin character (one only)
-		partials.LatinNumbering = range(...ranges.LatinLetters);
-		partials.LowerLatinNumbering = range(...ranges.LowerLatinLetters);
-		partials.UpperLatinNumbering = range(...ranges.UpperLatinLetters);
-		//
-		//      Matching Latin marker (with any separator):
-		partials.LatinMarker = sequence`${partials.LatinNumbering}${partials.NumberingSeparator}`;
-		partials.LowerLatinMarker = sequence`${partials.LowerLatinNumbering}${partials.NumberingSeparator}`;
-		partials.UpperLatinMarker = sequence`${partials.UpperLatinNumbering}${partials.NumberingSeparator}`;
-		//
-		//   3. Matching Roman characters (one or more of the premitted subset)
-		partials.RomanNumbering = sequence`${range(...ranges.RomanNumerals)}+`;
-		partials.LowerRomanNumbering = sequence`${range(...ranges.LowerRomanNumerals)}+`;
-		partials.UpperRomanNumbering = sequence`${range(...ranges.UpperRomanNumerals)}+`;
-		//
-		//      Matching Roman marker (also with trailing "period" separator)
-		partials.RomanMarker = sequence`${partials.RomanNumbering}\.`;
-		partials.LowerRomanMarker = sequence`${partials.LowerRomanNumbering}\.`;
-		partials.UpperRomanMarker = sequence`${partials.UpperRomanNumbering}\.`;
-		//
-		//   Ordered marker is the union of Decimal/Latin/Roman partials:
-		partials.OrderedMarker = sequence`${join(partials.ArabicMarker, partials.LatinMarker, partials.RomanMarker)}`;
+    // Ordered lists are broken into three distinct classes:
+    //
+    //   NOTE: Ordered markers include both numbering and trailing sparator.
+    //
+    //   1. Matching Decimal characters (one or more with leading zeros)
+    //        NOTE: lookahead is necessary to exclude matching just zero(s)
+    partials.ArabicNumbering = Matcher.sequence`(?=${ranges.ArabicNumbers[0]}*${range(
+      ...ranges.ArabicNumbers.slice(1),
+    )})${range(...ranges.ArabicNumbers)}+`;
+    //
+    //      Matching Zero-leading Decimal characters (two or more):
+    //        NOTE: lookahead is necessary to exclude matching just zero(s)
+    partials.ZeroLeadingArabicNumbering = Matcher.sequence`(?=${ranges.ArabicNumbers[0]}*${range(
+      ...ranges.ArabicNumbers.slice(1),
+    )})${range(...ranges.ArabicNumbers)}{2,}`;
+    //
+    //      Matching Decimal marker (with any separator):
+    partials.ArabicMarker = Matcher.sequence`${partials.ArabicNumbering}${partials.NumberingSeparator}`;
+    //
+    //      Matching Zero-leading Decimal marker (with any separator):
+    partials.ZeroLeadingArabicMarker = Matcher.sequence`${partials.ZeroLeadingArabicNumbering}${partials.NumberingSeparator}`;
+    //
+    //   2. Matching Latin character (one only)
+    partials.LatinNumbering = range(...ranges.LatinLetters);
+    partials.LowerLatinNumbering = range(...ranges.LowerLatinLetters);
+    partials.UpperLatinNumbering = range(...ranges.UpperLatinLetters);
+    //
+    //      Matching Latin marker (with any separator):
+    partials.LatinMarker = Matcher.sequence`${partials.LatinNumbering}${partials.NumberingSeparator}`;
+    partials.LowerLatinMarker = Matcher.sequence`${partials.LowerLatinNumbering}${partials.NumberingSeparator}`;
+    partials.UpperLatinMarker = Matcher.sequence`${partials.UpperLatinNumbering}${partials.NumberingSeparator}`;
+    //
+    //   3. Matching Roman characters (one or more of the premitted subset)
+    partials.RomanNumbering = Matcher.sequence`${range(...ranges.RomanNumerals)}+`;
+    partials.LowerRomanNumbering = Matcher.sequence`${range(...ranges.LowerRomanNumerals)}+`;
+    partials.UpperRomanNumbering = Matcher.sequence`${range(...ranges.UpperRomanNumerals)}+`;
+    //
+    //      Matching Roman marker (also with trailing "period" separator)
+    partials.RomanMarker = Matcher.sequence`${partials.RomanNumbering}\.`;
+    partials.LowerRomanMarker = Matcher.sequence`${partials.LowerRomanNumbering}\.`;
+    partials.UpperRomanMarker = Matcher.sequence`${partials.UpperRomanNumbering}\.`;
+    //
+    //   Ordered marker is the union of Decimal/Latin/Roman partials:
+    partials.OrderedMarker = Matcher.sequence`${Matcher.join(
+      partials.ArabicMarker,
+      partials.LatinMarker,
+      partials.RomanMarker,
+    )}`;
 
-		// Checklists are extensions of unordered lists:
-		//
-		//   NOTE: Markout adds an additional `[-]` indeterminate state
-		//
-		//   a. Matching Enclosed character (without any brackets)
-		partials.CheckMark = range(...ranges.CheckMarks);
-		//
-		//   b. Matching Enclosure characters (with enclosing brackets)
-		partials.Checkbox = sequence`\[${partials.CheckMark}\]`;
-		//
-		//   Checklist marker is space-separated Unordered marker and Checkbox:
-		partials.ChecklistMarker = sequence`${partials.UnorderedMark} ${partials.Checkbox}`;
+    // Checklists are extensions of unordered lists:
+    //
+    //   NOTE: Markout adds an additional `[-]` indeterminate state
+    //
+    //   a. Matching Enclosed character (without any brackets)
+    partials.CheckMark = range(...ranges.CheckMarks);
+    //
+    //   b. Matching Enclosure characters (with enclosing brackets)
+    partials.Checkbox = Matcher.sequence`\[${partials.CheckMark}\]`;
+    //
+    //   Checklist marker is space-separated Unordered marker and Checkbox:
+    partials.ChecklistMarker = Matcher.sequence`${partials.UnorderedMark} ${partials.Checkbox}`;
 
-		// Matching list markers is done in two ways:
-		//
-		//   1. Matching head portion (ie excluding the checkbox)
-		partials.ListMarkerHead = join(partials.UnorderedMark, partials.OrderedMarker);
-		//
-		//   2. Matching full marker (ie including the checkbox)
-		partials.ListMarker = sequence`${join(partials.ChecklistMarker, partials.UnorderedMarker, partials.OrderedMarker)}`;
+    // Matching list markers is done in two ways:
+    //
+    //   1. Matching head portion (ie excluding the checkbox)
+    partials.ListMarkerHead = Matcher.join(partials.UnorderedMark, partials.OrderedMarker);
+    //
+    //   2. Matching full marker (ie including the checkbox)
+    partials.ListMarker = Matcher.sequence`${Matcher.join(
+      partials.ChecklistMarker,
+      partials.UnorderedMarker,
+      partials.OrderedMarker,
+    )}`;
 
-		patterns.DiscMarker = sequence`^${partials.DiscMark}(?= (?!${partials.Checkbox})|$)`;
-		patterns.SquareMarker = sequence`^${partials.SquareMark}(?= (?!${partials.Checkbox})|$)`;
-		patterns.UnorderedMarker = sequence`^${partials.UnorderedMark}(?= (?!${partials.Checkbox})|$)`;
-		patterns.ArabicMarker = sequence`^${partials.ArabicMarker}(?= |$)`;
-		patterns.LatinMarker = sequence`^${partials.LatinMarker}(?= |$)`;
-		patterns.RomanMarker = sequence`^${partials.RomanMarker}(?= |$)`;
-		patterns.OrderedMarker = sequence`^${partials.OrderedMarker}(?= |$)`;
-		patterns.ChecklistMarker = sequence`^${partials.ChecklistMarker}(?= |$)`;
+    patterns.DiscMarker = Matcher.sequence`^${partials.DiscMark}(?= (?!${partials.Checkbox})|$)`;
+    patterns.SquareMarker = Matcher.sequence`^${partials.SquareMark}(?= (?!${partials.Checkbox})|$)`;
+    patterns.UnorderedMarker = Matcher.sequence`^${partials.UnorderedMark}(?= (?!${partials.Checkbox})|$)`;
+    patterns.ArabicMarker = Matcher.sequence`^${partials.ArabicMarker}(?= |$)`;
+    patterns.LatinMarker = Matcher.sequence`^${partials.LatinMarker}(?= |$)`;
+    patterns.RomanMarker = Matcher.sequence`^${partials.RomanMarker}(?= |$)`;
+    patterns.OrderedMarker = Matcher.sequence`^${partials.OrderedMarker}(?= |$)`;
+    patterns.ChecklistMarker = Matcher.sequence`^${partials.ChecklistMarker}(?= |$)`;
 
-		// There are two groups of list marker expressions:
-		sequences.ListMarkerHead = sequence`(?:${partials.ListMarkerHead})(?: )`;
-		sequences.ListMarker = sequence`(?:${join(
-			sequence`(?:${partials.ChecklistMarker} )`,
-			sequence`(?:${partials.UnorderedMark} )(?!${partials.Checkbox})`,
-			sequence`(?:${partials.OrderedMarker} )`,
-		)})`;
+    // There are two groups of list marker expressions:
+    sequences.ListMarkerHead = Matcher.sequence`(?:${partials.ListMarkerHead})(?: )`;
+    sequences.ListMarker = Matcher.sequence`(?:${Matcher.join(
+      Matcher.sequence`(?:${partials.ChecklistMarker} )`,
+      Matcher.sequence`(?:${partials.UnorderedMark} )(?!${partials.Checkbox})`,
+      Matcher.sequence`(?:${partials.OrderedMarker} )`,
+    )})`;
 
-		sequences.NormalizableLists = sequence/* regexp */ `
+    sequences.NormalizableLists = Matcher.sequence/* regexp */ `
 			(?=\n?^(${partials.Inset}*)(?:${sequences.ListMarker}))
 			((?:\n?\1
 				(?:${sequences.ListMarker}|   ?)+
@@ -677,21 +688,21 @@ const partials = {};
 			)+)
 		`;
 
-		sequences.NormalizableListItem = sequence/* regexp */ `
+    sequences.NormalizableListItem = Matcher.sequence/* regexp */ `
 			^
 			(${partials.Inset}*)
 			((?:${sequences.ListMarkerHead})|)
 			([^\n]+(?:\n\1(?:   ?|\t ?)(?![ \t]|${sequences.ListMarker}).*)*)$
 		`;
-		matchers.NormalizableLists = new RegExp(sequences.NormalizableLists, 'gmu');
-		matchers.NormalizableListItem = new RegExp(sequences.NormalizableListItem, 'gmu');
-	}
+    matchers.NormalizableLists = new RegExp(sequences.NormalizableLists, 'gmu');
+    matchers.NormalizableListItem = new RegExp(sequences.NormalizableListItem, 'gmu');
+  }
 
-	// console.log({sequences, ranges, partials});
-	// TODO: Document partials and sequences
+  // console.log({sequences, ranges, partials});
+  // TODO: Document partials and sequences
 
-	 {
-		sequences.NormalizableBlocks = sequence/* regexp */ `
+   {
+    sequences.NormalizableBlocks = Matcher.sequence/* regexp */ `
       (?:^|\n)(${partials.Inset}*(?:${partials.BlockFence}))[^]+?(?:(?:\n\1[ \t]*)+\n?|$)
       |(?:^|\n)(${partials.Inset}*)(?:
 				<style>[^]+?(?:(?:\n\2</style>[ \t]*)+\n?|$)
@@ -700,36 +711,36 @@ const partials = {};
 			)
       |([^]+?(?:(?=\n${partials.Inset}*(?:${partials.BlockFence}|<script>|<style>|<script type=module>))|$))
     `;
-		matchers.NormalizableBlocks = new RegExp(sequences.NormalizableBlocks, 'g');
+    matchers.NormalizableBlocks = new RegExp(sequences.NormalizableBlocks, 'g');
 
-		partials.HTMLTagBody = sequence/* regexp */ `(?:[^${`"'`}>]+?|".*?"|'.*?')`;
+    partials.HTMLTagBody = Matcher.sequence/* regexp */ `(?:[^${`"'`}>]+?|".*?"|'.*?')`;
 
-		sequences.HTMLTags = sequence/* regexp */ `
+    sequences.HTMLTags = Matcher.sequence/* regexp */ `
 			<\/?[A-Za-z]\w*${partials.HTMLTagBody}*?>
 			|<\?[^]*?\?>
 			|<!--[^]*?-->
 			|<!\w[^]>
 		`;
 
-		matchers.HTMLTags = new RegExp(sequences.HTMLTags, 'g');
+    matchers.HTMLTags = new RegExp(sequences.HTMLTags, 'g');
 
-		sequences.NormalizableParagraphs = sequence/* regexp */ `
+    sequences.NormalizableParagraphs = Matcher.sequence/* regexp */ `
       ^((?:[ \t]*\n(${partials.Inset}*))+)
       ($|(?:
 				(?:
 					</?(?:span|small|big|kbd)\b${partials.HTMLTagBody}*?>
-					|(?!(?:${join(
-						sequences.HTMLTags,
-						// sequences.ListMarker,
-					)}))
+					|(?!(?:${Matcher.join(
+            sequences.HTMLTags,
+            // sequences.ListMarker,
+          )}))
 				)
 				[^-#>|~\n].*
         (?:\n${partials.Inset}*$)+
       )+)
     `;
-		matchers.NormalizableParagraphs = new RegExp(sequences.NormalizableParagraphs, 'gmu');
+    matchers.NormalizableParagraphs = new RegExp(sequences.NormalizableParagraphs, 'gmu');
 
-		sequences.RewritableParagraphs = sequence/* regexp */ `
+    sequences.RewritableParagraphs = Matcher.sequence/* regexp */ `
       ^([ \t]*[^\-\*#>\n].*?)
       (\b.*[^:\n\s>]+|\b)
       [ \t]*\n[ \t>]*?
@@ -741,11 +752,11 @@ const partials = {};
       ))
     `;
 
-		matchers.RewritableParagraphs = new RegExp(sequences.RewritableParagraphs, 'gmu');
+    matchers.RewritableParagraphs = new RegExp(sequences.RewritableParagraphs, 'gmu');
 
-		partials.BlockQuote = sequence/* regexp */ `(?:  ?|\t)*>(?:  ?>|\t>)`;
+    partials.BlockQuote = Matcher.sequence/* regexp */ `(?:  ?|\t)*>(?:  ?>|\t>)`;
 
-		sequences.NormalizableBlockquotes = sequence/* regexp */ `
+    sequences.NormalizableBlockquotes = Matcher.sequence/* regexp */ `
 			(?:((?:^|\n)[ \t]*\n|^)|\n)
 			(${partials.BlockQuote}*)
 			([ \t]*(?!>).*)
@@ -757,26 +768,26 @@ const partials = {};
 			)
 		`;
 
-		matchers.NormalizableBlockquotes = new RegExp(sequences.NormalizableBlockquotes, 'g');
+    matchers.NormalizableBlockquotes = new RegExp(sequences.NormalizableBlockquotes, 'g');
 
-		// We guard against the special case for checklists
-		sequences.NormalizableReferences = sequence/* regexp */ `
+    // We guard against the special case for checklists
+    sequences.NormalizableReferences = Matcher.sequence/* regexp */ `
 		  (?!\[[- xX]\] )
 			(?:\[(?=\[\S.*?\S\]\])|!?)
       \[
 			(
 				[^\s\n\\].*?[^\s\n\\](?=\]\])
 				|[^\s\n\\].*?[^\s\n\\](?=
-					\]\(([^\s\n\\][^\n${escape$1('()[]')}]*?[^\s\n\\]|[^\s\n\\]|)\)
-					|\]\[([^\s\n\\][^\n${escape$1('()[]')}]*[^\s\n\\]|)\]
+					\]\(([^\s\n\\][^\n${Matcher.escape('()[]')}]*?[^\s\n\\]|[^\s\n\\]|)\)
+					|\]\[([^\s\n\\][^\n${Matcher.escape('()[]')}]*[^\s\n\\]|)\]
 				)
 			)\]{1,2}
       (?:\(\2\)|\[\3\]|)
 		`;
-		// NOTE: Safari seems to struggle with /\S|\s/gmu
-		matchers.NormalizableReferences = new RegExp(sequences.NormalizableReferences, 'g');
+    // NOTE: Safari seems to struggle with /\S|\s/gmu
+    matchers.NormalizableReferences = new RegExp(sequences.NormalizableReferences, 'g');
 
-		sequences.RewritableAliases = sequence/* regexp */ `
+    sequences.RewritableAliases = Matcher.sequence/* regexp */ `
       ^(${partials.Inset}*)
       \[(\S.*?\S)\]:\s+
       (\S+)(?:
@@ -785,16 +796,16 @@ const partials = {};
         |
       )\s*$
 		`;
-		// NOTE: Safari seems to struggle with /\S|\s/gmu
-		matchers.RewritableAliases = new RegExp(sequences.RewritableAliases, 'gm');
+    // NOTE: Safari seems to struggle with /\S|\s/gmu
+    matchers.RewritableAliases = new RegExp(sequences.RewritableAliases, 'gm');
 
-		sequences.NormalizableLink = sequence/* regexp */ `
-      \s*((?:\s?[^${`'"`}${escape$1('()[]')}}\s\n]+))
+    sequences.NormalizableLink = Matcher.sequence/* regexp */ `
+      \s*((?:\s?[^${`'"`}${Matcher.escape('()[]')}}\s\n]+))
       (?:\s+[${`'"`}]([^\n]*)[${`'"`}]|)
 		`; // (?:\s+{([^\n]*)}|)
-		// NOTE: Safari seems to struggle with /\S|\s/gmu
-		matchers.NormalizableLink = new RegExp(sequences.NormalizableLink);
-	}
+    // NOTE: Safari seems to struggle with /\S|\s/gmu
+    matchers.NormalizableLink = new RegExp(sequences.NormalizableLink);
+  }
 }
 
 class ComposableList extends Array {
@@ -1794,35 +1805,37 @@ const renderSourceText = async options => {
 content.MarkupAttributeMap = MarkupAttributeMap;
 content.renderSourceText = renderSourceText;
 
+// import {tokenize as tokenizeMarkup, encodeEntities, encodeEntity} from './markup.js';
+
 /** @type {any} */
 const {
-	// Attempts to overcome **__**
-	'markout-render-span-restacking': SPAN_RESTACKING = true,
-	'markout-render-newline-consolidation': NEWLINE_CONSOLIDATION = false,
-	// Patched regression from changing markdown.FRAGMENTS
-	//   to /[^\\\n\s\[\]\(\)\<\>&`"*~_]+?/ which has been reversed
-	'markout-render-patch-stray-brace': STRAY_BRACE = false,
-	'markout-render-url-expansion': URL_EXPANSION = true,
+  // Attempts to overcome **__**
+  'markout-render-span-restacking': SPAN_RESTACKING = true,
+  'markout-render-newline-consolidation': NEWLINE_CONSOLIDATION = false,
+  // Patched regression from changing markdown.FRAGMENTS
+  //   to /[^\\\n\s\[\]\(\)\<\>&`"*~_]+?/ which has been reversed
+  'markout-render-patch-stray-brace': STRAY_BRACE = false,
+  'markout-render-url-expansion': URL_EXPANSION = true,
 } = import.meta;
 
 const normalize = sourceText => {
-	const {normalizer = (normalize.normalizer = new MarkoutNormalizer())} = normalize;
-	return normalizer.normalizeSourceText(sourceText);
+  const {normalizer = (normalize.normalizer = new MarkoutNormalizer())} = normalize;
+  return normalizer.normalizeSourceText(sourceText);
 };
 
 const render = tokens => {
-	const {
-		lookups = (render.lookups = createLookups()),
-		renderer = (render.renderer = new MarkoutRenderer({lookups})),
-	} = render;
-	return renderer.renderTokens(tokens);
+  const {
+    lookups = (render.lookups = createLookups()),
+    renderer = (render.renderer = new MarkoutRenderer({lookups})),
+  } = render;
+  return renderer.renderTokens(tokens);
 };
 
 const tokenize = sourceText => tokenize$1(`${sourceText.trim()}\n}`, {sourceType: 'markdown'});
 
 const encodeEscapedEntities = ((Escapes, replace) => text => text.replace(Escapes, replace))(
-	/\\([*^~`_])(\1|)/g,
-	(m, e, e2) => (e2 ? encodeEntity(e).repeat(2) : encodeEntity(e)),
+  /\\([*^~`_])(\1|)/g,
+  (m, e, e2) => (e2 ? encodeEntity(e).repeat(2) : encodeEntity(e)),
 );
 
 const FencedBlockHeader = /^(?:(\w+)(?:\s+(.*?)\s*|)$|)/m;
@@ -1833,416 +1846,416 @@ const URLScheme = /^https?:|HTTPS?:/;
 const SPAN = 'span';
 
 class MarkoutRenderingContext {
-	constructor(renderer) {
-		({lookups: this.lookups} = this.renderer = renderer);
+  constructor(renderer) {
+    ({lookups: this.lookups} = this.renderer = renderer);
 
-		[
-			this.passthru,
-			this.block,
-			this.fenced,
-			this.header,
-			this.indent,
-			this.newlines,
-			this.comment,
-		] = this.renderedText = '';
+    [
+      this.passthru,
+      this.block,
+      this.fenced,
+      this.header,
+      this.indent,
+      this.newlines,
+      this.comment,
+    ] = this.renderedText = '';
 
-		SPAN_RESTACKING && createSpanStack(this);
-	}
+    SPAN_RESTACKING && createSpanStack(this);
+  }
 }
 
 class MarkoutRenderer {
-	constructor({lookups = createLookups()} = {}) {
-		this.lookups = lookups;
-	}
+  constructor({lookups = createLookups()} = {}) {
+    this.lookups = lookups;
+  }
 
-	renderBlockTokens(token, context) {
-		let before, tag, body, previous, inset;
-		previous = token;
-		inset = '';
-		const {classes, block} = context;
-		while ((previous = previous.previous)) {
-			if (previous.lineBreaks) break;
-			inset = `${previous.text}${inset}`;
-		}
-		if (!/[^> \t]/.test(inset)) {
-			before = `<${block}${this.renderClasses(classes)}>`;
-			tag = 'tt';
-			classes.push('opener', `${token.type}-token`);
-		} else {
-			body = token.text;
-		}
-		return {before, tag, body};
-	}
+  renderBlockTokens(token, context) {
+    let before, tag, body, previous, inset;
+    previous = token;
+    inset = '';
+    const {classes, block} = context;
+    while ((previous = previous.previous)) {
+      if (previous.lineBreaks) break;
+      inset = `${previous.text}${inset}`;
+    }
+    if (!/[^> \t]/.test(inset)) {
+      before = `<${block}${this.renderClasses(classes)}>`;
+      tag = 'tt';
+      classes.push('opener', `${token.type}-token`);
+    } else {
+      body = token.text;
+    }
+    return {before, tag, body};
+  }
 
-	// renderCommentToken(token, context) {}
+  // renderCommentToken(token, context) {}
 
-	encodeURL(url) {
-		return `${url}`.replace(/[\\"]/g, encodeURIComponent);
-	}
+  encodeURL(url) {
+    return `${url}`.replace(/[\\"]/g, encodeURIComponent);
+  }
 
-	renderTokens(tokens, context = new MarkoutRenderingContext(this)) {
-		let text, type, punctuator, lineBreaks, hint, previous, body, tag, classes, before, after, meta;
-		context.tokens = tokens;
+  renderTokens(tokens, context = new MarkoutRenderingContext(this)) {
+    let text, type, punctuator, lineBreaks, hint, previous, body, tag, classes, before, after, meta;
+    context.tokens = tokens;
 
-		const {lookups} = context;
-		const {renderClasses} = this;
+    const {lookups} = context;
+    const {renderClasses} = this;
 
-		// context.openTags = 0;
-		context.openTags = [];
-		context.closeTags = [];
+    // context.openTags = 0;
+    context.openTags = [];
+    context.closeTags = [];
 
-		for (const token of context.tokens) {
-			if (!token || !(body = token.text)) continue;
-			({text, type = 'text', punctuator, lineBreaks, hint = 'text', previous} = token);
+    for (const token of context.tokens) {
+      if (!token || !(body = token.text)) continue;
+      ({text, type = 'text', punctuator, lineBreaks, hint = 'text', previous} = token);
 
-			// Sub type 'text' to 'whitespace'
-			// TODO: Sub type 'text' to 'break' (ie !!lineBreaks)
-			type !== 'text' || lineBreaks || text.trim() || (type = 'whitespace');
+      // Sub type 'text' to 'whitespace'
+      // TODO: Sub type 'text' to 'break' (ie !!lineBreaks)
+      type !== 'text' || lineBreaks || text.trim() || (type = 'whitespace');
 
-			tag = classes = before = after = meta = undefined;
+      tag = classes = before = after = meta = undefined;
 
-			if (context.passthru || context.fenced) {
-				if (context.fenced) {
-					if (context.fenced === context.passthru) {
-						context.header += text;
-						lineBreaks && ((context.header = context.header.trimRight()), (context.passthru = ''));
-					} else if (punctuator === 'closer' && text === '```') {
-						let sourceType, sourceAttributes;
-						if (context.header) {
-							[, sourceType = 'markup', sourceAttributes] = FencedBlockHeader.exec(context.header);
-							import.meta['debug:fenced-block-header-rendering'] &&
-								console.log('fenced-block-header', {
-									fenced: context.fenced,
-									header: context.header,
-									passthru: context.passthru,
-									sourceType,
-									sourceAttributes,
-									context,
-								});
-							sourceAttributes = `${sourceAttributes ? `${sourceAttributes} ` : ''}data-markout-fence="${
-								context.fenced
-							}" data-markout-header="${encodeEntities(context.header)}" tab-index=-1`;
-						} else {
-							sourceAttributes = `data-markout-fence="${context.fenced}"`;
-						}
-						// passthru rendered code
-						context.renderedText += `<${context.block} class="markup code" ${
-							content.MarkupAttributeMap.SourceType
-						}="${sourceType || 'markup'}"${(sourceAttributes && ` ${sourceAttributes}`) || ''}>${encodeEntities(
-							context.passthru,
-						)}</${context.block}>`;
-						context.header = context.indent = context.fenced = context.passthru = '';
-					} else {
-						// passthru code
-						context.passthru += body.replace(context.indent, '');
-					}
-					continue;
-				} else if (context.url) {
-					if (type === 'text' || /^[~]/.test(text)) {
-						context.passthru += text;
-						continue;
-					}
-					if (URLString.test(context.passthru)) {
-						[before, context.url, after] = context.passthru.split(/(\S+?(?=(\.?\s*$|$)))/);
-						// context.url && console.log(context.url, {text, token, before, context, after});
-						context.renderedText += `${before}<span href="${this.encodeURL(
-							URLScheme.test(context.url) ? context.url : `https://${context.url}`,
-						)}"><samp class=url>${context.url}</samp></span>${after}`;
-						before = after = undefined;
-					} else {
-						context.renderedText += context.passthru;
-					}
-					context.url = context.passthru = '';
-				} else {
-					// Construct open and close tags
-					if (context.currentTag) {
-						// if (
-						// 	punctuator === 'closer' &&
-						// 	(body === '>' || body === '/>') &&
-						// 	context.currentTag !== undefined &&
-						// 	context.currentTag.opener !== undefined
-						// ) {
-						// 	debugTagOpenerPassthru(token, context, {
-						// 		scope: {text, type, punctuator, lineBreaks, hint, previous, body, tag, classes, before, after, meta},
-						// 	});
-						// }
+      if (context.passthru || context.fenced) {
+        if (context.fenced) {
+          if (context.fenced === context.passthru) {
+            context.header += text;
+            lineBreaks && ((context.header = context.header.trimRight()), (context.passthru = ''));
+          } else if (punctuator === 'closer' && text === '```') {
+            let sourceType, sourceAttributes;
+            if (context.header) {
+              [, sourceType = 'markup', sourceAttributes] = FencedBlockHeader.exec(context.header);
+              import.meta['debug:fenced-block-header-rendering'] &&
+                console.log('fenced-block-header', {
+                  fenced: context.fenced,
+                  header: context.header,
+                  passthru: context.passthru,
+                  sourceType,
+                  sourceAttributes,
+                  context,
+                });
+              sourceAttributes = `${sourceAttributes ? `${sourceAttributes} ` : ''}data-markout-fence="${
+                context.fenced
+              }" data-markout-header="${encodeEntities(context.header)}" tab-index=-1`;
+            } else {
+              sourceAttributes = `data-markout-fence="${context.fenced}"`;
+            }
+            // passthru rendered code
+            context.renderedText += `<${context.block} class="markup code" ${
+              content.MarkupAttributeMap.SourceType
+            }="${sourceType || 'markup'}"${(sourceAttributes && ` ${sourceAttributes}`) || ''}>${encodeEntities(
+              context.passthru,
+            )}</${context.block}>`;
+            context.header = context.indent = context.fenced = context.passthru = '';
+          } else {
+            // passthru code
+            context.passthru += body.replace(context.indent, '');
+          }
+          continue;
+        } else if (context.url) {
+          if (type === 'text' || /^[~]/.test(text)) {
+            context.passthru += text;
+            continue;
+          }
+          if (URLString.test(context.passthru)) {
+            [before, context.url, after] = context.passthru.split(/(\S+?(?=(\.?\s*$|$)))/);
+            // context.url && console.log(context.url, {text, token, before, context, after});
+            context.renderedText += `${before}<span href="${this.encodeURL(
+              URLScheme.test(context.url) ? context.url : `https://${context.url}`,
+            )}"><samp class=url>${context.url}</samp></span>${after}`;
+            before = after = undefined;
+          } else {
+            context.renderedText += context.passthru;
+          }
+          context.url = context.passthru = '';
+        } else {
+          // Construct open and close tags
+          if (context.currentTag) {
+            // if (
+            // 	punctuator === 'closer' &&
+            // 	(body === '>' || body === '/>') &&
+            // 	context.currentTag !== undefined &&
+            // 	context.currentTag.opener !== undefined
+            // ) {
+            // 	debugTagOpenerPassthru(token, context, {
+            // 		scope: {text, type, punctuator, lineBreaks, hint, previous, body, tag, classes, before, after, meta},
+            // 	});
+            // }
 
-						// Construct body
-						context.passthru += body;
+            // Construct body
+            context.passthru += body;
 
-						if (context.currentTag.nodeName === '') {
-							if (type === 'text' || text === '-' || text === ':') {
-								context.currentTag.construct += text;
-							} else if (context.currentTag.construct === '') {
-								context.currentTag.nodeName = ' ';
-								context.currentTag.construct = text;
-							} else {
-								context.currentTag.nodeName = context.currentTag.construct;
-								// Substitute element name from lookup
-								context.currentTag.nodeName in lookups.elements &&
-									(context.passthru = context.passthru.replace(
-										context.currentTag.nodeName,
-										(context.currentTag.nodeName = lookups.elements[context.currentTag.nodeName]),
-									));
-							}
-						} else {
-							context.currentTag.construct = text;
-							// console.log(text, {...context});
-						}
-					} else {
-						// console.log(text, {...context});
-						// Construct body
-						context.passthru += body;
-					}
-					if (punctuator === 'closer' || (context.comment && punctuator === 'comment')) {
-						// passthru body rendered
-						context.renderedText += context.passthru;
-						context.passthru = '';
-					}
-					continue;
-				}
-			}
+            if (context.currentTag.nodeName === '') {
+              if (type === 'text' || text === '-' || text === ':') {
+                context.currentTag.construct += text;
+              } else if (context.currentTag.construct === '') {
+                context.currentTag.nodeName = ' ';
+                context.currentTag.construct = text;
+              } else {
+                context.currentTag.nodeName = context.currentTag.construct;
+                // Substitute element name from lookup
+                context.currentTag.nodeName in lookups.elements &&
+                  (context.passthru = context.passthru.replace(
+                    context.currentTag.nodeName,
+                    (context.currentTag.nodeName = lookups.elements[context.currentTag.nodeName]),
+                  ));
+              }
+            } else {
+              context.currentTag.construct = text;
+              // console.log(text, {...context});
+            }
+          } else {
+            // console.log(text, {...context});
+            // Construct body
+            context.passthru += body;
+          }
+          if (punctuator === 'closer' || (context.comment && punctuator === 'comment')) {
+            // passthru body rendered
+            context.renderedText += context.passthru;
+            context.passthru = '';
+          }
+          continue;
+        }
+      }
 
-			tag = SPAN;
-			classes = context.classes = hint.split(/\s+/);
+      tag = SPAN;
+      classes = context.classes = hint.split(/\s+/);
 
-			if (hint.includes('-in-markdown')) {
-				context.renderedText += token.text;
-				continue;
-			} else if (hint === 'markdown' || hint.startsWith('markdown ') || hint.includes('in-markdown')) {
-				type !== 'text' || lineBreaks || (text in lookups.entities && (body = lookups.entities[text]));
+      if (hint.includes('-in-markdown')) {
+        context.renderedText += token.text;
+        continue;
+      } else if (hint === 'markdown' || hint.startsWith('markdown ') || hint.includes('in-markdown')) {
+        type !== 'text' || lineBreaks || (text in lookups.entities && (body = lookups.entities[text]));
 
-				if (punctuator) {
-					context.passthru =
-						(((context.comment = punctuator === 'comment' && text) || lookups.tags.has(text)) && text) || '';
-					// Opener
-					if (punctuator === 'opener') {
-						if (text === '<') {
-							context.openTags.push(
-								(context.currentTag = {opener: token, delimiter: text, construct: '', nodeName: ''}),
-							);
-						} else if (text === '</') {
-							context.closeTags.push(
-								(context.currentTag = {closer: token, delimiter: text, construct: '', nodeName: ''}),
-							);
-						}
-					} else if (punctuator === 'closer') {
-						context.currentTag = undefined;
-					}
-					if (context.passthru) continue;
+        if (punctuator) {
+          context.passthru =
+            (((context.comment = punctuator === 'comment' && text) || lookups.tags.has(text)) && text) || '';
+          // Opener
+          if (punctuator === 'opener') {
+            if (text === '<') {
+              context.openTags.push(
+                (context.currentTag = {opener: token, delimiter: text, construct: '', nodeName: ''}),
+              );
+            } else if (text === '</') {
+              context.closeTags.push(
+                (context.currentTag = {closer: token, delimiter: text, construct: '', nodeName: ''}),
+              );
+            }
+          } else if (punctuator === 'closer') {
+            context.currentTag = undefined;
+          }
+          if (context.passthru) continue;
 
-					if (punctuator === 'opener') {
-						if ((context.fenced = text === '```' && text)) {
-							context.block = 'pre';
-							context.passthru = context.fenced;
-							[context.indent = ''] = /^[ \t]*/gm.exec(previous.text);
-							context.indent && (context.indent = new RegExp(String.raw`^${context.indent}`, 'mg'));
-							context.header = '';
-							continue;
-						} else if (text in lookups.spans) {
-							if (SPAN_RESTACKING && (before = context.stack.open(text, body, classes)) === undefined) continue;
-							before || ((before = `<${lookups.spans[text]}${renderClasses(classes)}>`), classes.push('opener'));
-						} else if (text === '<!' || text === '<?') {
-							let next;
-							const closer = text === '<!' ? /-->$/ : /\?>$/;
-							while (
-								(next = context.tokens.next().value) &&
-								(body += next.text) &&
-								(next.punctuator !== 'closer' && !closer.test(next.text))
-								// (next.punctuator === 'opener' && /^</.test(next.text)) ||
-							);
-							context.passthru = body;
-							continue;
-						}
-					} else if (punctuator === 'closer') {
-						if (text === '```') {
-							context.block = lookups.blocks['```'] || 'pre';
-						} else if (text in lookups.spans) {
-							if (SPAN_RESTACKING && (after = context.stack.close(text, body, classes)) === undefined) continue;
-							after || ((after = `</${lookups.spans[text]}>`), classes.push('closer'));
-						}
-					} else if (SPAN_RESTACKING && text in lookups.spans) {
-						if (
-							(context.stack[text] >= 0
-								? (after = context.stack.close(text, body, classes))
-								: (before = context.stack.open(text, body, classes))) === undefined
-						)
-							continue;
-					} else if (!context.block && (context.block = lookups.blocks[text])) {
-						({before = before, tag = tag, body = body} = this.renderBlockTokens(token, context));
-					}
-					(before || after) && (tag = 'tt');
-					classes.push(`${punctuator}-token`);
-				} else {
-					if (
-						URL_EXPANSION &&
-						type === 'text' &&
-						tag === SPAN &&
-						before === after &&
-						before === undefined &&
-						URLPrefix.test(text)
-					) {
-						context.passthru = context.url = text;
-						continue;
-						// before = `<a href="${text.trim()}">`;
-						// after = `</a>`;
-						// console.log(text, {tag, before, after}, token);
-					}
-					if (lineBreaks) {
-						(!context.block && (tag = 'br')) || ((after = `</${context.block}>`) && (context.block = body = ''));
-					} else if (type === 'sequence') {
-						if (text[0] === '`') {
-							tag = 'code';
-							body = text.replace(/(``?)(.*)\1/, '$2');
-							let fence = '`'.repeat((text.length - body.length) / 2);
-							body = encodeEntities(body.replace(/&nbsp;/g, '\u202F'));
-							fence in lookups.entities && (fence = lookups.entities[fence]);
-							classes.push('fenced-code');
-							classes.push('code');
-						} else if (text.startsWith('---') && !/[^\-]/.test(text)) {
-							tag = 'hr';
-						} else if (!context.block && (context.block = lookups.blocks[text])) {
-							({before = before, tag = tag, body = body} = this.renderBlockTokens(token, context));
-						} else {
-							// sequence
-							body = text;
-						}
-					} else if (type === 'whitespace') {
-						// if (span === 'code') body.replace(/\xA0/g, '&nbsp;');
-						tag = '';
-					} else {
-						// debug(`${type}:token`)(type, token);
-						classes.push(`${type}-token`);
-						body = text;
-					}
-				}
-			}
+          if (punctuator === 'opener') {
+            if ((context.fenced = text === '```' && text)) {
+              context.block = 'pre';
+              context.passthru = context.fenced;
+              [context.indent = ''] = /^[ \t]*/gm.exec(previous.text);
+              context.indent && (context.indent = new RegExp(String.raw`^${context.indent}`, 'mg'));
+              context.header = '';
+              continue;
+            } else if (text in lookups.spans) {
+              if (SPAN_RESTACKING && (before = context.stack.open(text, body, classes)) === undefined) continue;
+              before || ((before = `<${lookups.spans[text]}${renderClasses(classes)}>`), classes.push('opener'));
+            } else if (text === '<!' || text === '<?') {
+              let next;
+              const closer = text === '<!' ? /-->$/ : /\?>$/;
+              while (
+                (next = context.tokens.next().value) &&
+                (body += next.text) &&
+                next.punctuator !== 'closer' && !closer.test(next.text)
+                // (next.punctuator === 'opener' && /^</.test(next.text)) ||
+              );
+              context.passthru = body;
+              continue;
+            }
+          } else if (punctuator === 'closer') {
+            if (text === '```') {
+              context.block = lookups.blocks['```'] || 'pre';
+            } else if (text in lookups.spans) {
+              if (SPAN_RESTACKING && (after = context.stack.close(text, body, classes)) === undefined) continue;
+              after || ((after = `</${lookups.spans[text]}>`), classes.push('closer'));
+            }
+          } else if (SPAN_RESTACKING && text in lookups.spans) {
+            if (
+              (context.stack[text] >= 0
+                ? (after = context.stack.close(text, body, classes))
+                : (before = context.stack.open(text, body, classes))) === undefined
+            )
+              continue;
+          } else if (!context.block && (context.block = lookups.blocks[text])) {
+            ({before = before, tag = tag, body = body} = this.renderBlockTokens(token, context));
+          }
+          (before || after) && (tag = 'tt');
+          classes.push(`${punctuator}-token`);
+        } else {
+          if (
+            URL_EXPANSION &&
+            type === 'text' &&
+            tag === SPAN &&
+            before === after &&
+            before === undefined &&
+            URLPrefix.test(text)
+          ) {
+            context.passthru = context.url = text;
+            continue;
+            // before = `<a href="${text.trim()}">`;
+            // after = `</a>`;
+            // console.log(text, {tag, before, after}, token);
+          }
+          if (lineBreaks) {
+            (!context.block && (tag = 'br')) || ((after = `</${context.block}>`) && (context.block = body = ''));
+          } else if (type === 'sequence') {
+            if (text[0] === '`') {
+              tag = 'code';
+              body = text.replace(/(``?)(.*)\1/, '$2');
+              let fence = '`'.repeat((text.length - body.length) / 2);
+              body = encodeEntities(body.replace(/&nbsp;/g, '\u202F'));
+              fence in lookups.entities && (fence = lookups.entities[fence]);
+              classes.push('fenced-code');
+              classes.push('code');
+            } else if (text.startsWith('---') && !/[^\-]/.test(text)) {
+              tag = 'hr';
+            } else if (!context.block && (context.block = lookups.blocks[text])) {
+              ({before = before, tag = tag, body = body} = this.renderBlockTokens(token, context));
+            } else {
+              // sequence
+              body = text;
+            }
+          } else if (type === 'whitespace') {
+            // if (span === 'code') body.replace(/\xA0/g, '&nbsp;');
+            tag = '';
+          } else {
+            // debug(`${type}:token`)(type, token);
+            classes.push(`${type}-token`);
+            body = text;
+          }
+        }
+      }
 
-			meta =
-				tag &&
-				[
-					punctuator && `punctuator="${escape(punctuator)}"`,
-					type && `token-type="${escape(type)}"`,
-					hint && `token-hint="${escape(hint)}"`,
-					lineBreaks && `line-breaks="${escape(lineBreaks)}"`,
-				].join(' ');
+      meta =
+        tag &&
+        [
+          punctuator && `punctuator="${escape(punctuator)}"`,
+          type && `token-type="${escape(type)}"`,
+          hint && `token-hint="${escape(hint)}"`,
+          lineBreaks && `line-breaks="${escape(lineBreaks)}"`,
+        ].join(' ');
 
-			tag === 'span' && (body = encodeEscapedEntities(body));
+      tag === 'span' && (body = encodeEscapedEntities(body));
 
-			before && (context.renderedText += before);
-			tag === 'br' || (context.newlines = 0)
-				? (!NEWLINE_CONSOLIDATION && (context.renderedText += '\n')) ||
-				  (context.newlines++ && (context.renderedText += '\n')) ||
-				  (context.renderedText += '<br/>')
-				: tag === 'hr'
-				? (context.renderedText += '<hr/>')
-				: body &&
-				  (tag
-						? (context.renderedText += `<${tag} ${meta}${renderClasses(classes)}>${body}</${tag}>`)
-						: (context.renderedText += body));
-			after && (context.renderedText += after);
-		}
+      before && (context.renderedText += before);
+      tag === 'br' || (context.newlines = 0)
+        ? (!NEWLINE_CONSOLIDATION && (context.renderedText += '\n')) ||
+          (context.newlines++ && (context.renderedText += '\n')) ||
+          (context.renderedText += '<br/>')
+        : tag === 'hr'
+        ? (context.renderedText += '<hr/>')
+        : body &&
+          (tag
+            ? (context.renderedText += `<${tag} ${meta}${renderClasses(classes)}>${body}</${tag}>`)
+            : (context.renderedText += body));
+      after && (context.renderedText += after);
+    }
 
-		if (STRAY_BRACE && context.renderedText.endsWith(`>}</span>`)) {
-			context.renderedText = context.renderedText.slice(0, context.renderedText.lastIndexOf('<span'));
-		}
+    if (STRAY_BRACE && context.renderedText.endsWith(`>}</span>`)) {
+      context.renderedText = context.renderedText.slice(0, context.renderedText.lastIndexOf('<span'));
+    }
 
-		return context.renderedText;
-	}
+    return context.renderedText;
+  }
 
-	renderClasses(classes) {
-		return ((classes = [...classes].filter(Boolean).join(' ')) && ` class="${classes}"`) || '';
-	}
+  renderClasses(classes) {
+    return ((classes = [...classes].filter(Boolean).join(' ')) && ` class="${classes}"`) || '';
+  }
 }
 
 /// Features
 
 const createLookups = (
-	repeats = {['*']: 2, ['`']: 3, ['#']: 6},
-	entities = {['*']: '&#x2217;', ['`']: '&#x0300;'},
-	aliases = {'*': ['_'], '**': ['__'], '`': ['``']},
-	blocks = {['-']: 'li', ['>']: 'blockquote', ['#']: 'h*', ['```']: 'pre'},
-	spans = {['*']: 'i', ['**']: 'b', ['~~']: 's', ['`']: 'code'},
-	tags = ['<', '>', '<!--', '-->', '<?', '?>', '</', '/>'],
-	elements = {'markout-iframe': 'iframe', 'markout-details': 'details', 'markout-blockquote': 'blockquote'},
+  repeats = {['*']: 2, ['`']: 3, ['#']: 6},
+  entities = {['*']: '&#x2217;', ['`']: '&#x0300;'},
+  aliases = {'*': ['_'], '**': ['__'], '`': ['``']},
+  blocks = {['-']: 'li', ['>']: 'blockquote', ['#']: 'h*', ['```']: 'pre'},
+  spans = {['*']: 'i', ['**']: 'b', ['~~']: 's', ['`']: 'code'},
+  tags = ['<', '>', '<!--', '-->', '<?', '?>', '</', '/>'],
+  elements = {'markout-iframe': 'iframe', 'markout-details': 'details', 'markout-blockquote': 'blockquote'},
 ) => {
-	const symbols = new Set([...Object.keys(repeats), ...Object.keys(entities)]);
-	for (const symbol of symbols) {
-		let n = repeats[symbol] || 1;
-		const entity = entities[symbol];
-		let block = blocks[symbol];
-		let span = spans[symbol];
-		const tag = block || span;
-		const map = (block && blocks) || (span && spans);
-		for (let i = 1; n--; i++) {
-			const k = symbol.repeat(i);
-			const b = blocks[k];
-			const s = spans[k];
-			const m = (b && blocks) || (s && spans) || map;
-			const t = (b || s || m[k] || tag).replace('*', i);
-			const e = entities[k] || (entity && entity.repeat(i));
-			m[k] = t;
-			e && (entities[k] = e);
-			if (k in aliases) for (const a of aliases[k]) (m[a] = t), e && (entities[a] = e);
-		}
-	}
-	for (let h = 1, c = 2080, n = 6; n--; entities['#'.repeat(h)] = `#<sup>&#x${c + h++};</sup>`);
+  const symbols = new Set([...Object.keys(repeats), ...Object.keys(entities)]);
+  for (const symbol of symbols) {
+    let n = repeats[symbol] || 1;
+    const entity = entities[symbol];
+    let block = blocks[symbol];
+    let span = spans[symbol];
+    const tag = block || span;
+    const map = (block && blocks) || (span && spans);
+    for (let i = 1; n--; i++) {
+      const k = symbol.repeat(i);
+      const b = blocks[k];
+      const s = spans[k];
+      const m = (b && blocks) || (s && spans) || map;
+      const t = (b || s || m[k] || tag).replace('*', i);
+      const e = entities[k] || (entity && entity.repeat(i));
+      m[k] = t;
+      e && (entities[k] = e);
+      if (k in aliases) for (const a of aliases[k]) (m[a] = t), e && (entities[a] = e);
+    }
+  }
+  for (let h = 1, c = 2080, n = 6; n--; entities['#'.repeat(h)] = `#<sup>&#x${c + h++};</sup>`);
 
-	const escapes = {};
+  const escapes = {};
 
-	for (const symbol of '* ^ ~ `'.split(' ')) {
-		escapes[`\\${symbol}`] = `&#x${symbol.charAt(0).toString(16)};`;
-	}
+  for (const symbol of '* ^ ~ `'.split(' ')) {
+    escapes[`\\${symbol}`] = `&#x${symbol.charAt(0).toString(16)};`;
+  }
 
-	return {entities, blocks, spans, tags: new Set(tags), elements};
+  return {entities, blocks, spans, tags: new Set(tags), elements};
 };
 
 const createSpanStack = context => {
-	const {
-		lookups: {spans},
-		renderer,
-	} = context;
-	const stack = [];
-	stack.open = (text, body, classes) => {
-		const {[text]: lastIndex, length: index} = stack;
-		if (lastIndex < 0) return (stack[text] = undefined); // ie continue
-		if (lastIndex >= 0) return stack.close(text, body, classes);
-		const span = spans[text];
-		const before = `<${span}${renderer.renderClasses(classes)}>`;
-		stack[text] = index;
-		stack.push({text, body, span, index});
-		return classes.push('opener'), before;
-	};
-	stack.close = (text, body, classes) => {
-		const span = spans[text];
-		const {[text]: index, length} = stack;
-		if (index === length - 1) {
-			index >= 0 && (stack.pop(), (stack[text] = undefined));
-			const after = `</${span}>`;
-			return classes.push('closer'), after;
-		} else if (index >= 0) {
-			classes.push('closer', `closer-token`);
-			const details = `token-type="auto"${renderer.renderClasses(classes)}`;
-			const closing = stack.splice(index, length).reverse();
-			for (const {span, text, body} of closing) {
-				context.renderedText += `<tt punctuator="closer" ${details}>${body}</tt></${span}>`;
-				stack[text] < index || (stack[text] = -1);
-			}
-		} else {
-			context.renderedText += text;
-		}
-	};
-	context.stack = stack;
+  const {
+    lookups: {spans},
+    renderer,
+  } = context;
+  const stack = [];
+  stack.open = (text, body, classes) => {
+    const {[text]: lastIndex, length: index} = stack;
+    if (lastIndex < 0) return (stack[text] = undefined); // ie continue
+    if (lastIndex >= 0) return stack.close(text, body, classes);
+    const span = spans[text];
+    const before = `<${span}${renderer.renderClasses(classes)}>`;
+    stack[text] = index;
+    stack.push({text, body, span, index});
+    return classes.push('opener'), before;
+  };
+  stack.close = (text, body, classes) => {
+    const span = spans[text];
+    const {[text]: index, length} = stack;
+    if (index === length - 1) {
+      index >= 0 && (stack.pop(), (stack[text] = undefined));
+      const after = `</${span}>`;
+      return classes.push('closer'), after;
+    } else if (index >= 0) {
+      classes.push('closer', `closer-token`);
+      const details = `token-type="auto"${renderer.renderClasses(classes)}`;
+      const closing = stack.splice(index, length).reverse();
+      for (const {span, text, body} of closing) {
+        context.renderedText += `<tt punctuator="closer" ${details}>${body}</tt></${span}>`;
+        stack[text] < index || (stack[text] = -1);
+      }
+    } else {
+      context.renderedText += text;
+    }
+  };
+  context.stack = stack;
 };
 
 debugging('markout', import.meta, [
-	// import.meta.url.includes('/markout/lib/') ||
-	typeof location === 'object' && /[?&]debug(?=[&#]|=[^&]*\bmarkout|$)\b/.test(location.search),
-	'block-normalization',
-	'paragraph-normalization',
-	'anchor-normalization',
-	'break-normalization',
-	'fenced-block-header-rendering',
+  // import.meta.url.includes('/markout/lib/') ||
+  typeof location === 'object' && /[?&]debug(?=[&#]|=[^&]*\bmarkout|$)\b/.test(location.search),
+  'block-normalization',
+  'paragraph-normalization',
+  'anchor-normalization',
+  'break-normalization',
+  'fenced-block-header-rendering',
 ]);
 
 export { ASSET_REMAPPING as A, BREAK_NORMALIZATION as B, CHECKLIST_NORMALIZATION as C, DOM_MUTATIONS as D, Enum as E, HEADING_NORMALIZATION as H, LIST_PARAGRAPH_NORMALIZATION as L, MarkupAttributeMap as M, PARAGRAPH_NORMALIZATION as P, SOURCE_TEXT_RENDERING as S, TOKEN_FLATTENING as T, BLOCK_PARAGRAPH_NORMALIZATION as a, BLOCKQUOTE_NORMALIZATION as b, content as c, defaults as d, BLOCKQUOTE_HEADING_NORMALIZATION as e, DECLARATIVE_STYLING as f, ASSET_INITIALIZATION as g, flags as h, renderSourceText as i, debugging as j, normalize as n, render as r, tokenize as t };

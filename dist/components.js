@@ -1,13 +1,8 @@
 //@ts-check
-
-const DefaultAttributes = 'defaultAttributes';
 const IsInitialized = 'isInitialized';
-const COMPONENT_LOADING_VISIBILITY = 'hidden !important';
 
 const Component = (() => {
-  const {
-    HTMLElement = (() => /** @type {HTMLElementConstructor} */ (class HTMLElement {}))(),
-  } = globalThis;
+  const {HTMLElement = (() => /** @type {HTMLElementConstructor} */ (class HTMLElement {}))()} = globalThis;
 
   class Component extends HTMLElement {
     constructor() {
@@ -24,14 +19,12 @@ const Component = (() => {
         : root === this && this.ownerDocument.createDocumentFragment();
 
       if (new.target.styles) {
-        root === this && (this.style.visibility = COMPONENT_LOADING_VISIBILITY);
+        root === this && ComponentStyle.setLoadingVisibility(this, false);
         (fragment || root).prepend((style = ComponentStyle.for(this, new.target)));
       }
 
-      if (new.target.attributes && new.target.attributes.length) {
-        this.attributes[DefaultAttributes] = initializeComponentAttributes(this, new.target);
-        this.attributes[IsInitialized] = false;
-      }
+      if (new.target.attributes && new.target.attributes.length)
+        ComponentAttributes.initializeComponent(this, new.target);
 
       if (new.target.template) {
         for (const element of fragment.querySelectorAll('[id]')) this[`#${element.id}`] = element;
@@ -57,12 +50,7 @@ const Component = (() => {
     }
 
     initializeAttributes() {
-      const attributes = this.attributes;
-      if (!attributes[IsInitialized] && attributes[DefaultAttributes]) {
-        attributes[IsInitialized] = true;
-        for (const attribute in attributes[DefaultAttributes])
-          this.updateAttribute(attribute, this[attribute]);
-      }
+      ComponentAttributes.initializeAttributes(this);
     }
 
     trace(detail, context = (detail && detail.target) || this, ...args) {
@@ -102,40 +90,58 @@ const Component = (() => {
         }
       }
 
-      style && (await style.loaded);
-
-      host.style.visibility === COMPONENT_LOADING_VISIBILITY && (host.style.visibility = '');
+      style && style.loaded && (await style.loaded);
+      ComponentStyle.setLoadingVisibility(host, true);
     }
   }
 
   const {defineProperty} = Object;
 
   /**
-   * @template {typeof Component} C
-   * @param {InstanceType<C>} component
-   * @param {C} constructor
+   * TODO: Define behaviours for ComponentStyles instances
+   *  SEE: https://wicg.github.io/construct-stylesheets/
    */
-  const initializeComponentAttributes = (component, constructor) => {
-    const {prototype, attributes: componentAttributes} = constructor;
-    for (const attribute of componentAttributes) {
-      prototype.hasOwnProperty(attribute) ||
-        defineProperty(this, attribute, {
-          get() {
-            return this.hasAttribute(attribute)
-              ? this.getAttribute(attribute)
-              : componentAttributes[attribute];
-          },
-          set(value) {
-            value === null || value === undefined
-              ? this.removeAttribute(attribute)
-              : value === this.getAttribute(attribute) || this.setAttribute(attribute, value);
-          },
-        });
-    }
-    return componentAttributes;
-  };
+  class ComponentAttributes {
+    /**
+     * @template {typeof Component} C
+     * @param {InstanceType<C>} component
+     * @param {C} constructor
+     */
+    static initializeComponent(component, constructor) {
+      const {prototype, attributes: componentAttributes} = constructor;
+      for (const attribute of componentAttributes) {
+        prototype.hasOwnProperty(attribute) ||
+          defineProperty(this, attribute, {
+            get() {
+              return this.hasAttribute(attribute) ? this.getAttribute(attribute) : componentAttributes[attribute];
+            },
+            set(value) {
+              value === null || value === undefined
+                ? this.removeAttribute(attribute)
+                : value === this.getAttribute(attribute) || this.setAttribute(attribute, value);
+            },
+          });
+      }
 
-  const StyleElement = Symbol('styles.element');
+      component[ComponentAttributes.DEFAULTS] = componentAttributes;
+      component[ComponentAttributes.INITIALIZED] = false;
+    }
+
+    static initializeAttributes(component) {
+      if (component && !component[ComponentAttributes.INITIALIZED] && component[ComponentAttributes.DEFAULTS]) {
+        component[ComponentAttributes.INITIALIZED] = true;
+        if (typeof component.updateAttribute === 'function') {
+          for (const attribute in component[ComponentAttributes.DEFAULTS])
+            component.updateAttribute(attribute, this[attribute]);
+        } else {
+          console.warn('ComponentAttributes invoked on an unsupported component: %O', component);
+        }
+      }
+    }
+  }
+
+  ComponentAttributes.DEFAULTS = Symbol('attributes.defaults');
+  ComponentAttributes.INITIALIZED = Symbol('attributes.initialized');
 
   /**
    * TODO: Define behaviours for ComponentStyles instances
@@ -143,24 +149,44 @@ const Component = (() => {
    */
   class ComponentStyle {
     /**
+     * @param {Component} component
+     * @param {boolean} [visibility] - Defaults relative to having --component-loading-visiblity--
+     */
+    static setLoadingVisibility(component, visibility) {
+      if (visibility == null) visibility = !!component.style.getPropertyValue('--component-loading-visiblity--');
+      if (visibility == false) {
+        component.style.setProperty('--component-loading-visiblity--', 'hidden');
+        component.style.visibility = `var(--component-loading-visiblity--${
+          component.style.visibility ? `, ${component.style.visibility}` : ''
+        }) !important`;
+      } else if (visibility == true) {
+        component.style.removeProperty('--component-loading-visiblity--');
+        if (component.style.visibility.includes('--component-loading-visiblity--'))
+          component.style.visibility = /^\s*var\s*\(\s*--component-loading-visiblity--\s*(?:,\s*)?(.*)\).*?$/[
+            Symbol.replace
+          ](component.style.visibility, '$1');
+      } else {
+        console.warn(`ComponentStyle.setLoadingVisibility invoked invalid visibility: %O`, visibility);
+      }
+    }
+
+    /**
      * @template {typeof Component} C
      * @param {InstanceType<C>} component
      * @param {C} constructor
      */
     static for(component, constructor) {
-      const This =
-        /** @type {typeof ComponentStyle} */ ((this !== undefined &&
-          ComponentStyle.isPrototypeOf(this) &&
-          this) ||
-        ComponentStyle);
       /** @type {ComponentStyleElement} */
       const componentStyleElement =
-        constructor[StyleElement] ||
+        constructor[ComponentStyle.ELEMENT] ||
         (constructor.styles &&
-          (constructor[StyleElement] = This.createStyleElement(
-            constructor.styles,
-            component.ownerDocument,
-          )));
+          (constructor[ComponentStyle.ELEMENT] =
+            // /** @type {typeof ComponentStyle} */ (
+            // (this !== undefined && ComponentStyle.isPrototypeOf(this) && this) ||
+            // ComponentStyle
+            // )
+
+            ComponentStyle.createStyleElement(constructor.styles, component.ownerDocument)));
 
       if (componentStyleElement) return componentStyleElement.cloneStyleSheet();
     }
@@ -202,8 +228,7 @@ const Component = (() => {
             Error(
               [
                 'Unsafe <style> element creation',
-                ownerDocument !== nodeOwnerDocument &&
-                  'mismatching ownerDocument and <style>.ownerDocument.',
+                ownerDocument !== nodeOwnerDocument && 'mismatching ownerDocument and <style>.ownerDocument.',
                 nodeName !== 'STYLE' && '<style>.nodeName !== "STYLE".',
               ]
                 .filter(Boolean)
@@ -220,8 +245,7 @@ const Component = (() => {
           resolve();
         };
         handler.options = {capture: true, passive: false, once: true};
-        for (const event of ['load', 'error', 'abort'])
-          style.addEventListener(event, handler, handler.options);
+        for (const event of ['load', 'error', 'abort']) style.addEventListener(event, handler, handler.options);
       });
 
       style.cloneStyleSheet = () => {
@@ -237,15 +261,16 @@ const Component = (() => {
     }
   }
 
+  ComponentStyle.ELEMENT = Symbol('style.element');
+
   {
-    const hasOwnProperty = Function.call.bind(Object.prototype.hasOwnProperty);
-    const {defineProperty, defineProperties, getOwnPropertyDescriptor} = Object;
+    // const {
+    //   ShadowRoot: Root = (() => /** @type {typeof ShadowRoot} */ (class ShadowRoot {}))(), // Polyfill as needed
+    // } = globalThis;
 
     Component.Root = class Root extends ShadowRoot {
       ['(onevent)'](event) {
-        return `(on${event.type})` in this
-          ? this[`(on${event.type})`].call(this.host || this, event)
-          : undefined;
+        return `(on${event.type})` in this ? this[`(on${event.type})`].call(this.host || this, event) : undefined;
       }
     };
 
@@ -259,9 +284,9 @@ const Component = (() => {
     const updateProperty = (target, property, value) => (
       !target ||
         !property ||
-        ((!hasOwnProperty(target, property) ||
-          getOwnPropertyDescriptor(target, property).configurable !== false) &&
-          defineProperty(target, property, {
+        ((!Object.prototype.hasOwnProperty.call(target, property) ||
+          Object.getOwnPropertyDescriptor(target, property).configurable !== false) &&
+          Object.defineProperty(target, property, {
             get: () => value,
             set: value => updateProperty(target, property, value),
             configurable: true,
@@ -271,7 +296,7 @@ const Component = (() => {
 
     const descriptor = {get: () => undefined, enumerable: true, configurable: true};
 
-    defineProperties(Component, {
+    Object.defineProperties(Component, {
       set: {
         value: {
           /** @template T @param {PropertyKey} property @param {T} value */
@@ -575,16 +600,27 @@ const html = (template => {
 //@ts-check
 
 const styling = (() => {
-  const styling = {};
+  /** @typedef {string} styling.Value */
+  /** @typedef {string} styling.Property */
+  /** @typedef {string} styling.Style */
+  /** @typedef {HTMLElement} styling.Element */
+  /** @typedef {Iterable<styling.Element>} styling.Elements */
+  /** @typedef {DocumentFragment} styling.Fragment */
+  /** @typedef {Iterable<styling.Fragment>} styling.Fragments */
+  /** @typedef {styling.Element|styling.Fragment} styling.Node */
+  /** @typedef {Record<string, any>} styling.Options */
+  /** @typedef {Record<string, string>} styling.Lookup */
 
-  const {getOwnPropertyNames, setPrototypeOf, getPrototypeOf, freeze, keys} = Object;
+  const styling = {};
 
   const {ELEMENT_NODE = 1, ATTRIBUTE_NODE = 2, DOCUMENT_FRAGMENT_NODE = 11} =
     (globalThis.Node && globalThis.Node.prototype) || {};
 
-  /** @param {string} value @returns {string} */
-  styling.autoprefix = value =>
-    value.replace(styling.autoprefix.matcher, styling.autoprefix.replacer);
+  /**
+   * @param {styling.Value} value
+   * @param {styling.Options} [options]
+   */
+  styling.autoprefix = (value, options) => value.replace(styling.autoprefix.matcher, styling.autoprefix.replacer);
 
   {
     styling.autoprefix.mappings = {};
@@ -604,26 +640,34 @@ const styling = (() => {
         map('width', 'fill-available', '-moz-available');
       }
 
-      const mapped = keys(mappings);
+      const mapped = Object.keys(mappings);
 
       if (mapped.length > 0) {
         styling.autoprefix.matcher = new RegExp(String.raw`\b-?(?:${mapped.join('|')})\b`, 'gi');
-        freeze((styling.autoprefix.replacer = value => mappings[value] || value));
-        freeze(styling.autoprefix.mappings);
-        freeze(styling.autoprefix);
+        Object.freeze((styling.autoprefix.replacer = value => mappings[value] || value));
+        Object.freeze(styling.autoprefix.mappings);
+        Object.freeze(styling.autoprefix);
       }
     }
   }
 
-  /** @param {string} value @param {string} property @returns {string} */
-  styling.normalize = (value, property) => {
+  /**
+   * @param {styling.Value} value
+   * @param {styling.Property} property
+   * @param {styling.Options} [options]
+   */
+  styling.normalize = (value, property, options) => {
     if (!value || !(value = value.trim())) return '';
     value.startsWith('--') && !value.includes(' ') && (value = `var(${value}--${property}--)`);
     return value;
   };
 
-  /** @param {HTMLElement} element @param {string} style */
-  styling.mixin = (element, style) => {
+  /**
+   * @param {styling.Element} element
+   * @param {styling.Style} style
+   * @param {styling.Options} [options]
+   */
+  styling.mixin = (element, style, options) => {
     // TODO: Explore computedStyle mixins
     element.style.border = `var(--${style}--border--, unset)`;
     element.style.background = `var(--${style}--background--, unset)`;
@@ -632,8 +676,11 @@ const styling = (() => {
     element.style.opacity = `var(--${style}--opacity--, unset)`;
   };
 
-  /** @param {HTMLElement|DocumentFragment} node */
-  styling.apply = node => {
+  /**
+   * @param {styling.Node} node
+   * @param {styling.Options} [options]
+   */
+  styling.apply = (node, options) => {
     node == null ||
       typeof node !== 'object' ||
       (node.nodeType - DOCUMENT_FRAGMENT_NODE === 0
@@ -643,12 +690,16 @@ const styling = (() => {
           styling.apply.toElement(/** @type {HTMLElement} */ (node)));
   };
 
-  /** @param {HTMLElement} element */
-  styling.apply.toElement = element => {
+  /**
+   * @param {styling.Element} element
+   * @param {styling.Options} [options]
+   */
+  styling.apply.toElement = (element, options) => {
     // const {lookup, autoprefix, normalize} = styling;
+
     for (const attribute of element.getAttributeNames()) {
-      attribute in styling.lookup &&
-        (attribute === 'style:'
+      if (attribute in styling.lookup) {
+        attribute === 'style:'
           ? styling.mixin(element, element.getAttribute(attribute))
           : styling.autoprefix === undefined
           ? (element.style[styling.lookup[attribute]] = styling.normalize(
@@ -657,19 +708,30 @@ const styling = (() => {
             ))
           : (element.style[styling.lookup[attribute]] = styling.autoprefix(
               styling.normalize(element.getAttribute(attribute), attribute.slice(0, -1)),
-            )),
-        element.removeAttribute(attribute));
+            ));
+        element.removeAttribute(attribute);
+      } else if (options && options.attributes && typeof options.attributes[attribute] === 'function') {
+        options.attributes[attribute](
+          element,
+          attribute,
+          styling.normalize(element.getAttribute(attribute), attribute.slice(0, -1)),
+          options,
+        );
+      }
     }
   };
 
-  /** @param {DocumentFragment} fragment */
-  styling.apply.toFragment = fragment => {
+  /**
+   * @param {styling.Fragment} fragment
+   * @param {styling.Options} [options]
+   */
+  styling.apply.toFragment = (fragment, options) => {
     // if (typeof styling.selector === 'string' && styling.selector !== '') return;
-    for (const element of fragment.querySelectorAll(styling.selector))
-      styling.apply.toElement(/** @type {HTMLElement} */ (element));
+    for (const element of /** @type {Iterable<styling.Element>} */ (fragment.querySelectorAll(styling.selector)))
+      styling.apply.toElement(element, options);
   };
 
-  /** @type {{[name: string] : string}} */
+  /** @type {styling.Lookup} */
   styling.lookup = {};
 
   {
@@ -682,13 +744,13 @@ const styling = (() => {
       // Markout style properties
       'style', // mixin styling
       // CSS style properties
-      ...[
-        // Webkit/Blink
-        ...getOwnPropertyNames(style),
-        // Firefox
-        ...getOwnPropertyNames(getPrototypeOf(style)),
-      ].filter(property => style[property] === ''),
-      // ].filter(property => style[property] === '' && Filter.test(property)),
+      ...Object.getOwnPropertyNames(
+        Object.getOwnPropertyDescriptor(style, 'backgroundColor')
+          ? // Webkit/Blink  et al
+            style
+          : // Firefox et al
+            Object.getPrototypeOf(style),
+      ).filter(property => style[property] === ''),
     ])) {
       const attribute = `${property.replace(Boundary, '$&-').toLowerCase()}:`.replace(Prefix, '');
       styling.lookup[attribute] = property;
@@ -697,12 +759,13 @@ const styling = (() => {
 
     styling.selector = selectors.join(',');
   }
-  freeze(setPrototypeOf(styling.lookup, null));
-  freeze(styling.apply.toElement);
-  freeze(styling.apply.toFragment);
-  freeze(styling.apply);
 
-  freeze(styling);
+  Object.freeze(Object.setPrototypeOf(styling.lookup, null));
+  Object.freeze(styling.apply.toElement);
+  Object.freeze(styling.apply.toFragment);
+  Object.freeze(styling.apply);
+
+  Object.freeze(styling);
 
   import.meta['components.styling'] = components.styling = styling;
 
@@ -712,8 +775,6 @@ const styling = (() => {
 //@ts-check
 
 const {Toggle, Attributes} = (() => {
-  const {assign, defineProperties, getOwnPropertyNames} = Object;
-
   /**
    * @template T
    * @param {T} value
@@ -726,9 +787,7 @@ const {Toggle, Attributes} = (() => {
       ((value !== '' || '') &&
         ((value !== false && value != false) || false) &&
         (value = matcher.exec(value) || undefined) &&
-        (value[1] ? true : value[2] ? false : undefined))))(
-    /\b(?:(true|on|yes)|(false|off|no))\b/i,
-  );
+        (value[1] ? true : value[2] ? false : undefined))))(/\b(?:(true|on|yes)|(false|off|no))\b/i);
 
   /**
    * @template {string} K
@@ -739,12 +798,10 @@ const {Toggle, Attributes} = (() => {
     /** @param {{[index: number]:K} | {[name: K]}} attributes */
     constructor(attributes) {
       const names =
-        (attributes &&
-          ((Symbol.iterator in attributes && attributes) || getOwnPropertyNames(attributes))) ||
-        '';
+        (attributes && ((Symbol.iterator in attributes && attributes) || Object.getOwnPropertyNames(attributes))) || '';
       //@ts-ignore
       super(...names);
-      !attributes || names === attributes || assign(this, attributes);
+      !attributes || names === attributes || Object.assign(this, attributes);
     }
 
     //@ts-ignore
@@ -767,7 +824,7 @@ const {Toggle, Attributes} = (() => {
 
       for (const object of definitions) {
         //@ts-ignore
-        for (const name of Symbol.iterator in object ? object : getOwnPropertyNames(object)) {
+        for (const name of Symbol.iterator in object ? object : Object.getOwnPropertyNames(object)) {
           typeof name !== 'string' ||
             (name in attributes
               ? // Assign to undefined default
@@ -782,7 +839,7 @@ const {Toggle, Attributes} = (() => {
 
   Attributes.Toggle = Toggle;
 
-  defineProperties(Attributes.prototype, {
+  Object.defineProperties(Attributes.prototype, {
     [Symbol.toStringTag]: {value: 'Attributes'},
     [Symbol.isConcatSpreadable]: {value: false},
   });
