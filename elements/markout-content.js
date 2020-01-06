@@ -1,5 +1,5 @@
 ﻿//@ts-check
-// import dynamicImport from '/browser/dynamic-import.js';
+
 import '../lib/content/dom.js';
 import {content} from '../lib/content.js';
 import {Component} from '../lib/components.js';
