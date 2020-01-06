@@ -212,7 +212,7 @@ const render = (format, ...values) => {
     const push = text => (span ? span.push(text) : spans.push(text));
     const roll = () => (span && spans.push(render.span(span.style, ...span)), (span = undefined));
     // @ts-ignore
-    for (const [, pre, formatting = '%O'] of matchAll(format, FORMATTING)) {
+    for (const [, pre, formatting = '%O'] of format.matchAll(FORMATTING)) {
       const value = values[i++];
       pre && push(render.pre(pre));
       switch (formatting.slice(-1)) {
