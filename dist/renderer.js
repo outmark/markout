@@ -448,74 +448,73 @@ const {
 //@ts-check
 
 const {atoms, range} = (() => {
-	const {freeze} = Object;
+  const {freeze} = Object;
 
-	/** @template {string} T @param {...T} strings */
-	const atoms = (...strings) => freeze(strings); // .filter(atoms.filter).sort()
+  /** @template {string} T @param {...T} strings */
+  const atoms = (...strings) => freeze(strings); // .filter(atoms.filter).sort()
 
-	atoms.filter = string => typeof string === 'string' && string.length;
+  atoms.filter = string => typeof string === 'string' && string.length;
 
-	/** @param {string} string @param {string} [delimiter] */
-	atoms.split = (string, delimiter = '') => freeze(string.split(delimiter));
-	/**
-	 * Splits a string into case-distinct subsets as applicable.
-	 *
-	 * NOTE: A non-case-senstive string yields the single
-	 *       subset instance for all its cases. A fully cased
-	 *       string yields separate upper and lower case subsets
-	 *       and a single subset for both initial and any cases.
-	 *
-	 * @param {string} string @param {string} [delimiter]
-	 */
-	atoms.split.cases = (string, delimiter = '') => {
-		/** Ordered array of every unique original cased atom in the original string */
-		const initialCase = freeze(atoms.union(...atoms.split(string, delimiter)));
+  /** @param {string} string @param {string} [delimiter] */
+  atoms.split = (string, delimiter = '') => freeze(string.split(delimiter));
+  /**
+   * Splits a string into case-distinct subsets as applicable.
+   *
+   * NOTE: A non-case-senstive string yields the single
+   *       subset instance for all its cases. A fully cased
+   *       string yields separate upper and lower case subsets
+   *       and a single subset for both initial and any cases.
+   *
+   * @param {string} string @param {string} [delimiter]
+   */
+  atoms.split.cases = (string, delimiter = '') => {
+    /** Ordered array of every unique original cased atom in the original string */
+    const initialCase = freeze(atoms.union(...atoms.split(string, delimiter)));
 
-		const lowerCaseString = string.toLowerCase();
-		const upperCaseString = string.toUpperCase();
+    const lowerCaseString = string.toLowerCase();
+    const upperCaseString = string.toUpperCase();
 
-		if (lowerCaseString === upperCaseString) return [initialCase, initialCase, initialCase, initialCase];
+    if (lowerCaseString === upperCaseString) return [initialCase, initialCase, initialCase, initialCase];
 
-		/** Ordered array of every unique original and transformed cased atom in the original string */
-		const everyCase = freeze(
-			atoms.union(...atoms.split(`${string}${delimiter}${lowerCaseString}${delimiter}${upperCaseString}`, delimiter)),
-		);
+    /** Ordered array of every unique original and transformed cased atom in the original string */
+    const everyCase = freeze(
+      atoms.union(...atoms.split(`${string}${delimiter}${lowerCaseString}${delimiter}${upperCaseString}`, delimiter)),
+    );
 
-		/** Ordered array of every unique lower cased atom in the original string */
-		const lowerCase = freeze(atoms.union(...atoms.split(lowerCaseString, delimiter)));
+    /** Ordered array of every unique lower cased atom in the original string */
+    const lowerCase = freeze(atoms.union(...atoms.split(lowerCaseString, delimiter)));
 
-		/** Ordered array of every unique upper cased atom in the original string */
-		const upperCase = freeze(atoms.union(...atoms.split(upperCaseString, delimiter)));
+    /** Ordered array of every unique upper cased atom in the original string */
+    const upperCase = freeze(atoms.union(...atoms.split(upperCaseString, delimiter)));
 
-		return everyCase.length === initialCase.length
-			? [initialCase, lowerCase, upperCase, initialCase]
-			: [everyCase, lowerCase, upperCase, initialCase];
-	};
+    return everyCase.length === initialCase.length
+      ? [initialCase, lowerCase, upperCase, initialCase]
+      : [everyCase, lowerCase, upperCase, initialCase];
+  };
 
-	/** @template {string} T @param {...T} atoms @returns T[] */
-	atoms.union = (...atoms) => [...new Set(atoms)];
+  /** @template {string} T @param {...T} atoms @returns T[] */
+  atoms.union = (...atoms) => [...new Set(atoms)];
 
-	/** @template {string} T @param {...T} atoms @returns {string} */
-	const range = (...atoms) => `[${atoms.map(range.escape).join('')}]`;
-	range.escape = (atom, index) =>
-		atom === ']' ? '\\]' : atom === '\\' ? '\\\\' : atom === '-' && index !== 0 ? '\\-' : atom;
+  /** @template {string} T @param {...T} atoms @returns {string} */
+  const range = (...atoms) => `[${atoms.map(range.escape).join('')}]`;
+  range.escape = (atom, index) =>
+    atom === ']' ? '\\]' : atom === '\\' ? '\\\\' : atom === '-' && index !== 0 ? '\\-' : atom;
 
-	return {freeze, atoms, range};
+  return {freeze, atoms, range};
 })();
 
 /** @param {string} inset */
 const countInsetQuotes = inset => {
-	/** @type {number} */
-	let quotes, position;
-	position = -1;
-	quotes = 0;
-	while (position++ < (position = inset.indexOf('>', position))) quotes++;
-	return quotes;
+  /** @type {number} */
+  let quotes, position;
+  position = -1;
+  quotes = 0;
+  while (position++ < (position = inset.indexOf('>', position))) quotes++;
+  return quotes;
 };
 
 const MATCHES = Symbol('matches');
 const MATCH = Symbol('match');
-
 
 // /** @param {string} string */
 // const upper = string => string.toUpperCase();
@@ -809,87 +808,87 @@ const partials = {};
 }
 
 class ComposableList extends Array {
-	static create(properties, ...elements) {
-		return Object.assign(new ComposableList(...elements), properties);
-	}
+  static create(properties, ...elements) {
+    return Object.assign(new ComposableList(...elements), properties);
+  }
 
-	toString(
-		listInset = this.listInset || '',
-		listType = this.listType || 'ul',
-		listStyle = this.listStyle,
-		listStart = this.listStart,
-	) {
-		listStart &&
-			typeof listStart !== 'number' &&
-			(listStart = `${
-				listStyle === 'lower-latin' || listStyle === 'upper-latin'
-					? ComposableList.parseLatin(listStart)
-					: listStyle === 'lower-roman' || listStyle === 'upper-roman'
-					? ComposableList.parseRoman(listStart)
-					: parseInt(listStart) || ''
-			}`);
+  toString(
+    listInset = this.listInset || '',
+    listType = this.listType || 'ul',
+    listStyle = this.listStyle,
+    listStart = this.listStart,
+  ) {
+    listStart &&
+      typeof listStart !== 'number' &&
+      (listStart = `${
+        listStyle === 'lower-latin' || listStyle === 'upper-latin'
+          ? ComposableList.parseLatin(listStart)
+          : listStyle === 'lower-roman' || listStyle === 'upper-roman'
+          ? ComposableList.parseRoman(listStart)
+          : parseInt(listStart) || ''
+      }`);
 
-		const attributes = `${
-			// TODO: Explore using type attribute instead
-			(listStyle &&
-				`style="list-style: ${listStyle}"${(listStyle in ListTypes && ` type="${ListTypes[listStyle]}"`) || ''}`) ||
-				''
-		} ${
-			// TODO: Check if guard against invalid start is needed
-			(listStart && `start="${listStart}"`) || ''
-		}`.trim();
+    const attributes = `${
+      // TODO: Explore using type attribute instead
+      (listStyle &&
+        `style="list-style: ${listStyle}"${(listStyle in ListTypes && ` type="${ListTypes[listStyle]}"`) || ''}`) ||
+        ''
+    } ${
+      // TODO: Check if guard against invalid start is needed
+      (listStart && `start="${listStart}"`) || ''
+    }`.trim();
 
-		const listRows = [`${listInset}<${listType}${(attributes && ` ${attributes}`) || ''}>`];
+    const listRows = [`${listInset}<${listType}${(attributes && ` ${attributes}`) || ''}>`];
 
-		/** @type {import('./block-normalizer.js').MarkoutBlockNormalizer} */
-		const normalizer = this.normalizer;
+    /** @type {import('./block-normalizer.js').MarkoutBlockNormalizer} */
+    const normalizer = this.normalizer;
 
-		// .split('\n\n').map(line => `<p>${line}</p>`).join('')
-		for (const item of this) {
-			if (item && typeof item === 'object') {
-				if (item instanceof ComposableList) {
-					const last = listRows.length - 1;
-					const row = listRows[last];
-					last > 0
-						? (listRows[listRows.length - 1] = `${row.slice(0, -5)}\n${item.toString(
-								`${listInset}\t\t`,
-						  )}\n${listInset}\t</li>`)
-						: listRows.push(`${listInset}\t<li>\n${item.toString(`${listInset}\t\t`)}\n${listInset}\t</li>`);
-					// continue;
-				} else {
-					const insetText = `${item}`;
-					let text = insetText;
-					for (const character of listInset) {
-						if (!text.startsWith(character)) break;
-						text = text.slice(1);
-					}
-					// if (normalizer) {
-					// 	console.log({normalizer, text});
-					// 	text = normalizer.normalizeParagraphs(`\n\n${text}`);
-					// }
-					listRows.push(text);
-					// listRows.push(text.replace(/^(.+?)(?=(<\/p>)|<[a-z]+\b|\n+))/, (m, a, b) => (a ? `<p>${a}${b || '</p>'}` : m)));
-				}
-			} else {
-				const [, checked, content] = /^\s*(?:\[([-xX]| )\] |)([^]+?)\s*$/.exec(item);
+    // .split('\n\n').map(line => `<p>${line}</p>`).join('')
+    for (const item of this) {
+      if (item && typeof item === 'object') {
+        if (item instanceof ComposableList) {
+          const last = listRows.length - 1;
+          const row = listRows[last];
+          last > 0
+            ? (listRows[listRows.length - 1] = `${row.slice(0, -5)}\n${item.toString(
+                `${listInset}\t\t`,
+              )}\n${listInset}\t</li>`)
+            : listRows.push(`${listInset}\t<li>\n${item.toString(`${listInset}\t\t`)}\n${listInset}\t</li>`);
+          // continue;
+        } else {
+          const insetText = `${item}`;
+          let text = insetText;
+          for (const character of listInset) {
+            if (!text.startsWith(character)) break;
+            text = text.slice(1);
+          }
+          // if (normalizer) {
+          // 	console.log({normalizer, text});
+          // 	text = normalizer.normalizeParagraphs(`\n\n${text}`);
+          // }
+          listRows.push(text);
+          // listRows.push(text.replace(/^(.+?)(?=(<\/p>)|<[a-z]+\b|\n+))/, (m, a, b) => (a ? `<p>${a}${b || '</p>'}` : m)));
+        }
+      } else {
+        const [, checked, content] = /^\s*(?:\[([-xX]| )\] |)([^]+?)\s*$/.exec(item);
 
-				content &&
-					listRows.push(
-						checked
-							? `${listInset}\t<li type=checkbox ${
-									checked === ' ' ? '' : checked === '-' ? 'indeterminate' : ' checked'
-							  }> ${
-									content
-									// content.replace(/^(.+?)(?=(<\/p>)|<[a-z]+\b))/, (m, a, b) => (a ? `<p>${a}${b || '</p>'}` : m))
-							  } </li>`
-							: `${listInset}\t<li> ${content} </li>`,
-					);
-			}
-		}
-		listRows.push(`${listInset}</${listType}>`);
-		// console.log(this, {normalizer, listRows});
-		return `\n${listRows.join('\n')}\n`;
-	}
+        content &&
+          listRows.push(
+            checked
+              ? `${listInset}\t<li type=checkbox ${
+                  checked === ' ' ? '' : checked === '-' ? 'indeterminate' : ' checked'
+                }> ${
+                  content
+                  // content.replace(/^(.+?)(?=(<\/p>)|<[a-z]+\b))/, (m, a, b) => (a ? `<p>${a}${b || '</p>'}` : m))
+                } </li>`
+              : `${listInset}\t<li> ${content} </li>`,
+          );
+      }
+    }
+    listRows.push(`${listInset}</${listType}>`);
+    // console.log(this, {normalizer, listRows});
+    return `\n${listRows.join('\n')}\n`;
+  }
 }
 
 const ChecklistMarker = new RegExp(patterns.ChecklistMarker);
@@ -902,92 +901,92 @@ const RomanMarker = new RegExp(patterns.RomanMarker);
 const OrderedMarker = new RegExp(patterns.OrderedMarker);
 const UnorderedMarker = new RegExp(patterns.UnorderedMarker);
 const ListTypes = {
-	'lower-latin': 'a',
-	'upper-latin': 'A',
-	'lower-roman': 'i',
-	'upper-roman': 'I',
-	decimal: '1',
-	'decimal-leading-zero': '1',
+  'lower-latin': 'a',
+  'upper-latin': 'A',
+  'lower-roman': 'i',
+  'upper-roman': 'I',
+  decimal: '1',
+  'decimal-leading-zero': '1',
 };
 
  {
-	const parseLatin = latin => parseLatin.mappings[latin] || NaN;
+  const parseLatin = latin => parseLatin.mappings[latin] || NaN;
 
-	parseLatin.mappings = {};
+  parseLatin.mappings = {};
 
-	'abcdefghijklmnopqrstuvwxyz'.split('').forEach((latin, index) => {
-		parseLatin.mappings[(parseLatin.mappings[latin] = parseLatin.mappings[latin.toUpperCase] = index + 1)] = latin;
-	});
+  'abcdefghijklmnopqrstuvwxyz'.split('').forEach((latin, index) => {
+    parseLatin.mappings[(parseLatin.mappings[latin] = parseLatin.mappings[latin.toUpperCase] = index + 1)] = latin;
+  });
 
-	ComposableList.parseLatin = parseLatin;
+  ComposableList.parseLatin = parseLatin;
 }
 
  {
-	const parseRoman = roman =>
-		/[^ivxlcdm]/i.test((roman = String(roman)))
-			? NaN
-			: roman
-					.toLowerCase()
-					.split('')
-					.reduce(parseRoman.reducer, 0);
-	// prettier-ignore
-	parseRoman.mappings = Object.freeze({i: 1, v: 5, x: 10, l: 50, c: 100, d: 500, m: 1000, 1: 'i', 5: 'v', 10: 'x', 50: 'l', 100: 'c', 500: 'd', 1000: 'm'});
+  const parseRoman = roman =>
+    /[^ivxlcdm]/i.test((roman = String(roman)))
+      ? NaN
+      : roman
+          .toLowerCase()
+          .split('')
+          .reduce(parseRoman.reducer, 0);
+  // prettier-ignore
+  parseRoman.mappings = Object.freeze({i: 1, v: 5, x: 10, l: 50, c: 100, d: 500, m: 1000, 1: 'i', 5: 'v', 10: 'x', 50: 'l', 100: 'c', 500: 'd', 1000: 'm'});
 
-	parseRoman.reducer = (decimal, character, index, characters) =>
-		decimal +
-		(parseRoman.mappings[character] < parseRoman.mappings[characters[index + 1]]
-			? -parseRoman.mappings[character]
-			: parseRoman.mappings[character]);
+  parseRoman.reducer = (decimal, character, index, characters) =>
+    decimal +
+    (parseRoman.mappings[character] < parseRoman.mappings[characters[index + 1]]
+      ? -parseRoman.mappings[character]
+      : parseRoman.mappings[character]);
 
-	ComposableList.parseRoman = parseRoman;
+  ComposableList.parseRoman = parseRoman;
 }
 
 ComposableList.ORDERED_STYLE = /^(?:(0+[1-9]\d*)(?=\. )|(\d+)(?=\. )|([ivx]+)(?=\. )|([a-z])(?=[.)] ))|/i;
 ComposableList.ORDERED_STYLE.key = ['decimal-leading-zero', 'decimal', 'roman', 'latin'];
 
 ComposableList.orderedStyleOf = (marker, variant, fallback) => {
-	const category =
-		ComposableList.ORDERED_STYLE.key[
-			ComposableList.ORDERED_STYLE.exec(marker)
-				.slice(1)
-				.findIndex(Boolean)
-		];
-	return (
-		(category !== undefined &&
-			(category === 'latin' || category === 'roman'
-				? `${
-						variant === 'lower' || (variant !== 'upper' && marker === marker.toLowerCase()) ? 'lower' : 'upper'
-				  }-${category}`
-				: category === 'decimal'
-				? variant !== 'leading-zero'
-					? 'decimal'
-					: 'decimal-leading-zero'
-				: variant !== 'decimal'
-				? 'decimal-leading-zero'
-				: 'decimal')) ||
-		fallback
-	);
+  const category =
+    ComposableList.ORDERED_STYLE.key[
+      ComposableList.ORDERED_STYLE.exec(marker)
+        .slice(1)
+        .findIndex(Boolean)
+    ];
+  return (
+    (category !== undefined &&
+      (category === 'latin' || category === 'roman'
+        ? `${
+            variant === 'lower' || (variant !== 'upper' && marker === marker.toLowerCase()) ? 'lower' : 'upper'
+          }-${category}`
+        : category === 'decimal'
+        ? variant !== 'leading-zero'
+          ? 'decimal'
+          : 'decimal-leading-zero'
+        : variant !== 'decimal'
+        ? 'decimal-leading-zero'
+        : 'decimal')) ||
+    fallback
+  );
 };
 
 ComposableList.markerIsLike = (marker, expected) =>
-	expected in ComposableList.LIKE ? ComposableList.LIKE[expected].test(marker) : undefined;
+  expected in ComposableList.LIKE ? ComposableList.LIKE[expected].test(marker) : undefined;
 
 ComposableList.LIKE = {
-	['square']: SquareMarker,
-	['disc']: DiscMarker,
-	['decimal']: ArabicMarker,
-	['decimal-leading-zero']: ZeroLeadingArabicMarker,
-	['latin']: LatinMarker,
-	// NOTE: We allow cases insenstivity as a common convencience feature
-	['lower-latin']: LatinMarker,
-	['upper-latin']: LatinMarker,
-	['roman']: RomanMarker,
-	// NOTE: We allow cases insenstivity as a common convencience feature
-	['lower-roman']: RomanMarker,
-	['upper-roman']: RomanMarker,
-	['ol']: OrderedMarker,
-	['ul']: UnorderedMarker,
-	['checkbox']: ChecklistMarker,
+  ['square']: SquareMarker,
+  ['disc']: DiscMarker,
+  ['decimal']: ArabicMarker,
+  ['decimal-leading-zero']: ZeroLeadingArabicMarker,
+  ['latin']: LatinMarker,
+  // NOTE: We allow cases insenstivity as a common convencience feature
+  ['lower-latin']: LatinMarker,
+  ['upper-latin']: LatinMarker,
+  ['roman']: RomanMarker,
+  // NOTE: We allow cases insenstivity as a common convencience feature
+  ['lower-roman']: RomanMarker,
+  ['upper-roman']: RomanMarker,
+  ['ol']: OrderedMarker,
+  ['ul']: UnorderedMarker,
+  ['checkbox']: ChecklistMarker,
 };
 
 const {
@@ -1680,16 +1679,16 @@ debugging('markout', import.meta, [
 ]);
 
 class MarkoutNormalizer extends MarkoutSegmentNormalizer {
-	normalizeSourceText(sourceText) {
-		const {normalized = (this.normalized = new Map())} = this;
-		let normalizedText = normalized.get(sourceText);
-		normalizedText !== undefined ||
-			normalized.set(
-				sourceText,
-				(normalizedText = normalizeString(this.normalizeSegments(normalizeString(sourceText)))),
-			);
-		return normalizedText;
-	}
+  normalizeSourceText(sourceText) {
+    const {normalized = (this.normalized = new Map())} = this;
+    let normalizedText = normalized.get(sourceText);
+    normalizedText !== undefined ||
+      normalized.set(
+        sourceText,
+        (normalizedText = normalizeString(this.normalizeSegments(normalizeString(sourceText)))),
+      );
+    return normalizedText;
+  }
 }
 
 const DOM_MUTATIONS = undefined;
@@ -1746,9 +1745,9 @@ content.defaults = defaults;
 //@ts-check
 
 const MarkupAttributeMap = Enum({
-	SourceType: 'source-type',
-	MarkupMode: 'markup-mode',
-	MarkupSyntax: 'markup-syntax',
+  SourceType: 'source-type',
+  MarkupMode: 'markup-mode',
+  MarkupSyntax: 'markup-syntax',
 });
 
 /**
@@ -1756,48 +1755,48 @@ const MarkupAttributeMap = Enum({
  * @returns {Promise<HTMLElement>}
  */
 const renderSourceText = async options => {
-	let element, sourceType, sourceText, state;
+  let element, sourceType, sourceText, state;
 
-	if (
-		!options ||
-		typeof options !== 'object' ||
-		(({element, sourceType, sourceText, ...options} = options),
-		!(element
-			? !element.hasAttribute(content.MarkupAttributeMap.MarkupSyntax) &&
-			  (sourceType ||
-					(sourceType =
-						element.getAttribute(content.MarkupAttributeMap.MarkupMode) ||
-						element.getAttribute(content.MarkupAttributeMap.SourceType)),
-			  sourceText || (sourceText = element.textContent || ''))
-			: sourceText))
-	)
-		return void console.warn('Aborted: renderSourceText(%o => %o)', options, {element, sourceType, sourceText});
+  if (
+    !options ||
+    typeof options !== 'object' ||
+    (({element, sourceType, sourceText, ...options} = options),
+    !(element
+      ? !element.hasAttribute(content.MarkupAttributeMap.MarkupSyntax) &&
+        (sourceType ||
+          (sourceType =
+            element.getAttribute(content.MarkupAttributeMap.MarkupMode) ||
+            element.getAttribute(content.MarkupAttributeMap.SourceType)),
+        sourceText || (sourceText = element.textContent || ''))
+      : sourceText))
+  )
+    return void console.warn('Aborted: renderSourceText(%o => %o)', options, {element, sourceType, sourceText});
 
-	element != null
-		? element.removeAttribute(content.MarkupAttributeMap.SourceType)
-		: ((element = document.createElement('pre')).className = 'markup code');
+  element != null
+    ? element.removeAttribute(content.MarkupAttributeMap.SourceType)
+    : ((element = document.createElement('pre')).className = 'markup code');
 
-	state = element['(markup)'] = {
-		element,
-		sourceText,
-		sourceType,
-		fragment: document.createDocumentFragment(),
-		parsingGoal:
-			(/^(js|javascript|es|ecmascript)$/i.test(sourceType) &&
-				(element.matches('[script=module], [module]') ? 'module' : element.matches('[script]') ? 'script' : 'code')) ||
-			undefined,
-	};
+  state = element['(markup)'] = {
+    element,
+    sourceText,
+    sourceType,
+    fragment: document.createDocumentFragment(),
+    parsingGoal:
+      (/^(js|javascript|es|ecmascript)$/i.test(sourceType) &&
+        (element.matches('[script=module], [module]') ? 'module' : element.matches('[script]') ? 'script' : 'code')) ||
+      undefined,
+  };
 
-	// TODO: Implement proper out-of-band handling for js versus es modes
-	state.parsingGoal === 'module' && (state.sourceType = sourceType = 'es');
+  // TODO: Implement proper out-of-band handling for js versus es modes
+  state.parsingGoal === 'module' && (state.sourceType = sourceType = 'es');
 
-	element.setAttribute(content.MarkupAttributeMap.MarkupSyntax, state.sourceType);
-	element.textContent = '';
-	element.sourceText = sourceText;
-	await render$1(sourceText, state);
-	element.appendChild(state.fragment);
+  element.setAttribute(content.MarkupAttributeMap.MarkupSyntax, state.sourceType);
+  element.textContent = '';
+  element.sourceText = sourceText;
+  await render$1(sourceText, state);
+  element.appendChild(state.fragment);
 
-	return element;
+  return element;
 };
 
 content.MarkupAttributeMap = MarkupAttributeMap;

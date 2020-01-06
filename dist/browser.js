@@ -48,39 +48,39 @@ var entities = /*#__PURE__*/Object.freeze({
 /** @template {selector} T @extends Array<T> */
 //@ts-ignore
 class Selectors extends Array {
-	// /**
-	//  * @template {T} U
-	//  * @template This
-	//  * @param {(value: T, index: number, array: T[]) => selector|selectors} callbackFunction
-	//  * @param {This} [thisArgument]
-	//  * @returns {Selectors<T>}
-	//  */
-	//@ts-ignore
-	get flatMap() {
-		Object.defineProperty(
-			Selectors.prototype,
-			'flatMap',
-			Object.getOwnPropertyDescriptor(Array.prototype, 'flatMap') ||
-				Object.getOwnPropertyDescriptor(
-					class extends Array {
-						flatMap(callbackFunction, thisArgument) {
-							return this.concat(...this.map(callbackFunction, thisArgument));
-						}
-					}.prototype,
-					'flatMap',
-				),
-		);
+  // /**
+  //  * @template {T} U
+  //  * @template This
+  //  * @param {(value: T, index: number, array: T[]) => selector|selectors} callbackFunction
+  //  * @param {This} [thisArgument]
+  //  * @returns {Selectors<T>}
+  //  */
+  //@ts-ignore
+  get flatMap() {
+    Object.defineProperty(
+      Selectors.prototype,
+      'flatMap',
+      Object.getOwnPropertyDescriptor(Array.prototype, 'flatMap') ||
+        Object.getOwnPropertyDescriptor(
+          class extends Array {
+            flatMap(callbackFunction, thisArgument) {
+              return this.concat(...this.map(callbackFunction, thisArgument));
+            }
+          }.prototype,
+          'flatMap',
+        ),
+    );
 
-		return this.flatMap;
-		// return this.concat(...super.map(callbackFunction, thisArgument));
-	}
+    return this.flatMap;
+    // return this.concat(...super.map(callbackFunction, thisArgument));
+  }
 
-	toString() {
-		return this.join(',');
-	}
-	static get [Symbol.species]() {
-		return this;
-	}
+  toString() {
+    return this.join(',');
+  }
+  static get [Symbol.species]() {
+    return this;
+  }
 }
 
 /** @typedef {string} selector */
@@ -585,52 +585,52 @@ content.renderSourceTextsInFragment = renderSourceTextsInFragment;
 
 /** @param {Fragment} fragment */
 const populateAssetsInFragment = fragment => {
-	if (!fragment || fragment.assets) return;
-	fragment.assets = [];
+  if (!fragment || fragment.assets) return;
+  fragment.assets = [];
 
-	for (const link of /** @type {Iterable<Link>} */ (fragment.querySelectorAll(content.AssetNodeSelector))) {
-		if (link.nodeName === 'SCRIPT') {
-			if (link.type === 'module') {
-				(fragment.assets.modules || (fragment.assets.modules = [])).push(/** @type {HTMLScriptElement} */ (link));
-			} else if (!link.type || link.type.trim().toLowerCase() === 'text/javascript') {
-				(fragment.assets.scripts || (fragment.assets.scripts = [])).push(/** @type {HTMLScriptElement} */ (link));
-			}
-		} else if (link.nodeName === 'STYLE') {
-			if (!link.type || link.type.trim().toLowerCase() === 'text/css') {
-				(fragment.assets.stylesheets || (fragment.assets.stylesheets = [])).push(
-					/** @type {HTMLStyleElement} */ (link),
-				);
-			}
-		} else {
-			/** @type {Links} */ (
-				fragment.assets[content.AssetNodeMap[link.nodeName]] ||
-				//@ts-ignore
-				(fragment.assets[content.AssetNodeMap[link.nodeName]] = [])
-			).push(link);
-		}
-		fragment.assets.push(link);
-	}
+  for (const link of /** @type {Iterable<Link>} */ (fragment.querySelectorAll(content.AssetNodeSelector))) {
+    if (link.nodeName === 'SCRIPT') {
+      if (link.type === 'module') {
+        (fragment.assets.modules || (fragment.assets.modules = [])).push(/** @type {HTMLScriptElement} */ (link));
+      } else if (!link.type || link.type.trim().toLowerCase() === 'text/javascript') {
+        (fragment.assets.scripts || (fragment.assets.scripts = [])).push(/** @type {HTMLScriptElement} */ (link));
+      }
+    } else if (link.nodeName === 'STYLE') {
+      if (!link.type || link.type.trim().toLowerCase() === 'text/css') {
+        (fragment.assets.stylesheets || (fragment.assets.stylesheets = [])).push(
+          /** @type {HTMLStyleElement} */ (link),
+        );
+      }
+    } else {
+      /** @type {Links} */ (
+        fragment.assets[content.AssetNodeMap[link.nodeName]] ||
+        //@ts-ignore
+        (fragment.assets[content.AssetNodeMap[link.nodeName]] = [])
+      ).push(link);
+    }
+    fragment.assets.push(link);
+  }
 
-	return fragment;
+  return fragment;
 };
 
 /** @param {Fragment} fragment */
 const flattenTokensInFragment = fragment => {
-	for (const token of fragment.querySelectorAll('span[token-type],tt[token-type]')) {
-		token.nodeName === 'TT' || token.before(...token.childNodes);
-		token.remove();
-	}
+  for (const token of fragment.querySelectorAll('span[token-type],tt[token-type]')) {
+    token.nodeName === 'TT' || token.before(...token.childNodes);
+    token.remove();
+  }
 };
 
 const AssetNodeMap = Enum({
-	IMG: 'images',
-	SOURCE: 'sources',
-	VIDEO: 'videos',
+  IMG: 'images',
+  SOURCE: 'sources',
+  VIDEO: 'videos',
 });
 
 const AssetNodeSelector = ['script', 'style', ...Object.keys(AssetNodeMap)]
-	.map(tag => `${tag.toUpperCase()}[src]:not([slot]),${tag.toUpperCase()}[srcset]:not([slot])`)
-	.join(',');
+  .map(tag => `${tag.toUpperCase()}[src]:not([slot]),${tag.toUpperCase()}[srcset]:not([slot])`)
+  .join(',');
 
 content.AssetNodeSelector = AssetNodeSelector;
 content.AssetNodeMap = AssetNodeMap;
@@ -1062,63 +1062,63 @@ debugging('markout-content', import.meta, [
 /** @param {HTMLAnchorElement} anchor */
 
 const rewriteAnchors = (
-	anchors,
-	{
-		RewritableURL = rewriteAnchors.defaults.RewritableURL,
-		sourceURL,
-		baseURL,
-		search,
-		rootNode = document,
-		debugging = import.meta['debug:hashout:anchor-rewrite'],
-	},
+  anchors,
+  {
+    RewritableURL = rewriteAnchors.defaults.RewritableURL,
+    sourceURL,
+    baseURL,
+    search,
+    rootNode = document,
+    debugging = import.meta['debug:hashout:anchor-rewrite'],
+  },
 ) => {
-	debugging && console.groupCollapsed('%O ‹anchors› ', rootNode);
+  debugging && console.groupCollapsed('%O ‹anchors› ', rootNode);
 
-	for (const anchor of anchors) {
-		const href = anchor.getAttribute('href');
-		if (!href) continue;
-		const [matched, parent, name, extension = '.md', query = '', hash = ''] = RewritableURL.exec(
-			href.replace(/%23|%3F/g, decodeURIComponent),
-		);
+  for (const anchor of anchors) {
+    const href = anchor.getAttribute('href');
+    if (!href) continue;
+    const [matched, parent, name, extension = '.md', query = '', hash = ''] = RewritableURL.exec(
+      href.replace(/%23|%3F/g, decodeURIComponent),
+    );
 
-		// const alias = getAliasForAnchor(anchor);
-		// const baseNode = (alias && getBaseForAnchor(alias)) || getBaseForAnchor(anchor);
-		// const base = (alias && alias.name && /^\/\S+\/$/.test(alias.name) && baseNode && baseNode.href) || sourceURL;
-		const base = sourceURL;
+    // const alias = getAliasForAnchor(anchor);
+    // const baseNode = (alias && getBaseForAnchor(alias)) || getBaseForAnchor(anchor);
+    // const base = (alias && alias.name && /^\/\S+\/$/.test(alias.name) && baseNode && baseNode.href) || sourceURL;
+    const base = sourceURL;
 
-		debugging && console.log({matched, parent, name, extension, query, hash, base});
+    debugging && console.log({matched, parent, name, extension, query, hash, base});
 
-		if (base !== sourceURL) {
-			anchor.href = new URL(matched, base);
-			anchor.target || (anchor.target = '_blank');
-		} else if (parent) {
-			const pathname = `${parent}${name ? `${name}${extension}` : ''}`;
-			const href =
-				name && extension.toLowerCase() === '.md'
-					? `${baseURL}${search}#${new URL(pathname, base).pathname}${hash}`
-					: new URL(`${pathname}${query || ((!hash && search) || '')}${hash}`, base);
-			anchor.href = href;
-		} else if (hash) {
-			anchor.href = `${location}${matched}`;
-		} else {
-			anchor.target || (anchor.target = '_blank');
-		}
+    if (base !== sourceURL) {
+      anchor.href = new URL(matched, base);
+      anchor.target || (anchor.target = '_blank');
+    } else if (parent || (!!name && matched.startsWith(name))) {
+      const pathname = `${parent || './'}${name ? `${name}${extension}` : ''}`;
+      const href =
+        name && extension.toLowerCase() === '.md'
+          ? `${baseURL}${search}#${new URL(pathname, base).pathname}${hash}`
+          : new URL(`${pathname}${query || (!hash && search) || ''}${hash}`, base);
+      anchor.href = href;
+    } else if (hash) {
+      anchor.href = `${location}${matched}`;
+    } else {
+      anchor.target || (anchor.target = '_blank');
+    }
 
-		// if (debugging && hash) debugger;
-		debugging && console.dirxml(anchor);
-	}
+    // if (debugging && hash) debugger;
+    debugging && console.dirxml(anchor);
+  }
 
-	debugging && console.groupEnd();
+  debugging && console.groupEnd();
 };
 
 rewriteAnchors.defaults = {
-	RewritableURL: /^(\.*(?=\/)[^?#\n]*\/|)(?:(?:([^/?#\n]+?)(?:(\.[a-z]+)|)|)|)(\?[^#]+|)(#.*|)$|/i,
+  RewritableURL: /^(\.*(?=\/)[^?#\n]*\/|)(?:(?:([^/?#\n]+?)(?:(\.[a-z]+)|)|)|)(\?[^#]+|)(#.*|)$|/i,
 };
 
 debugging('hashout', import.meta, [
-	// import.meta.url.includes('/markout/lib/') ||
-	typeof location === 'object' && /[?&]debug(?=[&#]|=[^&]*\bhashout|$)\b/.test(location.search),
-	'anchor-rewrite',
+  // import.meta.url.includes('/markout/lib/') ||
+  typeof location === 'object' && /[?&]debug(?=[&#]|=[^&]*\bhashout|$)\b/.test(location.search),
+  'anchor-rewrite',
 ]);
 
 (async () => {
