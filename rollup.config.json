@@ -6,8 +6,9 @@
   },
   "scopes": {
     "/markout/": "./",
-    "/markup/": "../markup/",
-    "/components/": "../components/"
+    "/browser/": "./browser/",
+    "/markup/": "./node_modules/@smotaal.io/markup/",
+    "/components/": "./node_modules/@smotaal.io/components/"
   },
   "bundles": [
     {
@@ -23,12 +24,9 @@
         "chunkFileNames": "[name].js",
         "dir": "./dist/",
         "paths": {
-          "/markout/lib/helpers.js": "../lib/helpers.js",
-          "/markup/dist/tokenizer.browser.js": "../../markup/dist/tokenizer.browser.js",
-          "/browser/legacy.js": "../../browser/legacy.js"
         }
       },
-      "external": ["/browser/legacy.js"],
+      "external": [],
       "chunks": "scopes"
     }
   ]
