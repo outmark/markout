@@ -1,0 +1,32 @@
+{
+  "search.exclude": {
+    "experimental": false,
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/archive": true,
+    "**/trash": true,
+    "**/dist": true,
+    "**/[more]": true,
+    "**/[trash]": true,
+    "**/.git": true
+  },
+  "search.useIgnoreFiles": true,
+  "files.watcherExclude": {
+    "experimental": false,
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/archive": true,
+    "**/trash": true,
+    "**/dist": true,
+    "**/[more]": true
+  },
+  "files.exclude": {},
+  "javascript.implicitProjectConfig.checkJs": true,
+  "markdown.styles": [".markdown.css"],
+  "npm.scriptExplorerAction": "run",
+  "npm.enableRunFromFolder": true,
+  "npm.autoDetect": "on",
+  "npm.packageManager": "yarn"
+}
