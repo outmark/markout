@@ -26,7 +26,7 @@ And so, Markout Frames is a framework aiming to leveraging `iframes` far beyond 
 
 Playgrounds are the smallest addressable unit in our framework, and the starting point for sexploring this design space.
 
-Aside from initial excitement and insights gained from early efforts, so far they have not delivered enough on the expectations that would make good case for Playgrounds to be offered as a feature of Markout — see [The First Markout Playground](../examples/Playground.md).
+Aside from initial excitement and insights gained from early efforts, so far they have not delivered enough on the expectations that would make good case for Playgrounds to be offered as a feature of Markout — see [The First Markout Playground](./examples/Playground.md).
 
 There are a lot of gaps for this to be useful, and even then, it is not likely that it would be a very useful feature by itself. Instead, it can be a very useful building block for other features, like Walkthroughs.
 
