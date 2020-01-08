@@ -1,7 +1,7 @@
 ﻿//@ts-check
 
 import {Playground} from '../lib/playground.js';
-import {encodeEntities} from '../lib/markup.js';
+// import {encodeEntities} from '../lib/markup.js';
 
 export const MarkoutPlayground = (() => {
   /** @type {typeof MarkoutPlayground} */
@@ -109,9 +109,9 @@ export const MarkoutPlayground = (() => {
               //   predictable fragments but will require
               //   unescaping later on.
               // TODO: Where can we safely unescape this?
-              block.hasAttribute('preserve-entities') ||
-                /\bhtml?\b|\bsvg\b/i.test(node.type) ||
-                (node.body = encodeEntities(node.body));
+              // block.hasAttribute('preserve-entities') ||
+              //   /\bhtml?\b|\bsvg\b/i.test(node.type) ||
+              //   (node.body = encodeEntities(node.body));
           }
         } else if (scriptAttribute) {
           node.body = block.textContent;
