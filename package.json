@@ -18,6 +18,8 @@
   },
   "devDependencies": {
     "@smotaal.io/tools": "*",
+    "@smotaal.io/markup": "SMotaal/markup",
+    "@smotaal.io/components": "SMotaal/components",
     "@types/node": "*",
     "prettier": "*",
     "rollup": "*",
