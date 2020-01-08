@@ -25,7 +25,7 @@
         "paths": {
           "/markout/lib/helpers.js": "../lib/helpers.js",
           "/markup/dist/tokenizer.browser.js": "../../markup/dist/tokenizer.browser.js",
-          "/browser/legacy.js": "../../../browser/legacy.js"
+          "/browser/legacy.js": "../../browser/legacy.js"
         }
       },
       "external": ["/browser/legacy.js"],

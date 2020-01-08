@@ -1,5 +1,5 @@
 ﻿@import './root.css';
-@import '/markup/styles/markup.css';
+@import './markup.tokens.css';
 /* @import '/markup/styles/markup-debug.css'; */
 
 @media screen and (prefers-color-scheme: dark) {

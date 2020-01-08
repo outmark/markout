@@ -1,0 +1,430 @@
+:host {
+  --markup-neutral-light: var(--markup-neutral-light, #aaa);
+  --markup-neutral: var(--markup-neutral, #999);
+  --markup-neutral-fade: var(--markup-neutral-fade, #9993);
+  --markup-neutral-dim: var(--markup-neutral, #9999);
+  --markup-neutral-dark: var(--markup-neutral-dark, #666);
+
+  --markup-light-text: var(--markup-light-text, #666);
+  --markup-light: var(--markup-light, #f9f9f9);
+  --markup-light-fade: var(--markup-light-fade, #f9f9f933);
+  --markup-dark-text: var(--markup-dark-text, #eee);
+  --markup-dark: var(--markup-dark, #333f46);
+  --markup-dark-fade: var(--markup-dark-fade, #333f4633);
+  --markup-color: var(--markup-color, currentColor);
+  --markup-background: var(--markup-background, var(--markup-neutral-fade));
+}
+
+:root {
+  /**/ /**/ /**/ /**/ /** DEFAULTS **/ /**/ /**/ /**/ /**/
+  --markup-tab-size: 2;
+  --markup-soft-inset-size: 2;
+}
+
+:root,
+:host {
+  /**/ /**/ /**/ /**/ /** NEUTRALS **/ /**/ /**/ /**/ /**/
+  --markup-neutral-light: #aaa;
+  --markup-neutral: #999;
+  --markup-neutral-fade: #9993;
+  --markup-neutral-dark: #666;
+
+  --markup-light-text: #666;
+  --markup-light: #f9f9f9;
+  --markup-light-fade: #f9f9f933;
+  --markup-dark-text: #eee;
+  --markup-dark: #333f46;
+  --markup-dark-fade: #333f4633;
+
+  --markup-active-line: #39f;
+  --markup-active-fade: #39f9;
+
+  /**/ /**/ /**/ /**/ /** PRIMARIES **/ /**/ /**/ /**/ /**/
+  --markup-light-background: var(--markup-light, #f9f9f9);
+  --markup-light-faults-background: #f21;
+  --markup-light-faults-highlight: #f219;
+  --markup-light-color: var(--markup-light-text, #666);
+  --markup-light-shadow: white;
+  --markup-light-contrast: white;
+  --markup-dark-background: var(--markup-dark, #333f46);
+  --markup-dark-faults-background: #f21;
+  --markup-dark-faults-highlight: #f219;
+  --markup-dark-color: var(--markup-dark-text, #eee);
+  --markup-dark-contrast: #23262f;
+  --markup-dark-shadow: black;
+
+  /**/ /**/ /**/ /**/ /** HINTS **/ /**/ /**/ /**/ /**/
+  --markup-light-sequences: grey;
+  --markup-light-faults: white;
+  --markup-light-identifiers: darkslategrey;
+  --markup-light-keywords: chocolate;
+  --markup-light-comments: var(--markup-neutral-light, #aaa);
+  --markup-light-whitespace: var(--markup-neutral, #999);
+  --markup-dark-identifiers: lightgrey;
+  --markup-dark-comments: var(--markup-neutral, #999);
+  --markup-dark-whitespace: var(--markup-neutral-dark, #666);
+  --markup-dark-literals: cyan;
+
+  /**/ /**/ /**/ /**/ /** PUNCTUATION **/ /**/ /**/ /**/ /**/
+  --markup-light-punctuators: lightseagreen;
+  --markup-light-operators: limegreen;
+  --markup-light-combinators: cornflowerblue;
+  --markup-light-breakers: grey;
+  --markup-light-quotes: cadetblue;
+  --markup-light-closures: orange;
+  --markup-light-spans: coral;
+  --markup-light-literals: darkcyan;
+  --markup-light-patterns: grey;
+
+  /**/ /**/ /**/ /**/ /** LIGHT THEME **/ /**/ /**/ /**/ /**/
+  --markup-background: var(--markup-light-background);
+  --markup-faults-background: var(--markup-light-faults-background);
+  --markup-faults-highlight: var(--markup-light-faults-highlight);
+  --markup-color: var(--markup-light-color);
+  --markup-contrast: var(--markup-light-contrast);
+  --markup-contrast-inverse: var(--markup-dark-contrast);
+  --markup-shadow: var(--markup-light-shadow);
+
+  --markup-faults: var(--markup-light-faults);
+  --markup-identifiers: var(--markup-light-identifiers);
+  --markup-keywords: var(--markup-light-keywords);
+  --markup-punctuators: var(--markup-light-punctuators);
+  --markup-sequences: var(--markup-light-sequences);
+  --markup-operators: var(--markup-light-operators);
+  --markup-combinators: var(--markup-light-combinators);
+  --markup-breakers: var(--markup-light-breakers);
+  --markup-quotes: var(--markup-light-quotes);
+  --markup-closures: var(--markup-light-closures);
+  --markup-spans: var(--markup-light-spans);
+  --markup-literals: var(--markup-light-literals);
+  --markup-patterns: var(--markup-light-patterns);
+
+  --markup-comments: var(--markup-light-comments);
+  --markup-whitespace: var(--markup-light-whitespace);
+}
+
+@media screen {
+  /* TODO: Add support for @media (prefers-dark-mode) when it lands */
+  pre.dark-mode,
+  html.dark-mode,
+  :host(.dark-mode) {
+    /**/ /**/ /**/ /**/ /** DARK THEME **/ /**/ /**/ /**/ /**/
+    --markup-background: var(--markup-dark-background, var(--markup-light-background));
+    --markup-faults-background: var(--markup-dark-faults-background, var(--markup-light-faults-background));
+    --markup-faults-highlight: var(--markup-dark-faults-highlight, var(--markup-light-faults-highlight));
+    --markup-color: var(--markup-dark-color, var(--markup-light-color));
+    --markup-contrast: var(--markup-dark-contrast, var(--markup-light-contrast));
+    --markup-contrast-inverse: var(--markup-light-contrast);
+    --markup-shadow: var(--markup-dark-shadow, var(--markup-light-shadow));
+
+    --markup-faults: var(--markup-dark-faults, var(--markup-light-faults));
+    --markup-identifiers: var(--markup-dark-identifiers, var(--markup-light-identifiers));
+    --markup-keywords: var(--markup-dark-keywords, var(--markup-light-keywords));
+    --markup-punctuators: var(--markup-dark-punctuators, var(--markup-light-punctuators));
+    --markup-sequences: var(--markup-dark-sequences, var(--markup-light-sequences));
+    --markup-operators: var(--markup-dark-operators, var(--markup-light-operators));
+    --markup-combinators: var(--markup-dark-combinators, var(--markup-light-combinators));
+    --markup-breakers: var(--markup-dark-breakers, var(--markup-light-breakers));
+    --markup-quotes: var(--markup-dark-quotes, var(--markup-light-quotes));
+    --markup-closures: var(--markup-dark-closures, var(--markup-light-closures));
+    --markup-spans: var(--markup-dark-spans, var(--markup-light-spans));
+    --markup-literals: var(--markup-dark-literals, var(--markup-light-literals));
+    --markup-patterns: var(--markup-dark-patterns, var(--markup-light-patterns));
+
+    --markup-comments: var(--markup-dark-comments, var(--markup-light-comments));
+    --markup-whitespace: var(--markup-dark-whitespace, var(--markup-light-whitespace));
+  }
+}
+
+/* .markup-line, */
+/* .markup-line > .markup, */
+.markup-token,
+.markup-line > .markup,
+.markup-line {
+  columns: initial;
+  transform: initial;
+  animation: initial;
+  will-change: initial;
+  scale: initial;
+  zoom: initial;
+  pointer-events: visible;
+  text-indent: 0;
+  padding: 0;
+  margin: 0;
+  border-collapse: separate;
+  white-space: pre-wrap;
+  box-sizing: border-box;
+}
+
+.markup-line {
+  --em--: calc(1em - 1em);
+  cursor: var(--markup-line-cursor);
+  outline: var(--markup-line-outline);
+  outline-offset: var(--markup-line-outline-offset, -0.5px);
+  opacity: var(--markup-line-opacity);
+  color: var(--markup-line-color);
+  background-color: var(--markup-line-background-color);
+  break-before: auto;
+  break-inside: avoid;
+  display: flow-root;
+  text-rendering: geometricPrecision;
+  font-synthesis: weight;
+  font-variant-ligatures: common-ligatures discretionary-ligatures contextual historical-ligatures;
+  font-weight: 300;
+  hyphens: none;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  line-break: loose;
+  line-clamp: 1;
+  white-space: pre-wrap;
+}
+
+.markup-line :not(.markup-line).markup {
+  display: var(--markup-token-display, contents);
+  margin: var(--markup-token-margin, 0);
+  color: var(--color, var(--markup-color, var(--markup-light-text, currentColor)));
+}
+
+.markup-line.markup {
+  --markup-token-display: contents;
+  --markup-token-margin: 0px;
+  --markup-line-number-font-scale: 0.75;
+  --markup-line-number-color: var(--markup-neutral-dim, #9999);
+  --markup-line-number-background-color: transparent;
+  --markup-line-number-opacity: 1;
+  --markup-line-inset: calc(
+    var(--markup-line-inset-spaces, 0) + var(--markup-tab-size, 2) * var(--markup-line-inset-tabs, 0)
+  );
+  --markup-line-indent: calc(1em * var(--markup-line-inset, 0));
+  --markup-soft-indent: calc(1em * var(--markup-soft-inset-size));
+  --markup-text-indent: calc(-1 * var(--markup-soft-indent, 0.0001em));
+  --markup-inset-margin: calc(var(--markup-gutter, 0));
+  --markup-inset-padding: calc(0.275em + var(--markup-soft-indent, 0.0001em));
+
+  -webkit-margin-start: var(--markup-inset-margin, 0);
+  /* -webkit-margin-start: calc(var(--markup-inset-margin, 0) + var(--markup-line-indent, 0.0001em)); */
+  margin-inline-start: var(--markup-inset-margin, 0);
+  /* margin-inline-start: calc(var(--markup-inset-margin, 0) + var(--markup-line-indent, 0.0001em)); */
+  /* -webkit-padding-start: var(--markup-inset-padding, 0); */
+  -webkit-padding-start: calc(var(--markup-inset-padding, 0) + var(--markup-line-indent, 0.0001em));
+  /* padding-inline-start: var(--markup-inset-padding, 0); */
+  padding-inline-start: calc(var(--markup-inset-padding, 0) + var(--markup-line-indent, 0.0001em));
+  /* text-indent: var(--markup-text-indent, 0); */
+  text-indent: calc(var(--markup-text-indent, 0) - var(--markup-line-indent, 0.0001em));
+
+  /* SEE: https://drafts.csswg.org/css-text-3/#text-indent-property */
+}
+
+/* .markup-line.markup > .markup.inset:first-child {} */
+.markup-line.markup > .markup.comment.single-line-comment {
+  display: inline-block !important;
+}
+
+.markup-line.markup.no-reflow {
+  --markup-soft-indent: calc(1em * 0);
+}
+
+.markup-line-numbers pre,
+pre.markup-line-numbers,
+pre.markup[line-numbers],
+pre > .markup-line-numbers {
+  --markup-gutter: 3.5em;
+  counter-reset: line;
+}
+
+.markup-line-numbers pre .markup-line.markup,
+pre.markup-line-numbers .markup-line.markup,
+pre.markup[line-numbers] .markup-line.markup,
+pre > .markup-line-numbers .markup-line.markup {
+  border: 0 solid transparent;
+  -webkit-border-start-width: 0.5px;
+  border-inline-start-width: 0.5px;
+  -webkit-border-start-color: #9999;
+  border-inline-start-color: #9999;
+}
+
+.markup-line-numbers .markup-line.markup::before,
+pre.markup[line-numbers] .markup-line.markup::before {
+  float: left;
+  vertical-align: middle;
+
+  text-align: end;
+  text-indent: 0;
+  white-space: pre;
+
+  counter-increment: line;
+  content: '';
+  content: counter(line) ' ';
+
+  --font-scale: var(--markup-line-number-font-scale, 1);
+
+  width: calc(-0.5em + var(--markup-gutter, 0.5em));
+  height: calc(100% * var(--font-scale));
+
+  -webkit-margin-start: calc(
+    -1 * var(--markup-gutter, 0) - var(--markup-soft-indent) / var(--font-scale) - var(--markup-line-indent, 0.0001em) /
+      var(--font-scale) + 1px
+  );
+  margin-inline-start: calc(
+    -1 * var(--markup-gutter, 0) - var(--markup-soft-indent) / var(--font-scale) - var(--markup-line-indent, 0.0001em) /
+      var(--font-scale) + 1px
+  );
+  /* -webkit-margin-start: calc(-1 * var(--markup-gutter, 0) - var(--markup-soft-indent) / var(--font-scale)); */
+  /* margin-inline-start: calc(-1 * var(--markup-gutter, 0) - var(--markup-soft-indent) / var(--font-scale)); */
+
+  font-size: calc(100% * var(--font-scale));
+  font-variant: small-caps;
+  font-style: normal;
+  font-weight: 400;
+
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+
+  color: var(--markup-line-number-color, inherit);
+  background-color: var(--markup-line-number-background-color, transparent);
+
+  opacity: var(--markup-line-number-opacity);
+}
+
+.markup.markup-token.sequence {
+  --color: var(--markup-sequences, grey);
+}
+
+.markup.markup-token.literal {
+  --color: var(--markup-literals, darkcyan);
+}
+
+.markup.markup-token.identifier {
+  --color: var(--markup-identifiers, darkslategrey);
+  font-weight: 400;
+  /* font-style: italic; */
+}
+
+.markup.markup-token.keyword {
+  --color: var(--markup-keywords, chocolate);
+  /* font-weight: 300; */
+}
+
+.markup.markup-token.pattern.delimiter,
+.markup.markup-token.pattern.opener,
+.markup.markup-token.pattern.closer,
+.markup.markup-token.punctuator {
+  --color: var(--markup-punctuators, lightseagreen);
+  /* text-rendering: geometricPrecision; */
+}
+
+/* .markup.delimiter, */
+.markup.markup-token.opener,
+.markup.markup-token.closer {
+  --color: var(--markup-closures, orange);
+}
+
+.markup.markup-token.operator {
+  --color: var(--markup-operators, limegreen);
+  /* text-rendering: geometricPrecision; */
+}
+
+/* .markup.in-pattern.delimiter, */
+.markup.markup-token.in-pattern.opener,
+.markup.markup-token.in-pattern.closer,
+.markup.markup-token.combinator {
+  --color: var(--markup-combinators, cornflowerblue);
+  /* text-rendering: geometricPrecision; */
+}
+
+.markup.markup-token.breaker {
+  --color: var(--markup-breakers, grey);
+}
+
+.markup.markup-token.string,
+.markup.markup-token.in-string,
+.markup.markup-token.quote,
+.markup.markup-token.in-quote {
+  --color: var(--markup-quotes, cadetblue);
+}
+
+.markup.markup-token.delimiter,
+.markup.markup-token.punctuator.span {
+  --color: var(--markup-spans, coral);
+}
+
+/**/ /**/ /**/ /**/ /** LITERALS **/ /**/ /**/ /**/ /**/
+
+.markup.markup-token.regexp,
+.markup.markup-token.pattern {
+  --color: var(--markup-patterns, grey);
+}
+
+.markup.markup-token.literal {
+  font-weight: 400;
+}
+
+.markup.markup-token.punctuator {
+  font-weight: 400;
+}
+
+.markup.markup-token.regexp,
+.markup.markup-token.in-regexp,
+.markup.markup-token.pattern,
+.markup.markup-token.in-pattern,
+.markup.markup-token.string,
+.markup.markup-token.in-string,
+.markup.markup-token.quote,
+.markup.markup-token.in-quote,
+.markup.markup-fault,
+.markup.fault {
+  font-weight: 400;
+  font-variant-ligatures: none;
+  --markup-token-display: inline;
+}
+
+.markup.markup-token.comment,
+.markup.markup-token.in-comment {
+  --color: var(--markup-comments, #aaa);
+}
+
+.markup.markup-token.break,
+.markup.markup-token.whitespace {
+  --color: var(--markup-whitespace, #999);
+}
+
+.markup-line.fault,
+.markup.markup-fault,
+.markup.fault {
+  --color: var(--markup-faults, white);
+  background-color: var(--markup-faults-highlight, #f219);
+  font-variant-ligatures: none;
+}
+
+.markup.markup-token.delimiter,
+.markup.markup-token.opener,
+.markup.markup-token.closer {
+  font-weight: 500;
+  /* font-variant-ligatures: none; */
+}
+
+/* .markup-line.fault > .fault::after, */
+.markup-line.fault::after,
+.markup-line.fault::before {
+  display: none;
+}
+
+.markup-line.fault {
+  --markup-gutter: 0;
+  --markup-soft-indent: 0;
+  color: var(--color, white);
+  padding: 1em;
+  border-radius: 0.5em;
+  /* display: inline-block; */
+  /* --markup-inset-margin: 0; */
+  /* margin: 1em; */
+  /* width: calc() */
+}
+
+@media only print {
+  .markup-line.markup {
+    --markup-line-number-color: black;
+    /* color: black; */
+  }
+}

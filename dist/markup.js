@@ -1,4 +1,4 @@
-import '../../../browser/legacy.js';
+import '../browser/legacy.js';
 
 // @ts-check
 
