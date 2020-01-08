@@ -13,8 +13,8 @@
   "main": "lib/markout.js",
   "scripts": {
     "bundle": "rollup -c rollup.config.js",
-    "prestart": "[ -d public ] || mkdir public; pushd public && ([ -d markout ] || ln -s .. markout; [ -d components ] || ln -s ../node_modules/@smotaal.io/components; [ -d markup ] || ln -s ../node_modules/@smotaal.io/markup) && popd;",
-    "prelocal": "$npm_package_scripts_prestart",
+    "prestart": "[ -d public ] || mkdir public; pushd public && ([ -d markout ] || ln -s .. markout; [ -d components ] || ln -s ../node_modules/@smotaal.io/components; [ -d markup ] || ln -s ../node_modules/@smotaal.io/markup; popd)",
+    "prelocal": "$npm_execpath prestart",
     "local": "http-server -d false --cors -s -c-1 -p 80",
     "start": "npx http-server -d false --cors -s -c-1 -p 80"
   },
