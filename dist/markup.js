@@ -1,5 +1,3 @@
-import '../browser/legacy.js';
-
 // @ts-check
 
 const {
