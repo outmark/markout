@@ -1,5 +1,9 @@
 # Project-specific files
 trash/
+public/markout
+public/components
+public/markup
+
 
 # Logs
 logs
