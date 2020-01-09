@@ -445,7 +445,7 @@ const {
   matchAll,
 } = Matcher;
 
-//@ts-check
+// @ts-check
 
 const {atoms, range} = (() => {
   const {freeze} = Object;
@@ -521,7 +521,7 @@ const MATCH = Symbol('match');
 // /** @param {string} string */
 // const lower = string => string.toLowerCase();
 
-//@ts-check
+// @ts-check
 
 /** Arrays of isolated characters */
 const ranges = {};
@@ -1533,7 +1533,7 @@ typeof globalThis !== 'object' ||
   (globalThis.$md = (specifier = '/markout/examples/markdown-testsuite.md') =>
     MarkdownSegmenter.debug({specifier, matcher: MarkdownSegmenter}));
 
-//@ts-check
+// @ts-check
 
 /** @template T @param {T} pairs @returns {Readonly<T>} */
 const Enum = pairs => Object.freeze(Object.setPrototypeOf(Enum.reflect({...pairs}), null));
@@ -1614,7 +1614,7 @@ class MarkoutSegmentNormalizer extends MarkoutBlockNormalizer {
 
       return this.normalizeBlocks(sourceText, state);
     } finally {
-      //@ts-ignore
+      // @ts-ignore
       import.meta['debug:markout:segment-normalization'] && console.log('normalizeSegments:', state);
     }
   }
@@ -1731,8 +1731,9 @@ var defaults = /*#__PURE__*/Object.freeze({
   flags: flags
 });
 
-//@ts-check
+// @ts-check
 
+// @ts-ignore
 const content = /** @type {import('./content').content} */ ({});
 
 Object.setPrototypeOf(content, null);
@@ -1742,7 +1743,7 @@ content.symbols = {};
 content.selectors = {};
 content.defaults = defaults;
 
-//@ts-check
+// @ts-check
 
 const MarkupAttributeMap = Enum({
   SourceType: 'source-type',
@@ -1793,6 +1794,8 @@ const renderSourceText = async options => {
   element.setAttribute(content.MarkupAttributeMap.MarkupSyntax, state.sourceType);
   element.textContent = '';
   element.sourceText = sourceText;
+
+  // @ts-ignore
   await render$1(sourceText, state);
   element.appendChild(state.fragment);
 

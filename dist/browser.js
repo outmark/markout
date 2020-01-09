@@ -42,10 +42,10 @@ var entities = /*#__PURE__*/Object.freeze({
   MarkdownIdentity: MarkdownIdentity
 });
 
-//@ts-check
+// @ts-check
 
 /** @template {selector} T @extends Array<T> */
-//@ts-ignore
+// @ts-ignore
 class Selectors extends Array {
   // /**
   //  * @template {T} U
@@ -54,7 +54,7 @@ class Selectors extends Array {
   //  * @param {This} [thisArgument]
   //  * @returns {Selectors<T>}
   //  */
-  //@ts-ignore
+  // @ts-ignore
   get flatMap() {
     Object.defineProperty(
       Selectors.prototype,
@@ -85,7 +85,7 @@ class Selectors extends Array {
 /** @typedef {string} selector */
 /** @typedef {Selectors|selector[]} selectors */
 
-//@ts-check
+// @ts-check
 
 /** @param {Fragment} fragment @param {Record<string, boolean>} [flags] */
 const normalizeRenderedFragment = (fragment, flags$1) => {
@@ -125,10 +125,10 @@ const normalizeRenderedFragment = (fragment, flags$1) => {
       content.normalizeDeclarativeStylingInFragment(fragment));
 
   (flags$1.TOKEN_FLATTENING === true || (flags$1.TOKEN_FLATTENING !== false && flags$1.DOM_MUTATIONS !== false)) &&
-    //@ts-ignore
+    // @ts-ignore
     content.flattenTokensInFragment(fragment);
 
-  //@ts-ignore
+  // @ts-ignore
   content.renderURLExpansionLinksInFragment(fragment);
 };
 
@@ -516,7 +516,7 @@ content.selectors.BlockHeadingNodesInFragment = content.selectors.BlockHeadingNo
 /** @typedef {Element & {[name: string]: any}} ElementLike */
 /** @typedef {Range & {[name: string]: any}} RangeLike */
 
-//@ts-check
+// @ts-check
 
 /** @param {string} sourceText @returns {Fragment}*/
 const createRenderedFragment = sourceText => {
@@ -530,7 +530,7 @@ const createRenderedFragment = sourceText => {
     (tokens = tokenize((normalizedText = normalize(sourceText)))),
   );
 
-  //@ts-ignore
+  // @ts-ignore
   fragment = content.createRenderedFragment.template.content.cloneNode(true);
   fragment.fragment = fragment;
   fragment.sourceText = sourceText;
@@ -580,7 +580,7 @@ content.renderSourceTextsInFragment = renderSourceTextsInFragment;
 
 /** @typedef {import('../types').Fragment} Fragment */
 
-//@ts-check
+// @ts-check
 
 /** @param {Fragment} fragment */
 const populateAssetsInFragment = fragment => {
@@ -603,7 +603,7 @@ const populateAssetsInFragment = fragment => {
     } else {
       /** @type {Links} */ (
         fragment.assets[content.AssetNodeMap[link.nodeName]] ||
-        //@ts-ignore
+        // @ts-ignore
         (fragment.assets[content.AssetNodeMap[link.nodeName]] = [])
       ).push(link);
     }
@@ -640,12 +640,12 @@ content.flattenTokensInFragment = flattenTokensInFragment;
 /** @typedef {import('./types').Fragment.Link} Link */
 /** @typedef {import('./types').Fragment.Links} Links */
 
-//@ts-check
+// @ts-check
 
 class MarkoutContent extends Component {
   /** @type {{[name: string]: boolean | undefined}} */
   static get flags() {
-    //@ts-ignore
+    // @ts-ignore
     const flags = Object.create(super.flags || null);
 
     for (const flag in content.defaults.flags) {
@@ -737,7 +737,7 @@ class MarkoutContent extends Component {
     super();
 
     this.flags = new.target.flags;
-    //@ts-ignore
+    // @ts-ignore
     this.name = `${this.tagName}-${++new.target.instance}`.toLocaleLowerCase();
 
     this.renderedText = /** @type {string} */ (undefined);
@@ -766,7 +766,7 @@ class MarkoutContent extends Component {
   scrollToAnchor(anchor) {
     /** @type {HTMLAnchorElement} */
     let target;
-    //@ts-ignore
+    // @ts-ignore
     const {'::content': contentSlot} = this;
     if (typeof anchor === 'string' && (anchor = anchor.trim()) !== '') {
       anchor = anchor.toLocaleLowerCase().replace(/^the-/, '');
@@ -792,7 +792,7 @@ class MarkoutContent extends Component {
     /** @type {string} */
     let sourceURL;
 
-    //@ts-ignore
+    // @ts-ignore
     ({'::content': contentSlot, '#wrapper': wrapperSlot, sourceURL} = this);
 
     arguments.length || (sourceText = this.sourceText);
@@ -845,20 +845,20 @@ class MarkoutContent extends Component {
     contentSlot.classList.remove('hide');
     contentSlot.hidden = false;
 
-    //@ts-ignore
+    // @ts-ignore
     if (this.rewriteAnchors) {
       const anchors = contentSlot.querySelectorAll('a[href]');
-      //@ts-ignore
+      // @ts-ignore
       anchors && this.rewriteAnchors([...anchors]);
     }
 
     for (const details of contentSlot.querySelectorAll(
       `${
-        //@ts-ignore
+        // @ts-ignore
         /\?.*?\bdetails(?:=open|)\b/.test(location) ? 'details:not([markout-details=normal]):not([open]),' : ''
       } details:not(open)[markout-details=open]`,
     )) {
-      //@ts-ignore
+      // @ts-ignore
       details.open = true;
     }
   }
@@ -1017,7 +1017,7 @@ class MarkoutContent extends Component {
 
   /// Properties
   get sourceText() {
-    //@ts-ignore
+    // @ts-ignore
     const {childNodes, firstElementChild, renderedText} = this;
     if (renderedText || renderedText === '') return renderedText;
 
