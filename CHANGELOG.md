@@ -1,6 +1,10 @@
 ﻿# Change Log
 
-## [unreleased]
+## [0.0.1-pre.2][] — unreleased
+
+- Refactor markout into the new [outmark](https://github.com/outmark) org — see https://github.com/outmark/markout/.
+
+## [0.0.1-pre.1][] — unreleased
 
 - Support for `@media(prefers-color-scheme: dark)`
 
@@ -21,4 +25,5 @@
   - Local serving with `http-server` with/out `yarn` workspaces
   - Frictionless `rollup.config.json` bundling
 
-[unreleased]: https://github.com/SMotaal/smotaal.github.io/tree/master/packages/markout/
+[0.0.1-pre.2]: https://github.com/outmark/markout/
+[0.0.1-pre.1]: https://github.com/SMotaal/smotaal.github.io/tree/master/packages/markout/
