@@ -1,5 +1,5 @@
 ﻿{
-  "extends": "../jsconfig.json"
+  "extends": "@smotaal.io/tools/typescript/jsconfig.base.json",
   "compilerOptions": {
     "rootDir": ".",
     "baseUrl": "../",
