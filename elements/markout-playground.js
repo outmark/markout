@@ -1,4 +1,4 @@
-﻿//@ts-check
+﻿// @ts-check
 
 import {Playground} from '../lib/playground.js';
 // import {encodeEntities} from '../lib/markup.js';
@@ -51,9 +51,9 @@ export const MarkoutPlayground = (() => {
     initializeMarkoutPlayground() {
       const playground = (this.playground = Playground.createBrowserPlayground(this));
 
-      //@ts-ignore
+      // @ts-ignore
       playground.target.width = '100%';
-      //@ts-ignore
+      // @ts-ignore
       playground.target.height = '100%';
 
       const {
@@ -64,12 +64,12 @@ export const MarkoutPlayground = (() => {
       head.push(`<base href="${this.baseURL || this.baseURI}" />`);
 
       /** @type {IterableIterator<PlaygroundBlock>} */
-      //@ts-ignore
+      // @ts-ignore
       const blocks = this.querySelectorAll(
         `pre[markup-syntax][fragment], pre[markup-syntax][script], pre[markup-syntax][style]`,
       );
 
-      //@ts-ignore
+      // @ts-ignore
       for (const block of blocks) {
         const {
           fragment: fragmentAttribute,
@@ -81,7 +81,7 @@ export const MarkoutPlayground = (() => {
         const node = {};
 
         if (fragmentAttribute) {
-          //@ts-ignore
+          // @ts-ignore
           node.body = 'sourceText' in block ? block.sourceText : block.textContent;
           node.tag = '#document-fragment';
           node.type = syntaxAttribute.value.toLowerCase();
@@ -152,7 +152,7 @@ export const MarkoutPlayground = (() => {
 
       // We wait at least one frame (more for Firefox particularly)
       //   But really UX wise it's best to request idle here!
-      //@ts-ignore
+      // @ts-ignore
       await new Promise(typeof requestIdleCallback === 'function' ? requestIdleCallback : requestAnimationFrame);
 
       // We might need to coerce styles which may be:
@@ -199,7 +199,7 @@ export const MarkoutPlayground = (() => {
 
       // We really need just the one frame here
       await new Promise(requestAnimationFrame);
-      //@ts-ignore
+      // @ts-ignore
       playground.target.hidden = playground.target.scrolling = playground.target.frameBorder = false;
 
       return playground;

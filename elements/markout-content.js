@@ -1,4 +1,4 @@
-﻿//@ts-check
+﻿// @ts-check
 
 import '../lib/content/dom.js';
 import {content} from '../lib/content.js';
@@ -7,7 +7,7 @@ import {Component} from '../lib/components.js';
 export class MarkoutContent extends Component {
   /** @type {{[name: string]: boolean | undefined}} */
   static get flags() {
-    //@ts-ignore
+    // @ts-ignore
     const flags = Object.create(super.flags || null);
 
     for (const flag in content.defaults.flags) {
@@ -99,7 +99,7 @@ export class MarkoutContent extends Component {
     super();
 
     this.flags = new.target.flags;
-    //@ts-ignore
+    // @ts-ignore
     this.name = `${this.tagName}-${++new.target.instance}`.toLocaleLowerCase();
 
     this.renderedText = /** @type {string} */ (undefined);
@@ -128,7 +128,7 @@ export class MarkoutContent extends Component {
   scrollToAnchor(anchor) {
     /** @type {HTMLAnchorElement} */
     let target;
-    //@ts-ignore
+    // @ts-ignore
     const {'::content': contentSlot} = this;
     if (typeof anchor === 'string' && (anchor = anchor.trim()) !== '') {
       anchor = anchor.toLocaleLowerCase().replace(/^the-/, '');
@@ -154,7 +154,7 @@ export class MarkoutContent extends Component {
     /** @type {string} */
     let sourceURL;
 
-    //@ts-ignore
+    // @ts-ignore
     ({'::content': contentSlot, '#wrapper': wrapperSlot, sourceURL} = this);
 
     arguments.length || (sourceText = this.sourceText);
@@ -207,20 +207,20 @@ export class MarkoutContent extends Component {
     contentSlot.classList.remove('hide');
     contentSlot.hidden = false;
 
-    //@ts-ignore
+    // @ts-ignore
     if (this.rewriteAnchors) {
       const anchors = contentSlot.querySelectorAll('a[href]');
-      //@ts-ignore
+      // @ts-ignore
       anchors && this.rewriteAnchors([...anchors]);
     }
 
     for (const details of contentSlot.querySelectorAll(
       `${
-        //@ts-ignore
+        // @ts-ignore
         /\?.*?\bdetails(?:=open|)\b/.test(location) ? 'details:not([markout-details=normal]):not([open]),' : ''
       } details:not(open)[markout-details=open]`,
     )) {
-      //@ts-ignore
+      // @ts-ignore
       details.open = true;
     }
   }
@@ -379,7 +379,7 @@ export class MarkoutContent extends Component {
 
   /// Properties
   get sourceText() {
-    //@ts-ignore
+    // @ts-ignore
     const {childNodes, firstElementChild, renderedText} = this;
     if (renderedText || renderedText === '') return renderedText;
 
