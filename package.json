@@ -1,11 +1,10 @@
 {
   "name": "@smotaal/markout",
   "description": "smotaal.io/markout",
-  "version": "0.0.1-pre.1",
+  "version": "0.0.1-pre.2",
   "author": "Saleh Abdel Motaal <saleh@smotaal.io>",
   "repository": {
-    "url": "https://github.com/SMotaal/smotaal.github.io.git",
-    "path": "/markout"
+    "url": "https://github.com/outmark/markout"
   },
   "license": "MIT",
   "type": "module",
