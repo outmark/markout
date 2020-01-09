@@ -1,3 +1,11 @@
 ﻿{
   "extends": "../jsconfig.json"
+  "compilerOptions": {
+    "rootDir": ".",
+    "baseUrl": "../",
+    "paths": {
+      "/*": ["*"]
+    }
+  },
+  "exclude": ["**/[[]*[]]/*", "public/*", "**/node_modules/*", "**/trash/*", "**/dist/*"]
 }
