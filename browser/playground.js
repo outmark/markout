@@ -8,9 +8,6 @@
     const markoutScope = `${new URL('../', import.meta.url)}`;
     const bootstrapURL = inDevelopment ? `${markoutScope}/lib/browser.js` : `${markoutScope}/dist/browser.js`;
 
-    // const pageStyleElement = document.head.querySelector(
-    //   `link[id="${contentStyleID}"][rel=preload][as=style], link[id="${contentStyleID}"][prefetch]`,
-    // );
     const pageStylesURL = `${markoutScope}styles/styles.css`;
     const rootStylesURL = `${markoutScope}styles/root.css`;
     const contentStyleID = 'style:styles/markout.css';
