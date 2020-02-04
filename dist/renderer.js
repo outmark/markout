@@ -13,7 +13,7 @@ const Tokens = Symbol('Tokens');
 
 /** @template {RegExp} T  @implements {MatcherIterator<T>} */
 class MatcherState {
-  /** @param {Partial<MatcherState<T>>} properties */
+  /** @param {Partial<MatcherState<T>> & {initialize?(): void, finalize?(): void}} properties */
   constructor({source, matcher, initialize, finalize, ...properties}) {
     Object.assign(this, properties);
 
@@ -123,7 +123,10 @@ class TokenizerState extends MatcherState {
     return Object.defineProperty(this, Tokens, {value: [], writable: false, configurable: true})[Tokens];
   }
 
-  createToken(match, state) {}
+  /** @template T @returns {T} */
+  createToken(match, state) {
+    return;
+  }
 }
 
 TokenizerState.prototype.previousToken = TokenizerState.prototype.nextToken = /** @type {Token} */ (undefined);
@@ -769,14 +772,22 @@ const partials = {};
 
     matchers.NormalizableBlockquotes = new RegExp(sequences.NormalizableBlockquotes, 'g');
 
-    // We guard against the special case for checklists
+    partials.LinkText = Matcher.sequence/* regexp */ `(?:[^\\\]]|\\.)*`;
+
+    // We may need to guard against some special cases like:
+    //
+    //  - checklists                    (?!\[[- xX]\] )
+    //  - eager whitespacing            (?:\[(?=\[\S.*?\S\]\])|!?)
+    //
+    //    NOTE: Guarding against eager whitespacing also needs
+    //    to happen in partials.LinkText: [^\s\n\\].*?[^\s\n\\]
+    //
+
     sequences.NormalizableReferences = Matcher.sequence/* regexp */ `
-		  (?!\[[- xX]\] )
-			(?:\[(?=\[\S.*?\S\]\])|!?)
       \[
 			(
-				[^\s\n\\].*?[^\s\n\\](?=\]\])
-				|[^\s\n\\].*?[^\s\n\\](?=
+				${partials.LinkText}(?=\]\])
+				|${partials.LinkText}(?=
 					\]\(([^\s\n\\][^\n${Matcher.escape('()[]')}]*?[^\s\n\\]|[^\s\n\\]|)\)
 					|\]\[([^\s\n\\][^\n${Matcher.escape('()[]')}]*[^\s\n\\]|)\]
 				)

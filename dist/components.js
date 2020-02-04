@@ -979,6 +979,8 @@ const preload = (src => {
     return promise;
   };
 
+  // const URLParts = /(?:^[^?#\n]*|[?#][^\n\s]*$|$)/;
+
   const createPreloadPromise = ({
     href,
     url = href,
@@ -997,22 +999,43 @@ const preload = (src => {
 
     const type = types[as] || types[`${as}`.toLowerCase()] || as;
 
-    const preloads = head.querySelectorAll(`link[rel=preload][as="${type}"]`);
+    if (
+      (type === 'style' && Array.prototype.find.call(ownerDocument.styleSheets, ({href}) => href === href)) ||
+      (type === 'script' && Array.prototype.find.call(ownerDocument.scripts, ({src}) => src === href))
+    ) {
+      return resolvedPromise;
+    }
 
-    if (type === 'style' && Array.prototype.find.call(ownerDocument.styleSheets, ({href}) => href === href)) {
-      return resolvedPromise;
-    } else if (type === 'script' && Array.prototype.find.call(ownerDocument.scripts, ({src}) => src === href)) {
-      return resolvedPromise;
-    } else if (preloads && preloads.length) {
+    /** @type {HTMLLinkElement} */ let link;
+    /** @type {NodeListOf<HTMLLinkElement>} */ const matchedLinks = head.querySelectorAll(
+      `link[rel=preload][as="${type}"],link[id^="style:"][prefetch]`,
+    );
+
+    if (matchedLinks && matchedLinks.length) {
       url.pathname && (url.pathname = url.pathname.replace(/\/+/g, '/'));
-      const href = `${url}`;
-      for (const link of preloads) {
-        if (link.href === href) return resolvedPromise;
-        // console.log({href, url, 'link.href': link.href});
+      const [head] = url.href.split(/[?#]/, 2);
+      for (const matchedLink of matchedLinks) {
+        if (
+          // preloadLink.href.startsWith(head) ||
+          matchedLink.href === url.href
+        ) {
+          if (matchedLink.rel === 'preload') {
+            link = matchedLink;
+            break;
+          } else if (type === 'style' && matchedLink.rel === 'prefetch' && matchedLink.id.startsWith('style:')) {
+            break;
+          }
+        }
       }
     }
 
-    let link = ownerDocument.createElement('link');
+    if (!link) {
+      link = ownerDocument.createElement('link');
+      link.href = url;
+      link.rel = 'preload';
+      link.as = type;
+    }
+
     const promise = Object.defineProperties(
       new Promise((resolve, reject) => {
         let done = event =>
@@ -1032,10 +1055,9 @@ const preload = (src => {
       {link: {value: link, configurable: true}, initiator: {value: initiator}},
     );
 
-    link.href = url;
-    link.rel = 'preload';
-    link.as = type;
-    // as && (link.as = types[as] || types[`${as}`.toLowerCase()] || as);
+    // link.href = url;
+    // link.rel = 'preload';
+    // link.as = type;
     head.appendChild(link);
     return promise;
   };
@@ -1052,6 +1074,8 @@ const preload = (src => {
 
   return preload;
 })(import.meta.url);
+
+// console.table(Object.fromEntries([... /((?:\b[a-z]+\:\/*)?(?:\b[a-z](?: ?[^?#\0-\x1f\\\x7f-\xA0]+||\\.)*)+)([?#]\S*)?/ig[Symbol.matchAll]([` http://a-b.com/c!sd=v\\ /dsv/sv/?q#h\n`.repeat(2)].join('\n'))].map(({0: k, 1:a, 2: b, length, index}) => [`${k} (${index})`, {a, b, u: (u => { try { return new URL(u, 'file:///').href } catch (e) { return e }})(`${a||''}${b||''}`), index, length}])))
 
 //@ts-check
 
