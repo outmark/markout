@@ -17,12 +17,13 @@ export default (project => {
     configuation,
     logging = configuation.logging || 0,
 
-    configuation: {bundles, defaults: {plugins = [], ...defaults} = {}, scopes},
+    configuation: {bundles, defaults: {plugins = [], ...defaults} = {}, scopes, fallbacks},
   } = project;
 
   let resolver = new helpers.Resolver({
     root: root.filename,
-    scopes: scopes,
+    scopes,
+    fallbacks,
     logging,
   });
 
@@ -32,6 +33,9 @@ export default (project => {
       resolveId() {
         return resolver.resolveId(this, ...arguments);
       },
+      load(){
+        return resolver.load(this, ...arguments);
+      }
     },
     ...plugins,
   ];
