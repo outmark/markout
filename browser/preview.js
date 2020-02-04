@@ -1,9 +1,4 @@
-﻿// import '/browser/legacy.js';
-// import dynamicImport from '/browser/dynamic-import.js';
-import {resizeFrameElement} from './frame.js';
-// import {darkMode} from '/browser/dark-mode.js#autoOnly';
-
-// console.log({darkMode});
+﻿import {resizeFrameElement} from './frame.js';
 
 // Only bootstrap preview if in valid browser window scope
 if (typeof document === 'object' && document && typeof location === 'object' && 'hash' in location) {

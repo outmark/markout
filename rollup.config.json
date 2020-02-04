@@ -7,6 +7,10 @@
   "scopes": {
     "/markout/": "./",
     "/browser/": "./browser/",
+    "/markup/": "../markup/",
+    "/components/": "../components/"
+  },
+  "fallbacks":{
     "/markup/": "./node_modules/@smotaal.io/markup/",
     "/components/": "./node_modules/@smotaal.io/components/"
   },

@@ -1162,7 +1162,7 @@ class TokenizerAPI {
     /** @type {API.Options} */
     const {
       parsers = [],
-      tokenize = (source, options = {}, flags) => {
+      tokenize = /** @type {API.tokenize} */ ((source, options = {}, flags) => {
         /** @type {{[name: string]: any} & TokenizerAPI.State} */
         const state = new TokenizerAPI.State({options, flags: {}});
         //@ts-ignore
@@ -1187,11 +1187,12 @@ class TokenizerAPI {
         try {
           this.lastParser === (this.lastParser = parser) ||
             console.info('[tokenize‹parser›]: %o', parser.MODULE_URL || {parser});
+          //@ts-ignore
           return (returned = parser.tokenize((this.lastSource = source), (this.lastState = state)));
         } finally {
           returned !== UNSET || !state.flags.debug || console.info('[tokenize‹state›]: %o', state);
         }
-      },
+      }),
 
       warmup = (source, options, flags) => {
         const key = (options && JSON.stringify(options)) || '';
@@ -1235,7 +1236,7 @@ Object.freeze(Object.setPrototypeOf(TokenizerAPI.State.prototype, null));
 const UNSET = Symbol('');
 
 /**
- * @typedef {import('./legacy/parser.js').Parser & {MODULE_URL?: string}} Parser
+ * @typedef {import('./legacy/parser.js').Parser & {MODULE_URL?: string, tokenize?: API.tokenize}} Parser
  * @typedef {Partial<{variant?: number | string, fragment?: Fragment, [name: string]: any}>} Parser.Options
  */
 
@@ -1876,7 +1877,9 @@ class MarkupRenderer {
         emit(renderer, text, type, hint);
         type === 'break'
           ? renderedLine && (renderedLine = void (yield renderedLine))
-          : type === 'whitespace' || renderedLine.appendChild(MarkupRenderer.dom.Element('wbr'));
+          : type === 'whitespace' ||
+            //@ts-ignore
+            renderedLine.appendChild(MarkupRenderer.dom.Element('wbr'));
       }
     }
     renderedLine && (yield renderedLine);
@@ -2039,7 +2042,7 @@ const Tokens = Symbol('Tokens');
 
 /** @template {RegExp} T  @implements {MatcherIterator<T>} */
 class MatcherState {
-  /** @param {Partial<MatcherState<T>>} properties */
+  /** @param {Partial<MatcherState<T>> & {initialize?(): void, finalize?(): void}} properties */
   constructor({source, matcher, initialize, finalize, ...properties}) {
     Object.assign(this, properties);
 
@@ -2149,7 +2152,10 @@ class TokenizerState extends MatcherState {
     return Object.defineProperty(this, Tokens, {value: [], writable: false, configurable: true})[Tokens];
   }
 
-  createToken(match, state) {}
+  /** @template T @returns {T} */
+  createToken(match, state) {
+    return;
+  }
 }
 
 TokenizerState.prototype.previousToken = TokenizerState.prototype.nextToken = /** @type {Token} */ (undefined);
@@ -4171,6 +4177,7 @@ const matcher = (ECMAScript =>
 
 //@ts-check
 
+//@ts-ignore
 const mode = TokenMatcher.createMode(matcher, {
   USE_CONSTRUCTS: false,
 
@@ -4198,6 +4205,7 @@ const mode = TokenMatcher.createMode(matcher, {
 
     if (state.USE_CONSTRUCTS === true && token !== undefined) {
       const {type, text, context = state.nextTokenContext} = token;
+      //@ts-ignore
       if (token.goal === matcher.goal) {
         switch (type) {
           case 'inset':

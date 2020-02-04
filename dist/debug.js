@@ -101,7 +101,9 @@ debugMatcher.matches = (matches, options = {}) => {
           // @ts-ignore
           colors.unknown || COLORS.unknown
         : identity in colors
-        ? colors[identity]
+        ? //
+          //@ts-ignore
+          colors[identity]
         : colors[((uniqueTypes && identity && uniqueTypes.indexOf(identity)) || entity || 0) % colors.length];
 
       const details = CSS.escape(
