@@ -8,7 +8,7 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
   );
 
   // Pickup or create markdown-section in the body
-  const section = document.body.querySelector('markout-content') || document.create('markout-content');
+  const section = document.body.querySelector('markout-content') || document.createElement('markout-content');
 
   // TODO: https://developers.google.com/web/updates/2015/09/history-api-scroll-restoration
 
@@ -103,7 +103,8 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 
         fragment && scrollToFragment(fragment);
       };
-      section.baseURL || ((section.baseURL = location.href.replace(/[?#].*$|$/, '')) && load());
+      section.baseURL = /[?#].*$|$/[Symbol.replace](section.baseURL || location.href, '');
+      if (!!link || !(section.innerHTML || '').trim()) load();
       addEventListener('hashchange', load, {passive: true});
     }
 
