@@ -30,6 +30,8 @@ declare module './content' {
       renderURLExpansionLinksInFragment,
       renderSourceTextsInFragment,
     } = dom_renderer;
+
+    export {Fragment};
   }
 
   export * from './content.js';
@@ -86,7 +88,10 @@ export namespace Fragment {
 
   export interface Link extends LinkElement, HTMLElement {
     type: string;
+    attributes: LinkAttributes;
   }
+
+  export interface LinkAttributes extends NamedNodeMap, Partial<Record<'base' | 'href' | 'src' | 'srcset', Attr>> {}
 
   export interface Links<T extends Link = Link> extends Array<T> {}
   export type Flags = {[K in string]: K extends keyof flags ? typeof flags[K] : unknown};
