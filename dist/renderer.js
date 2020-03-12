@@ -1850,10 +1850,13 @@ const encodeEscapedEntities = ((Escapes, replace) => text => text.replace(Escape
 );
 
 const FencedBlockHeader = /^(?:(\w+)(?:\s+(.*?)\s*|)$|)/m;
-const URLPrefix = /^(?:https?:|HTTPS?:)\/\/\S+$|^(?:[A-Za-z][!%\-0-9A-Z_a-z~]+\.)+(?:[a-z]{2,5}|[A-Z]{2,5})(?:\/\S*|)$/u;
-const URLString = /^\s*(?:(?:https?:|HTTPS?:)\/\/\S+|(?:[A-Za-z][!%\-0-9A-Z_a-z~]+\.)+(?:[a-z]{2,5}|[A-Z]{2,5})\/\S*?)(?:[?][^\S(){}\[\]]*?|)(?:[#][^\S(){}\[\]]*?|)\s*$/u;
-const URLScheme = /^https?:|HTTPS?:/;
-//
+
+const {URLScheme, URLPrefix, URLString} = {
+  URLScheme: /^https?:|HTTPS?:|[a-z]{2,}[-+.0-9a-z]*\b:|[A-Z]{2,}[-+.0-9A-Z]*\b:/,
+  URLPrefix: /^(?:https?:|HTTPS?:|[a-z]{2,}[-+.0-9a-z]*\b:|[A-Z]{2,}[-+.0-9A-Z]*\b:)\/\/\S+$|^(?:[A-Za-z][!%\-0-9A-Z_a-z~]+\.)+(?:[a-z]{2,5}|[A-Z]{2,5})(?:\/\S*|)$/u,
+  URLString: /^\s*(?:(?:https?:|HTTPS?:|[a-z]{2,}[-+.0-9a-z]*\b:|[A-Z]{2,}[-+.0-9A-Z]*\b:)\/\/\S+|(?:[A-Za-z][!%\-0-9A-Z_a-z~]+\.)+(?:[a-z]{2,5}|[A-Z]{2,5})\/\S*?)(?:[?][^\s(){}\[\]]*?|)(?:[#][^\s(){}\[\]]*?|)\s*$/u,
+};
+
 const SPAN = 'span';
 
 class MarkoutRenderingContext {
@@ -1962,7 +1965,7 @@ class MarkoutRenderer {
           }
           continue;
         } else if (context.url) {
-          if (type === 'text' || /^[~]/.test(text)) {
+          if (type === 'text' || /^[~=?#&:]/.test(text)) {
             context.passthru += text;
             continue;
           }
