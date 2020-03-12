@@ -87,6 +87,7 @@ export namespace Fragment {
     | HTMLVideoElement;
 
   export interface Link extends LinkElement, HTMLElement {
+    // [name: T]: string | null;
     type: string;
     attributes: LinkAttributes;
   }
