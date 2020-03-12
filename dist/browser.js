@@ -760,6 +760,7 @@ class MarkoutContent extends Component {
 
   disconnectedCallback() {
     if (super.disconnectedCallback) super.disconnectedCallback();
+    // @ts-ignore
     if (this.untilDisclosed.resolver) this.untilDisclosed.resolver();
   }
 
@@ -876,7 +877,12 @@ class MarkoutContent extends Component {
       Object.defineProperties(this.untilDisclosed, {
         awaiter: {
           value: (resolver, rejecter) =>
-            void ((this.untilDisclosed.resolver = resolver), (this.untilDisclosed.rejecter = rejecter)),
+            void (
+              // @ts-ignore
+              ((this.untilDisclosed.resolver = resolver),
+              // @ts-ignore
+              (this.untilDisclosed.rejecter = rejecter))
+            ),
           writable: false,
           configurable: false,
         },
@@ -889,22 +895,27 @@ class MarkoutContent extends Component {
     if (this.isConnected) {
       while (!!node && node !== this.ownerDocument && !(closure = node.closest('details:not([open])'))) {
         node = node.getRootNode();
+        // @ts-ignore
         node.host && (node = node.host);
       }
     }
+    // @ts-ignore
     promise = this.untilDisclosed.promise;
     this.isDisclosed = this.isConnected && !closure;
     if (closure) {
       if (!promise) {
         closure.addEventListener('toggle', this.untilDisclosed, {once: true});
+        // @ts-ignore
         await (promise = this.untilDisclosed.promise = new Promise(this.untilDisclosed.awaiter));
-        if (this.untilDisclosed.promise === promise) {
+        // @ts-ignore
+        if (this.untilDisclosed.promise === promise)
+          // @ts-ignore
           this.untilDisclosed.resolver = this.untilDisclosed.rejecter = this.untilDisclosed.promise = undefined;
-        }
       } else {
         await promise;
       }
     } else if (promise) {
+      // @ts-ignore
       this.untilDisclosed.resolver();
       // this.untilDisclosed.resolver = this.untilDisclosed.rejecter = this.untilDisclosed.promise = undefined;
     }
@@ -947,6 +958,7 @@ class MarkoutContent extends Component {
     return fragment;
   }
 
+  /** @param {content.Fragment} fragment */
   async linkMarkoutFragment(fragment) {
     if (fragment.instantiated) return fragment.instantiated;
 
@@ -956,7 +968,11 @@ class MarkoutContent extends Component {
       const baseURL = fragment.baseURL || fragment.baseURI;
 
       for (const link of fragment.assets) {
-        const {base: baseAttribute, [link.nodeName === 'SOURCE' ? 'srcset' : 'src']: srcAttribute} = link.attributes;
+        const {
+          base: baseAttribute,
+          // @ts-ignore
+          [link.nodeName === 'SOURCE' ? 'srcset' : 'src']: srcAttribute,
+        } = link.attributes;
         const base = baseAttribute ? baseAttribute.value : baseURL;
         baseAttribute && link.removeAttribute('base');
         link.setAttribute('link-base', base);
@@ -964,7 +980,11 @@ class MarkoutContent extends Component {
           const attribute = srcAttribute.name;
           const [href] = srcAttribute.value.split(/\s/, 1);
           link.setAttribute(`link-${attribute}`, href);
-          link.setAttribute(attribute, (link[attribute] = new URL(href, base)));
+          link.setAttribute(
+            attribute,
+            // @ts-ignore
+            (link[attribute] = this.sanitizeAssetURL(new URL(href, base), fragment, link, attribute)),
+          );
         }
       }
 
@@ -973,13 +993,30 @@ class MarkoutContent extends Component {
         fragment.prepend(
           Object.assign(document.createElement('style'), {
             textContent: fragment.assets.stylesheets
-              .map(stylesheet => (stylesheet.remove(), `@import "${stylesheet.src}";`))
+              .map(
+                stylesheet => (
+                  stylesheet.remove(),
+                  // @ts-ignore
+                  `@import "${stylesheet.src}";`
+                ),
+              )
               .join('\n'),
           }),
         );
     }
 
     return fragment;
+  }
+
+  /**
+   * @template T
+   * @param {URL} url
+   * @param {content.Fragment} fragment
+   * @param {T} target
+   * @param {string} [context]
+   */
+  sanitizeAssetURL(url, fragment, target, context) {
+    return url;
   }
 
   /** @param {HTMLScriptElement} module */

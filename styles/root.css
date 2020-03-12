@@ -1,8 +1,8 @@
-﻿:root {
+﻿@import url('./fonts/iosevka.css');
+
+:root {
   --font-display: block;
 }
-
-@import url('./fonts/iosevka.css');
 
 :root {
   --light--markout--text: #000;
@@ -82,11 +82,6 @@
     --light--markout--field-line\-: #63636333;
     --dark--markout--field-line\-: #96969633;
   }
-}
-
-@font-face {
-  font-family: Iosevka;
-  font-display: block;
 }
 
 @font-face {
