@@ -18,11 +18,49 @@
 :root {
   /**/ /**/ /**/ /**/ /** DEFAULTS **/ /**/ /**/ /**/ /**/
   --markup-tab-size: 2;
-  --markup-soft-inset-size: 2;
+  --markup-soft-indent-size: 1;
+
+  /**/ /**/ /**/ /**/ /** GLOBALS **/ /**/ /**/ /**/ /**/
+  --font-display: block;
+  --color-scheme: auto;
+}
+
+@media screen and (prefers-color-scheme: light) {
+  :root {
+    --color-scheme: light;
+  }
+}
+
+@media screen and (prefers-color-scheme: dark) {
+  :root {
+    --color-scheme: dark;
+  }
+}
+
+@media screen {
+  .dark-mode,
+  :host(.dark-mode) {
+    --color-scheme: dark;
+  }
+
+  .light-mode,
+  :host(.light-mode) {
+    --color-scheme: light;
+  }
+}
+
+:root,
+:host(.dark-mode),
+:host(.light-mode),
+.dark-mode,
+.light-mode {
+  color-scheme: var(--color-scheme);
 }
 
 :root,
 :host {
+  --markup-color-scheme: var(--color-scheme);
+
   /**/ /**/ /**/ /**/ /** NEUTRALS **/ /**/ /**/ /**/ /**/
   --markup-neutral-light: #aaa;
   --markup-neutral: #999;
@@ -104,7 +142,6 @@
 }
 
 @media screen {
-  /* TODO: Add support for @media (prefers-dark-mode) when it lands */
   pre.dark-mode,
   html.dark-mode,
   :host(.dark-mode) {
@@ -136,8 +173,6 @@
   }
 }
 
-/* .markup-line, */
-/* .markup-line > .markup, */
 .markup-token,
 .markup-line > .markup,
 .markup-line {
@@ -148,34 +183,42 @@
   scale: initial;
   zoom: initial;
   pointer-events: visible;
-  text-indent: 0;
+  text-indent: initial;
   padding: 0;
   margin: 0;
+  -webkit-margin-start: 0;
+  margin-inline-start: 0;
+  -webkit-padding-start: 0;
+  padding-inline-start: 0;
   border-collapse: separate;
-  white-space: pre-wrap;
   box-sizing: border-box;
 }
 
+.markup-line .markup {
+  display: inline;
+}
+
 .markup-line {
-  --em--: calc(1em - 1em);
+  /* --em--: calc(1em - 1em); */
   cursor: var(--markup-line-cursor);
   outline: var(--markup-line-outline);
   outline-offset: var(--markup-line-outline-offset, -0.5px);
   opacity: var(--markup-line-opacity);
   color: var(--markup-line-color);
+  color-scheme: var(--markup-color-scheme);
   background-color: var(--markup-line-background-color);
   break-before: auto;
   break-inside: avoid;
-  display: flow-root;
+  display: block;
+  /* display: flow-root; */
   text-rendering: geometricPrecision;
   font-synthesis: weight;
   font-variant-ligatures: common-ligatures discretionary-ligatures contextual historical-ligatures;
   font-weight: 300;
   hyphens: none;
-  word-break: break-word;
-  overflow-wrap: break-word;
+  word-break: keep-all;
+  overflow-wrap: normal;
   line-break: loose;
-  line-clamp: 1;
   white-space: pre-wrap;
 }
 
@@ -192,32 +235,22 @@
   --markup-line-number-color: var(--markup-neutral-dim, #9999);
   --markup-line-number-background-color: transparent;
   --markup-line-number-opacity: 1;
-  --markup-line-inset: calc(
+  --markup-line-indent-size: calc(
     var(--markup-line-inset-spaces, 0) + var(--markup-tab-size, 2) * var(--markup-line-inset-tabs, 0)
   );
-  --markup-line-indent: calc(1em * var(--markup-line-inset, 0));
-  --markup-soft-indent: calc(1em * var(--markup-soft-inset-size));
-  --markup-text-indent: calc(-1 * var(--markup-soft-indent, 0.0001em));
-  --markup-inset-margin: calc(var(--markup-gutter, 0));
+  --markup-line-indent: calc(1em * var(--markup-line-indent-size, 0.0001));
+  --markup-soft-indent: calc(1em * var(--markup-soft-indent-size, 0.0001));
+  --markup-text-indent: calc(0.0001em - var(--markup-soft-indent, 0.0001em));
   --markup-inset-padding: calc(0.275em + var(--markup-soft-indent, 0.0001em));
+  --markup-inset-margin: calc(var(--markup-gutter, 0.0001em));
 
-  -webkit-margin-start: var(--markup-inset-margin, 0);
-  /* -webkit-margin-start: calc(var(--markup-inset-margin, 0) + var(--markup-line-indent, 0.0001em)); */
-  margin-inline-start: var(--markup-inset-margin, 0);
-  /* margin-inline-start: calc(var(--markup-inset-margin, 0) + var(--markup-line-indent, 0.0001em)); */
-  /* -webkit-padding-start: var(--markup-inset-padding, 0); */
-  -webkit-padding-start: calc(var(--markup-inset-padding, 0) + var(--markup-line-indent, 0.0001em));
-  /* padding-inline-start: var(--markup-inset-padding, 0); */
-  padding-inline-start: calc(var(--markup-inset-padding, 0) + var(--markup-line-indent, 0.0001em));
-  /* text-indent: var(--markup-text-indent, 0); */
-  text-indent: calc(var(--markup-text-indent, 0) - var(--markup-line-indent, 0.0001em));
+  -webkit-margin-start: var(--markup-inset-margin, 0.0001em);
+  margin-inline-start: var(--markup-inset-margin, 0.0001em);
+  -webkit-padding-start: calc(var(--markup-inset-padding, 0.0001em) + var(--markup-line-indent, -0.0001em));
+  padding-inline-start: calc(var(--markup-inset-padding, 0.0001em) + var(--markup-line-indent, -0.0001em));
+  text-indent: calc(var(--markup-text-indent, 0.0001em) - var(--markup-line-indent, 0.0001em));
 
   /* SEE: https://drafts.csswg.org/css-text-3/#text-indent-property */
-}
-
-/* .markup-line.markup > .markup.inset:first-child {} */
-.markup-line.markup > .markup.comment.single-line-comment {
-  display: inline-block !important;
 }
 
 .markup-line.markup.no-reflow {
