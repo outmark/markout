@@ -1,0 +1,13 @@
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg">
+  <metadata>Copyright © 2020 smotaal.io</metadata>
+  <defs>
+    <font id="smotaal-io" horiz-adv-x="1000">
+      <font-face font-family="smotaal-io" font-weight="400" font-stretch="normal" units-per-em="1000" ascent="850"
+                 descent="-150" />
+      <missing-glyph horiz-adv-x="1000" />
+      <glyph glyph-name="link" unicode="🔗"
+             d="M 750 0 h -135 c 47 31 91 87 104 125 h 29 c 63 0 125 63 125 125 s -64 125 -125 125 h -188 c -62 0 -125 -63 -125 -125 0 -23 7 -44 18 -63 h -134 A 267 267 0 0 0 313 250 c 0 125 124 250 249 250 H 750 c 125 0 250 -125 250 -250 s -125 -250 -250 -250 z M 280 375 h -29 c -63 0 -125 -63 -125 -125 s 64 -125 125 -125 h 188 c 62 0 125 63 125 125 a 125 125 0 0 1 -18 63 h 134 c 5 -21 8 -41 8 -63 0 -125 -124 -250 -249 -250 H 250 C 125 0 0 125 0 250 s 125 250 250 250 h 135 c -47 -31 -91 -87 -104 -125 z" />
+    </font>
+  </defs>
+</svg>
