@@ -19,7 +19,6 @@
       "input": {
         "markup": "./lib/markup.js",
         "markout": "./lib/markout.js",
-        "components": "./lib/components.js",
         "browser": "./lib/browser.js"
       },
       "output": {

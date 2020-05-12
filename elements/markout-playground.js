@@ -13,7 +13,7 @@ export const MarkoutPlayground = (() => {
 
   /** @type {import('./markout-content.js')['MarkoutContent']} */
   const MarkoutContent = customElements.get('markout-content');
-  /** @type {import('../lib/components.js')['Component']} */
+  /** @type {import('/components/lib/component.js')['Component']} */
   const Component = Object.getPrototypeOf(MarkoutContent);
 
   const {MARKUP_SYNTAX_ATTRIBUTE} = MarkoutContent;
@@ -105,13 +105,13 @@ export const MarkoutPlayground = (() => {
               node.tag = 'object';
               node.attributes = `${fragmentAttribute.value ? `type="${(node.type = fragmentAttribute.value)}" ` : ''}`;
               node.textContent = node.body;
-              // Escaping the body here lends to more
-              //   predictable fragments but will require
-              //   unescaping later on.
-              // TODO: Where can we safely unescape this?
-              // block.hasAttribute('preserve-entities') ||
-              //   /\bhtml?\b|\bsvg\b/i.test(node.type) ||
-              //   (node.body = encodeEntities(node.body));
+            // Escaping the body here lends to more
+            //   predictable fragments but will require
+            //   unescaping later on.
+            // TODO: Where can we safely unescape this?
+            // block.hasAttribute('preserve-entities') ||
+            //   /\bhtml?\b|\bsvg\b/i.test(node.type) ||
+            //   (node.body = encodeEntities(node.body));
           }
         } else if (scriptAttribute) {
           node.body = block.textContent;
