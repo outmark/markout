@@ -1,4 +1,4 @@
-import { encodeEntities, render as render$1, tokenize as tokenize$1, encodeEntity } from './markup.js';
+import { e as encodeEntities, r as render$1, t as tokenize$1, a as encodeEntity } from './tokenizer.browser.es.extended.js';
 
 //@ts-check
 const CurrentMatch = Symbol('CurrentMatch');
@@ -141,7 +141,7 @@ class Matcher extends RegExp {
    * @param {MatcherPattern} pattern
    * @param {MatcherFlags} [flags]
    * @param {MatcherEntities} [entities]
-   * @param {{}} [state]
+   * @param {{currentMatch?:MatcherExecArray|null, lastMatch?:MatcherExecArray|null}} [state]
    */
   constructor(pattern, flags, entities, state) {
     //@ts-ignore
@@ -170,7 +170,12 @@ class Matcher extends RegExp {
   /** @param {MatcherExecArray} match */
   capture(match) {
     // @ts-ignore
-    if (match === null) return null;
+    if (match === null) {
+      if (this.state) this.state.lastMatch = this.state.currentMatch = null;
+      return;
+    }
+
+    if (this.state) this.state.currentMatch = match;
 
     // @ts-ignore
     match.matcher = this;
@@ -188,6 +193,9 @@ class Matcher extends RegExp {
       );
 
     );
+
+    this.state.lastMatch = match;
+    this.state.currentMatch = null;
 
     return match;
   }
@@ -312,11 +320,7 @@ class Matcher extends RegExp {
   static get join() {
     const {sequence} = this;
 
-    const join = (...values) =>
-      values
-        .map(sequence.span)
-        .filter(Boolean)
-        .join('|');
+    const join = (...values) => values.map(sequence.span).filter(Boolean).join('|');
 
     Object.defineProperty(Matcher, 'join', {value: Object.freeze(join), enumerable: true, writable: false});
 
@@ -415,8 +419,7 @@ class Matcher extends RegExp {
         ? matcher.constructor
         : Species === Matcher || typeof Species.clone !== 'function'
         ? Matcher
-        : Species
-      ).clone(matcher)),
+        : Species).clone(matcher)),
       'state',
       {value: state},
     );
@@ -1734,8 +1737,6 @@ var flags = /*#__PURE__*/Object.freeze({
   ASSET_REMAPPING: ASSET_REMAPPING,
   ASSET_INITIALIZATION: ASSET_INITIALIZATION
 });
-
-
 
 var defaults = /*#__PURE__*/Object.freeze({
   __proto__: null,
