@@ -1,73 +1,133 @@
 // @ts-check
+const applyEntitiesMixin = (() => {
+  const entities = Object.freeze({
+    extractCodePoint: Object.freeze(
+      /** @type {(source: any, index: number) => number} */
+      (Function.call.bind(''.charCodeAt)),
+    ),
+    replaceEntities: Object.freeze(
+      /** @type {(source: any, replacer: string|Function) => string} */
+      (RegExp.prototype[Symbol.replace].bind(/[\u00A0-\u9999<>\&]/g)),
+    ),
+    encodeEntities: Object.freeze(
+      /** @type {(source: any) => string} */
+      source => entities.replaceEntities(source, entities.encodeEntity),
+    ),
+    encodeEntity: Object.freeze(
+      /** @type {(source: any) => string} */
+      source => `&#${entities.extractCodePoint(source, 0)};`,
+    ),
+  });
+
+  return Object.freeze(
+    /**
+     * @template {{}} T
+     * @param {T} Pseudom
+     * @return {T & typeof entities}
+     */
+    Pseudom => Object.defineProperties(Pseudom, Object.getOwnPropertyDescriptors(entities)),
+  );
+})();
+
+// @ts-check
+const applyEndowmentsMixin = (() => {
+  const endowments = Object.freeze({
+    fixClassInheritance: Object.freeze(
+      /**
+       * @template T, U
+       * @param {(new () => T & U)} Class
+       * @param {(new () => U) | null | undefined} Super
+       * @param {Pick<typeof globalThis, 'Object'>} endowments
+       */
+      (Class, Super, endowments = globalThis) => {
+        endowments.Object.setPrototypeOf(
+          Class.prototype,
+          Super === null ? null : Super ? Super.prototype : endowments.Object.prototype,
+        );
+
+        endowments.Object.setPrototypeOf(Class, Super == null ? endowments.Object : Super);
+
+        return Class;
+      },
+    ),
+    checkPrimordialEndowments: Object.freeze(
+      /**
+       * @template {Pick<typeof globalThis, 'Object' | U>} T
+       * @template {keyof typeof globalThis} U
+       * @param {{[k in keyof T]?: T[k] & {__proto__: object}}} endowments
+       * @param {U[]} primordials
+       */
+      (endowments, ...primordials) => {
+        for (const endowment of `Object,${primordials}`.replace(/^,Object|(,\w+)(?=.*?\1)/g, '').split(',')) {
+          if (
+            endowment === 'Object'
+              ? !(
+                  typeof endowments[endowment] === 'function' &&
+                  typeof endowments[endowment].prototype === 'object' &&
+                  endowments[endowment].prototype !== null &&
+                  endowments[endowment].__proto__ &&
+                  endowments[endowment].__proto__.__proto__ === endowments.Object.prototype
+                )
+              : endowment in endowments &&
+                !(
+                  typeof endowments[endowment] === 'function' &&
+                  endowments[endowment].prototype != null &&
+                  // typeof endowments[endowment].prototype === 'object' &&
+                  endowments[endowment].__proto__ === endowments.Object.__proto__ &&
+                  endowments[endowment].prototype.__proto__ === endowments.Object.prototype
+                )
+          )
+            throw `Error: createPseudoDOM invoked with an invalid ‹${endowment}› endowment.`;
+        }
+      },
+    ),
+  });
+
+  return Object.freeze(
+    /**
+     * @template {{}} T
+     * @param {T} Pseudom
+     * @return {T & typeof endowments}
+     */
+    Pseudom => Object.defineProperties(Pseudom, Object.getOwnPropertyDescriptors(endowments)),
+  );
+})();
+
+// @ts-check
+const applyQueriesMixin = (() => {
+  const queries = Object.freeze({
+    querySelector: Object.freeze(
+      /**
+       * @param {Element | DocumentFragment} scope
+       * @param {string} selector
+       */
+      (scope, selector) => {},
+    ),
+    querySelectorAll: Object.freeze(
+      /**
+       * @param {Element | DocumentFragment} scope
+       * @param {string} selector
+       */
+      (scope, selector) => {},
+    ),
+  });
+
+  return Object.freeze(
+    /**
+     * @template {{}} T
+     * @param {T} Pseudom
+     * @return {T & typeof queries}
+     */
+    Pseudom => Object.defineProperties(Pseudom, Object.getOwnPropertyDescriptors(queries)),
+  );
+})();
+
+// @ts-check
 
 const {
   Pseudom,
   Pseudom: {encodeEntity, encodeEntities},
-} = (() => {
-  class Pseudom {
-    /** @param {*} source*/
-    static encodeEntities(source) {
-      return /[\u00A0-\u9999<>\&]/g[Symbol.replace](source, Pseudom.encodeEntity);
-    }
-
-    /** @param {*} source*/
-    static encodeEntity(source) {
-      return `&#${Pseudom.extractCodePoint(source, 0)};`;
-    }
-  }
-
-  Object.freeze(Pseudom.encodeEntities);
-  Object.freeze(Pseudom.encodeEntity);
-
-  Pseudom.extractCodePoint = Object.freeze(
-    /** @type {(source: any, index: number) => number} */ (Function.call.bind(''.charCodeAt)),
-  );
-
-  /**
-   * @template T, U
-   * @param {(new () => T & U)} Class
-   * @param {(new () => U) | null | undefined} Super
-   * @param {Pick<typeof globalThis, 'Object'>} endowments
-   */
-  Pseudom.fixClassInheritance = (Class, Super, endowments = globalThis) => {
-    endowments.Object.setPrototypeOf(
-      Class.prototype,
-      Super === null ? null : Super ? Super.prototype : endowments.Object.prototype,
-    );
-
-    endowments.Object.setPrototypeOf(Class, Super == null ? endowments.Object : Super);
-
-    return Class;
-  };
-
-  Pseudom.checkPrimordialEndowments = Object.freeze((endowments, ...primordials) => {
-    for (const endowment of `Object,${primordials}`.replace(/^,Object|(,\w+)(?=.*?\1)/g, '').split(',')) {
-      if (
-        endowment === 'Object'
-          ? !(
-              typeof endowments[endowment] === 'function' &&
-              typeof endowments[endowment].prototype === 'object' &&
-              endowments[endowment].prototype !== null &&
-              endowments[endowment].__proto__ &&
-              endowments[endowment].__proto__.__proto__ === endowments.Object.prototype
-            )
-          : endowment in endowments &&
-            !(
-              typeof endowments[endowment] === 'function' &&
-              endowments[endowment].prototype != null &&
-              // typeof endowments[endowment].prototype === 'object' &&
-              endowments[endowment].__proto__ === endowments.Object.__proto__ &&
-              endowments[endowment].prototype.__proto__ === endowments.Object.prototype
-            )
-      )
-        throw `Error: createPseudoDOM invoked with an invalid ‹${endowment}› endowment.`;
-    }
-  });
-
-  Object.freeze(Pseudom);
-
-  return {Pseudom};
-})();
+} = {Pseudom: Object.freeze(applyQueriesMixin(applyEntitiesMixin(applyEndowmentsMixin(class Pseudom {}))))};
 
 /// Helpers
 const InspectSymbol = Symbol.for('nodejs.util.inspect.custom');
@@ -1320,7 +1380,7 @@ const createNativeDOM = (endowments = globalThis) => {
 
   endowments = undefined;
 
-  return native.Object.freeze(native.Object.setPrototypeOf(native, null));
+  return native.Object.freeze(/** @type {typeof native} */ (native.Object.setPrototypeOf(native, null)));
 };
 
 /** @param {Pick<typeof globalThis, 'Object'|'Set'|'String'|'Symbol'>} endowments */
@@ -1395,51 +1455,252 @@ const createPseudoDOM = (endowments = globalThis) => {
 
   pseudo.Object.freeze(pseudo.Object.freeze(pseudo.DOMTokenList).prototype);
 
-  pseudo.DOMNodeList = class DOMNodeList extends pseudo.Set {};
+  pseudo.NodeList = class NodeList extends pseudo.Set {};
 
-  pseudo.Object.freeze(pseudo.Object.freeze(pseudo.DOMNodeList).prototype);
+  pseudo.Object.freeze(pseudo.Object.freeze(pseudo.NodeList).prototype);
 
   pseudo.Node = class Node extends pseudo.Object {
-    get children() {
-      return pseudo.Object.defineProperty(this, 'children', {value: new pseudo.DOMNodeList()}).children;
+    get childNodes() {
+      return pseudo.Object.defineProperty(this, 'childNodes', {value: new pseudo.NodeList()}).childNodes;
     }
 
     get childElementCount() {
-      return (this.hasOwnProperty('children') && this.children.size) || 0;
+      return (this.hasOwnProperty('childNodes') && this.childNodes.size) || 0;
     }
 
     get textContent() {
-      return (this.hasOwnProperty('children') && this.children.size && [...this.children].join('')) || '';
+      return (this.hasOwnProperty('childNodes') && this.childNodes.size && [...this.childNodes].join('')) || '';
     }
 
     set textContent(text) {
-      this.hasOwnProperty('children') && this.children.size && this.children.clear();
-      text && this.children.add(new pseudo.Text(text));
+      this.hasOwnProperty('childNodes') && this.childNodes.size && this.childNodes.clear();
+      text && this.appendChild(new pseudo.Text(text));
     }
 
-    appendChild(element) {
-      return element && this.children.add(element), element;
+    insertBefore(node, nextNode) {
+      if (!this.childNodes.has(nextNode))
+        throw ReferenceError(`Failed to execute 'insertBefore' on 'Node': argument 2 is not a child.`);
+      if (!(node !== null && typeof node === 'object' && node instanceof Node))
+        throw TypeError(`Failed to execute 'insertBefore' on 'Node': argument 1 is not a Node.`);
+      if (!(nextNode !== null && typeof nextNode === 'object' && nextNode instanceof Node))
+        throw TypeError(`Failed to execute 'insertBefore' on 'Node': argument 2 is not a Node.`);
+      node.parentNode == null || node.parentNode.removeChild(node);
+      pseudo.Object.defineProperties(node, {
+        parentNode: {value: this, writable: false, configurable: true},
+        previousSibling: {value: nextNode.previousSibling || null, writable: false, configurable: true},
+        nextSibling: {value: nextNode, writable: false, configurable: true},
+      });
+      !nextNode.previousSibling
+        ? pseudo.Object.defineProperty(this, 'firstNode', {value: node, writable: false, configurable: true})
+        : pseudo.Object.defineProperty(nextNode.previousSibling, 'nextSibling', {
+            value: node,
+            writable: false,
+            configurable: true,
+          });
+      pseudo.Object.defineProperty(nextNode, 'previousSibling', {value: node, writable: false, configurable: true});
+      const childNodes = [...this.childNodes];
+      childNodes.splice(childNodes.indexOf(nextNode), 0, node);
+      this.childNodes.clear();
+      this.childNodes.add(...childNodes);
+      return node;
     }
 
-    removeChild(element) {
-      element && this.hasOwnProperty('children') && this.children.size && this.children.delete(element);
-      return element;
+    appendChild(node) {
+      if (!(node !== null && typeof node === 'object' && node instanceof Node))
+        throw TypeError(`Failed to execute 'appendChild' on 'Node': 1 argument required, but only 0 present.`);
+      node.parentNode == null || node.parentNode.removeChild(node);
+      pseudo.Object.defineProperties(node, {
+        parentNode: {value: this, writable: false, configurable: true},
+        previousSibling: {value: this.lastChild || null, writable: false, configurable: true},
+        nextSibling: {value: null, writable: false, configurable: true},
+      });
+      !node.previousSibling ||
+        pseudo.Object.defineProperties(node.previousSibling, {
+          nextSibling: {value: node, writable: false, configurable: true},
+        });
+      pseudo.Object.defineProperties(this, {
+        firstChild: {value: this.firstChild || node, writable: false, configurable: true},
+        lastChild: {value: node, writable: false, configurable: true},
+      });
+      this.childNodes.add(node);
+      return node;
     }
 
-    remove() {
-      //   if (elements.length && this.hasOwnProperty('children') && this.children.size)
-      //     for (const element of elements) element && this.children.delete(element);
-      throw `Unsupported: Compositional nodes cannot be directly removed!`;
+    removeChild(node) {
+      if (!(node && node.parentNode === this))
+        throw TypeError(`Failed to execute 'removeChild' on 'Node': 1 argument required, but only 0 present.`);
+
+      node.previousSibling
+        ? pseudo.Object.defineProperty(node.previousSibling, 'nextSibling', {
+            value: node.nextSibling || null,
+            writable: false,
+            configurable: true,
+          })
+        : pseudo.Object.defineProperty(this, 'firstChild', {
+            value: null,
+            writable: false,
+            configurable: true,
+          });
+      node.nextSibling
+        ? pseudo.Object.defineProperty(node.nextSibling, 'previousSibling', {
+            value: node.previousSibling || null,
+            writable: false,
+            configurable: true,
+          })
+        : pseudo.Object.defineProperty(this, 'lastChild', {
+            value: null,
+            writable: false,
+            configurable: true,
+          });
+      pseudo.Object.defineProperties(node, {
+        parentNode: {value: null, writable: false, configurable: true},
+        previousSibling: {value: null, writable: false, configurable: true},
+        nextSibling: {value: null, writable: false, configurable: true},
+      });
+      this.childNodes.delete(node);
+      return node;
     }
   };
 
+  pseudo.Node.prototype.firstChild = /** @type {Node|null} */ (null);
+  pseudo.Node.prototype.lastChild = /** @type {Node|null} */ (null);
+  pseudo.Node.prototype.previousSibling = /** @type {Node|null} */ (null);
+  pseudo.Node.prototype.nextSibling = /** @type {Node|null} */ (null);
+  pseudo.Node.prototype.parentNode = /** @type {Node|null} */ (null);
+  pseudo.Node.prototype.parentElement = /** @type {Node|null} */ (null);
   pseudo.Object.freeze(pseudo.Object.freeze(pseudo.Node).prototype);
+
+  pseudo.HTMLCollection = class HTMLCollection extends pseudo.Set {
+    get length() {
+      return this.size;
+    }
+  };
+
+  pseudo.Object.freeze(pseudo.Object.freeze(pseudo.HTMLCollection).prototype);
+
+  pseudo.ParentNode = class ParentNode extends pseudo.Node {
+    get children() {
+      return pseudo.Object.defineProperty(this, 'children', {value: new pseudo.HTMLCollection()}).children;
+    }
+
+    get childElementCount() {
+      return ('children' in this && this.children.length) || 0;
+    }
+
+    append(...nodes) {
+      if (nodes.length)
+        for (const node of nodes)
+          node === '' || this.appendChild(typeof node === 'object' ? node : new pseudo.Text(node));
+    }
+
+    prepend(...nodes) {
+      if (nodes.length)
+        for (const node of nodes)
+          node === '' ||
+            (this.childElementCount > 0
+              ? this.insertBefore(typeof node === 'object' ? node : new pseudo.Text(node), this.firstChild)
+              : this.appendChild(typeof node === 'object' ? node : new pseudo.Text(node)));
+    }
+
+    insertBefore(node, nextNode) {
+      super.insertBefore(node, nextNode);
+      if (node instanceof pseudo.Element) {
+        pseudo.Object.defineProperties(node, {
+          parentElement: {value: this instanceof pseudo.Element ? this : null, writable: false, configurable: true},
+          previousElementSibling: {value: nextNode.previousElementSibling || null, writable: false, configurable: true},
+          nextElementSibling: {value: nextNode, writable: false, configurable: true},
+        });
+        !nextNode.previousElementSibling
+          ? pseudo.Object.defineProperty(this, 'firstElementChild', {value: node, writable: false, configurable: true})
+          : pseudo.Object.defineProperty(nextNode.previousElementSibling, 'nextElementSibling', {
+              value: node,
+              writable: false,
+              configurable: true,
+            });
+        pseudo.Object.defineProperty(nextNode, 'previousElementSibling', {
+          value: node,
+          writable: false,
+          configurable: true,
+        });
+        const children = [...this.children];
+        children.splice(children.indexOf(nextNode), 0, node);
+        this.children.clear();
+        this.children.add(...children);
+      }
+      return node;
+    }
+
+    appendChild(node) {
+      super.appendChild(node);
+      if (node instanceof pseudo.Element) {
+        pseudo.Object.defineProperties(node, {
+          parentElement: {value: this instanceof pseudo.Element ? this : null, writable: false, configurable: true},
+          previousElementSibling: {value: this.lastElementChild || null, writable: false, configurable: true},
+          nextElementSibling: {value: null, writable: false, configurable: true},
+        });
+        !node.previousElementSibling ||
+          pseudo.Object.defineProperty(node.previousElementSibling, 'previousElementSibling', {
+            value: node,
+            writable: false,
+            configurable: true,
+          });
+        pseudo.Object.defineProperties(this, {
+          firstElementChild: {value: this.firstElementChild || node, writable: false, configurable: true},
+          lastElementChild: {value: node, writable: false, configurable: true},
+        });
+        this.children.add(node);
+      }
+      return node;
+    }
+
+    removeChild(node) {
+      super.removeChild(node);
+      if (node instanceof pseudo.Element) {
+        node.previousElementSibling
+          ? pseudo.Object.defineProperty(node.previousElementSibling, 'nextElementSibling', {
+              value: node.nextElementSibling || null,
+              writable: false,
+              configurable: true,
+            })
+          : pseudo.Object.defineProperty(this, 'firstElementChild', {
+              value: null,
+              writable: false,
+              configurable: true,
+            });
+        node.nextElementSibling
+          ? pseudo.Object.defineProperty(node.nextElementSibling, 'previousElementSibling', {
+              value: node.previousElementSibling || null,
+              writable: false,
+              configurable: true,
+            })
+          : pseudo.Object.defineProperty(this, 'lastElementChild', {
+              value: null,
+              writable: false,
+              configurable: true,
+            });
+        pseudo.Object.defineProperties(node, {
+          parentElement: {value: null, writable: false, configurable: true},
+          previousElementSibling: {value: null, writable: false, configurable: true},
+          nextElementSibling: {value: null, writable: false, configurable: true},
+        });
+        this.children.delete(node);
+      }
+      return node;
+    }
+  };
+
+  pseudo.ParentNode.prototype.firstElementChild = /** @type {Element|null} */ (null);
+  pseudo.ParentNode.prototype.lastElementChild = /** @type {Element|null} */ (null);
+  pseudo.Object.freeze(pseudo.Object.freeze(pseudo.ParentNode).prototype);
 
   pseudo.Element = class Element extends pseudo.Node {
     get style() {
       if (this && this !== this.constructor.prototype)
-        return pseudo.Object.defineProperty(this, 'style', {value: new pseudo.CSSStyleDeclaration(), writable: false})
-          .style;
+        return pseudo.Object.defineProperty(this, 'style', {
+          value: new pseudo.CSSStyleDeclaration(),
+          writable: false,
+          configurable: true,
+        }).style;
       throw Error(`Invalid invocation of Element.style getter/setter.`);
     }
 
@@ -1449,8 +1710,11 @@ const createPseudoDOM = (endowments = globalThis) => {
 
     get dataset() {
       if (this && this !== this.constructor.prototype)
-        return pseudo.Object.defineProperty(this, 'dataset', {value: new pseudo.DOMStringMap(), writable: false})
-          .dataset;
+        return pseudo.Object.defineProperty(this, 'dataset', {
+          value: new pseudo.DOMStringMap(),
+          writable: false,
+          configurable: true,
+        }).dataset;
       throw Error(`Invalid invocation of Element.dataset getter/setter.`);
     }
 
@@ -1488,12 +1752,6 @@ const createPseudoDOM = (endowments = globalThis) => {
       return `<${openTag.join(' ')}>${innerHTML || ''}</${tag}>`;
     }
 
-    append(...elements) {
-      if (elements.length)
-        for (const element of elements)
-          element === '' || this.children.add(typeof element === 'object' ? element : new pseudo.Text(element));
-    }
-
     toString() {
       return this.outerHTML;
     }
@@ -1501,8 +1759,26 @@ const createPseudoDOM = (endowments = globalThis) => {
     toJSON() {
       return this.toString();
     }
+
+    remove() {
+      this.parentElement && this.parentElement.removeChild(this);
+    }
   };
 
+  pseudo.Object.defineProperties(pseudo.Element.prototype, {
+    children: pseudo.Object.getOwnPropertyDescriptor(pseudo.ParentNode.prototype, 'children'),
+    childElementCount: pseudo.Object.getOwnPropertyDescriptor(pseudo.ParentNode.prototype, 'childElementCount'),
+    append: pseudo.Object.getOwnPropertyDescriptor(pseudo.ParentNode.prototype, 'append'),
+    prepend: pseudo.Object.getOwnPropertyDescriptor(pseudo.ParentNode.prototype, 'prepend'),
+    appendChild: pseudo.Object.getOwnPropertyDescriptor(pseudo.ParentNode.prototype, 'appendChild'),
+    removeChild: pseudo.Object.getOwnPropertyDescriptor(pseudo.ParentNode.prototype, 'removeChild'),
+    insertBefore: pseudo.Object.getOwnPropertyDescriptor(pseudo.ParentNode.prototype, 'insertBefore'),
+    firstElementChild: pseudo.Object.getOwnPropertyDescriptor(pseudo.ParentNode.prototype, 'firstElementChild'),
+    lastElementChild: pseudo.Object.getOwnPropertyDescriptor(pseudo.ParentNode.prototype, 'lastElementChild'),
+  });
+
+  pseudo.Element.prototype.previousElementSibling = /** @type {Element|null} */ (null);
+  pseudo.Element.prototype.nextElementSibling = /** @type {Element|null} */ (null);
   pseudo.Object.freeze(pseudo.Object.freeze(pseudo.Element).prototype);
 
   pseudo.DocumentFragment = class DocumentFragment extends pseudo.Node {
@@ -1511,23 +1787,45 @@ const createPseudoDOM = (endowments = globalThis) => {
     }
 
     toJSON() {
-      return (this.childElementCount && [...this.children]) || [];
+      return (this.childElementCount && [...this.childNodes]) || [];
     }
 
     [pseudo.Symbol.iterator]() {
-      return ((this.childElementCount && this.children) || '')[pseudo.Symbol.iterator]();
+      return ((this.childElementCount && this.childNodes) || '')[pseudo.Symbol.iterator]();
     }
   };
 
-  pseudo.DocumentFragment.prototype.append = pseudo.Element.prototype.append;
+  pseudo.Object.defineProperties(pseudo.DocumentFragment.prototype, {
+    children: pseudo.Object.getOwnPropertyDescriptor(pseudo.ParentNode.prototype, 'children'),
+    childElementCount: pseudo.Object.getOwnPropertyDescriptor(pseudo.ParentNode.prototype, 'childElementCount'),
+    append: pseudo.Object.getOwnPropertyDescriptor(pseudo.ParentNode.prototype, 'append'),
+    prepend: pseudo.Object.getOwnPropertyDescriptor(pseudo.ParentNode.prototype, 'prepend'),
+    appendChild: pseudo.Object.getOwnPropertyDescriptor(pseudo.ParentNode.prototype, 'appendChild'),
+    removeChild: pseudo.Object.getOwnPropertyDescriptor(pseudo.ParentNode.prototype, 'removeChild'),
+    insertBefore: pseudo.Object.getOwnPropertyDescriptor(pseudo.ParentNode.prototype, 'insertBefore'),
+    firstElementChild: pseudo.Object.getOwnPropertyDescriptor(pseudo.ParentNode.prototype, 'firstElementChild'),
+    lastElementChild: pseudo.Object.getOwnPropertyDescriptor(pseudo.ParentNode.prototype, 'lastElementChild'),
+  });
+
   pseudo.Object.freeze(pseudo.Object.freeze(pseudo.DocumentFragment).prototype);
 
   /** @type {typeof globalThis.Text} */
-  pseudo.Text = class Text extends pseudo.String {
+  pseudo.Text = class Text extends pseudo.Node {
+    constructor(textContent) {
+      pseudo.Object.defineProperty(super(), 'textContent', {
+        value: `${textContent}`,
+        writable: false,
+        configurable: true,
+      });
+    }
     toString() {
-      return Pseudom.encodeEntities(super.toString());
+      return Pseudom.encodeEntities(this.textContent.toString());
     }
   };
+
+  pseudo.Object.defineProperties(pseudo.Text.prototype, {
+    textContent: {value: '', writable: false, configurable: true},
+  });
 
   pseudo.Object.freeze(pseudo.Object.freeze(pseudo.Text).prototype);
 
@@ -1830,7 +2128,7 @@ class MarkupRenderer {
       : () => (renderedLine = renderers.line('', 'no-reflow'));
     const emit = (renderer, text, type, hint) => {
       text == null && (text = '');
-      (renderedLine || createLine()).appendChild((renderedLine.lastChild = renderer(text, hint || type)));
+      (renderedLine || createLine()).appendChild(renderer(text, hint || type));
       if (type === 'inset') {
         renderedLine.style['--markup-line-inset-spaces'] =
           text.length - (renderedLine.style['--markup-line-inset-tabs'] = text.length - text.replace(Tabs, '').length);
@@ -1893,10 +2191,9 @@ class MarkupRenderer {
    * @param {typeof MarkupRenderer['dom']} [dom]
    */
   static factory(tagName, properties, options, dom) {
-    let defaults =
-      /** @type {MarkupRenderer['options']} */ ((this &&
-        Object.prototype.isPrototypeOf.call(MarkupRenderer, this) &&
-        this.defaults) ||
+    let defaults = /** @type {MarkupRenderer['options']} */ ((this &&
+      Object.prototype.isPrototypeOf.call(MarkupRenderer, this) &&
+      this.defaults) ||
       MarkupRenderer.defaults);
     let markupClass = defaults.MARKUP_CLASS;
     let markupHint = '';
@@ -1911,8 +2208,9 @@ class MarkupRenderer {
       ...properties,
     }));
 
-    properties.className = `${markupHint ? `${markupClass} ${markupHint}` : markupClass} ${options.MARKUP_CLASS ||
-      defaults.MARKUP_CLASS}`;
+    properties.className = `${markupHint ? `${markupClass} ${markupHint}` : markupClass} ${
+      options.MARKUP_CLASS || defaults.MARKUP_CLASS
+    }`;
 
     return new (this.Factory || MarkupRenderer.Factory)({tagName, options, markupHint, markupClass, properties, dom})
       .render;
@@ -2158,7 +2456,7 @@ class TokenizerState extends MatcherState {
   }
 }
 
-TokenizerState.prototype.previousToken = TokenizerState.prototype.nextToken = /** @type {Token} */ (undefined);
+TokenizerState.prototype.previousToken = TokenizerState.prototype.nextToken = /** @type {TokenMatcherToken} */ (undefined);
 
 TokenizerState.defaults = {source: undefined, initialize: undefined, finalize: undefined};
 
@@ -2280,6 +2578,7 @@ class Matcher extends RegExp {
 
         return entity.source;
       } else {
+        //@ts-ignore
         entities.push(((entity != null || undefined) && entity) || undefined);
       }
     });
@@ -2431,8 +2730,8 @@ class Matcher extends RegExp {
    * @template {Matcher} T
    * @template {{}} U
    * @param {T} matcher
-   * @param {TokenizerState<T, U>} [state]
-   * @returns {TokenMatcher<U>}
+   * @param {TokenMatcherState} [state]
+   * @returns {TokenMatcher}
    */
   static create(matcher, state) {
     /** @type {typeof Matcher} */
@@ -2476,7 +2775,7 @@ class Tokenizer$1 {
     this.initializeState = /** @type {<V, S extends TokenizerState>(state: S) => V & S} */ (undefined);
   }
 
-  /** @type {<M extends MatcherArray, T extends {}, S extends TokenizerState>(init: MatcherMatch<M>, state?: S) => Token<T>} */
+  /** @type {<M extends MatcherArray, T extends {}, S extends TokenizerState>(init: MatcherMatch<M>, state?: S) => TokenMatcherToken} */
   createToken({0: text, identity, capture, index}, state) {
     // @ts-ignore
     return {
@@ -2633,6 +2932,18 @@ class TokenMatcher extends Matcher {
       state.nextFault = undefined;
       return 'fault';
     }
+
+    if (!!state.currentMatch.format && !!state.nextContext.goal.type)
+      state.currentMatch[state.currentMatch.format] = state.nextContext.goal.type;
+
+    if (state.currentMatch.format === 'punctuator')
+      state.currentMatch.punctuator =
+        (state.context.goal.punctuation != null && state.context.goal.punctuation[opener]) ||
+        state.nextContext.goal.type ||
+        undefined;
+
+    if (state.nextContext.goal.flatten === true && state.currentMatch.flatten !== false)
+      state.currentMatch.flatten = true;
   }
 
   /**
@@ -2688,6 +2999,30 @@ class TokenMatcher extends Matcher {
     state.groups.closers.splice(index, state.groups.closers.length);
     state.groups.splice(index, state.groups.length);
     state.nextContext = state.context.parentContext;
+
+    if (!!state.currentMatch.format && !!state.context.goal.type)
+      state.currentMatch[state.currentMatch.format] = state.context.goal.type;
+
+    if (state.currentMatch.format === 'punctuator')
+      state.currentMatch.punctuator =
+        (state.context.goal.punctuation != null && state.context.goal.punctuation[closer]) ||
+        state.context.goal.type ||
+        undefined;
+
+    if (state.context.goal.flatten === true && state.currentMatch.flatten !== false) state.currentMatch.flatten = true;
+  }
+
+  /**
+   * Safely mutates matcher state to close the current context.
+   *
+   * @template {TokenMatcher.State} S
+   * @param {string} delimiter - Text of the intended { type = "closer" | "opener" } token
+   * @param {S} state - Matcher state
+   * @returns {undefined | string} - String when context is **not** closed
+   */
+  static punctuate(delimiter, state) {
+    if (TokenMatcher.canOpen(delimiter, state)) return TokenMatcher.open(delimiter, state) || 'opener';
+    else if (TokenMatcher.canClose(delimiter, state)) return TokenMatcher.close(delimiter, state) || 'closer';
   }
 
   /**
@@ -2743,7 +3078,7 @@ class TokenMatcher extends Matcher {
   }
 
   /**
-   * @param {Matcher} matcher
+   * @param {Matcher & {goal?: object}} matcher
    * @param {any} [options]
    */
   static createMode(matcher, options) {
@@ -2759,14 +3094,33 @@ class TokenMatcher extends Matcher {
         aliases: mode.aliases,
         preregister: mode.preregister,
         createToken: tokenizer.createToken = tokenizer.createToken,
-        initializeState: tokenizer.initializeState,
-        finalizeState: tokenizer.finalizeState,
         ...mode.overrides
       } = options);
+
+    matcher.goal &&
+      ({initializeState: tokenizer.initializeState, finalizeState: tokenizer.finalizeState} = matcher.goal);
 
     Object.freeze(tokenizer);
 
     return mode;
+  }
+
+  /**
+   * @param {TokenMatcherPatternDefinitions} definitions
+   * @param {MatcherFlags} [flags]
+   * @param {PropertyDescriptorMap} [properties]
+   */
+  static define(definitions, flags, properties) {
+    if (typeof definitions === 'function') {
+      return super.define(definitions, flags, properties);
+    } else if (definitions != null) {
+      return super.define(
+        entity => TokenMatcher.join(...Object.keys(definitions).map(key => entity(definitions[key]()))),
+        flags,
+        properties,
+      );
+    }
+    throw TypeError(`TokenMatcher.define invoked with incompatible definitions.`);
   }
 }
 
@@ -2780,17 +3134,17 @@ TokenMatcher.prototype.goal = undefined;
  * @param {MatcherMatch & {format?: string, upperCase?: string, punctuator?: string}} match
  * @param {T} [state]
  */
-TokenMatcher.Opener = (text, capture, match, state) => {
+TokenMatcher.openerEntity = (text, capture, match, state) => {
   match.upperCase = text.toUpperCase();
   match.format = 'punctuator';
   TokenMatcher.capture(
     state.context.goal.punctuators != null && state.context.goal.punctuators[match.upperCase] === true
       ? (match.punctuator =
-          (state.context.goal.punctuation && state.context.goal.punctuation[match.upperCase]) || 'combinator')
+          (state.context.goal.punctuation != null && state.context.goal.punctuation[match.upperCase]) || 'combinator')
       : TokenMatcher.canOpen(match.upperCase, state)
       ? TokenMatcher.open(match.upperCase, state) ||
         ((match.punctuator =
-          (state.context.goal.punctuation && state.context.goal.punctuation[match.upperCase]) ||
+          (state.context.goal.punctuation != null && state.context.goal.punctuation[match.upperCase]) ||
           state.context.goal.type),
         'opener')
       : // If it is passive sequence we keep only on character
@@ -2807,16 +3161,16 @@ TokenMatcher.Opener = (text, capture, match, state) => {
  * @param {MatcherMatch & {format?: string, upperCase?: string, punctuator?: string}} match
  * @param {T} [state]
  */
-TokenMatcher.Closer = (text, capture, match, state) => {
+TokenMatcher.closerEntity = (text, capture, match, state) => {
   match.upperCase = text.toUpperCase();
   match.format = 'punctuator';
   TokenMatcher.capture(
-    state.context.goal.punctuators && state.context.goal.punctuators[text] === true
+    state.context.goal.punctuators != null && state.context.goal.punctuators[text] === true
       ? (match.punctuator = 'combinator')
       : TokenMatcher.canClose(match.upperCase, state)
       ? TokenMatcher.close(match.upperCase, state) ||
         ((match.punctuator =
-          (state.context.goal.punctuation && state.context.goal.punctuation[text]) || state.context.goal.type),
+          (state.context.goal.punctuation != null && state.context.goal.punctuation[text]) || state.context.goal.type),
         'closer')
       : state.context.goal.type,
     match,
@@ -2830,17 +3184,12 @@ TokenMatcher.Closer = (text, capture, match, state) => {
  * @param {MatcherMatch & {format?: string, punctuator?: string, flatten?: boolean}} match
  * @param {T} [state]
  */
-TokenMatcher.Quote = (text, capture, match, state) => {
+TokenMatcher.quoteEntity = (text, capture, match, state) => {
   match.format = 'punctuator';
   TokenMatcher.capture(
     state.context.goal.punctuation[text] === 'quote' && TokenMatcher.canOpen(text, state)
-      ? TokenMatcher.open(text, state) ||
-          ((match.punctuator =
-            (state.nextContext.goal.punctuation && state.nextContext.goal.punctuation[text]) ||
-            state.nextContext.goal.type ||
-            'quote'),
-          'opener')
-      : state.context.group.closer === text && TokenMatcher.canClose(text, state)
+      ? TokenMatcher.open(text, state) || 'opener'
+      : state.context.goal.type === 'quote' && state.context.group.closer === text && TokenMatcher.canClose(text, state)
       ? TokenMatcher.close(text, state) || ((match.punctuator = state.context.goal.type || 'quote'), 'closer')
       : state.context.goal.type || 'quote',
     match,
@@ -2857,7 +3206,9 @@ TokenMatcher.Quote = (text, capture, match, state) => {
 TokenMatcher.whitespaceEntity = (text, capture, match, state) => {
   match.format = 'whitespace';
   TokenMatcher.capture(
-    state.context.goal.type || (match.flatten = state.lineOffset !== match.index) ? 'whitespace' : 'inset',
+    state.context.goal.type || state.lineOffset !== match.index
+      ? ((match.flatten = state.context.goal.flatten !== false), 'whitespace')
+      : ((match.flatten = false), 'inset'),
     match,
   );
 };
@@ -2874,7 +3225,7 @@ TokenMatcher.breakEntity = (text, capture, match, state) => {
   TokenMatcher.capture(
     (state.context.group != null && state.context.group.closer === '\n' && TokenMatcher.close(text, state)) ||
       // NOTE: ‹break› takes precedence over ‹closer›
-      state.context.goal.punctuation['\n'] ||
+      (state.context.goal.punctuation != null && state.context.goal.punctuation['\n']) ||
       'break',
     match,
   );
@@ -2898,6 +3249,216 @@ TokenMatcher.fallthroughEntity = (text, capture, match, state) => {
     match,
   );
   // match.identity === 'fault' && (match.flatten = false);
+};
+
+/**
+ * @template {TokenMatcherState} T
+ * @param {TokenMatcherMatch} match
+ * @param {T} state
+ * @returns {TokenMatcherToken}
+ */
+TokenMatcher.createToken = (match, state) => {
+  let currentGoal;
+  // let goalName;
+  let currentGoalType;
+  let contextId;
+  let contextNumber;
+  let contextDepth;
+  let contextGroup;
+  let parentContext;
+  /** @type {'lastTrivia'|'lastAtom'} */ let tokenReference;
+  let tokenContext;
+  let nextToken;
+  let text;
+  /** @type {string} */ let type;
+  let fault;
+  let punctuator;
+  let offset;
+  let lineInset;
+  let lineBreaks;
+  let isOperator;
+  let isDelimiter;
+  let isComment;
+  let isWhitespace;
+  let flatten;
+  let fold;
+  let columnNumber;
+  let lineNumber;
+  let tokenNumber;
+  let captureNumber;
+  let hint;
+
+  const {
+    context: currentContext,
+    nextContext,
+    lineIndex,
+    lineOffset,
+    nextOffset,
+    nextFault,
+    lastToken,
+    lastTrivia,
+    lastAtom,
+  } = state;
+
+  /* Capture */
+  ({
+    0: text,
+    capture: {inset: lineInset},
+    // @ts-ignore
+    identity: type,
+    flatten,
+    fault,
+    punctuator,
+    index: offset,
+  } = match);
+
+  if (!text) return;
+
+  ({
+    id: contextId,
+    number: contextNumber,
+    depth: contextDepth,
+    goal: currentGoal,
+    group: contextGroup,
+    parentContext,
+  } = tokenContext = (type === 'opener' && nextContext) || currentContext);
+
+  currentGoalType = currentGoal.type;
+
+  if (nextOffset != null) {
+    state.nextOffset = undefined;
+    if (nextOffset > offset) {
+      text = match.input.slice(offset, nextOffset);
+      state.matcher.lastIndex = nextOffset;
+    }
+  } else if (nextFault != null) {
+    state.nextFault = undefined;
+    if (nextFault === true) {
+      fault = true;
+      flatten = false;
+      type = 'fault';
+      punctuator = undefined;
+      // console.log({state: {...state}, match, nextFault});
+    }
+  }
+
+  lineBreaks = (text === '\n' && 1) || countLineBreaks(text);
+  (isOperator = type === 'operator' || type === 'delimiter' || type === 'breaker' || type === 'combinator') ||
+    (isDelimiter = type === 'closer' || type === 'opener') ||
+    (isWhitespace = type === 'whitespace' || type === 'break' || type === 'inset');
+
+  (isComment = type === 'comment' || punctuator === 'comment')
+    ? (type = 'comment')
+    : type || (type = (!isDelimiter && !fault && currentGoalType) || 'text');
+
+  if (lineBreaks) {
+    state.lineIndex += lineBreaks;
+    state.lineOffset = offset + (text === '\n' ? 1 : text.lastIndexOf('\n'));
+  }
+
+  /* Flattening / Token Folding */
+
+  flatten === false ||
+    flatten === true ||
+    (flatten = fault !== true && (isDelimiter !== true || currentGoal.fold === true) && currentGoal.flatten === true);
+
+  captureNumber = ++tokenContext.captureCount;
+  state.totalCaptureCount++;
+
+  if (
+    fault !== true && // type ! 'fault' &&
+    (fold = flatten) && // fold only if flatten is allowed
+    lastToken != null &&
+    ((lastToken.contextNumber === contextNumber && lastToken.fold === true) ||
+      (type === 'closer' && flatten === true)) && // never fold across contexts
+    (lastToken.type === type ||
+      (currentGoal.fold === true && (lastToken.type === currentGoalType || lastToken.punctuator === currentGoalType)))
+  ) {
+    lastToken.captureCount++;
+    lastToken.text += text;
+    lineBreaks && (lastToken.lineBreaks += lineBreaks);
+  } else {
+    // The generator retains this new as state.nextToken
+    //   which means tokenContext is state.nextTokenContext
+    //   and the fact that we are returning a token here will
+    //   yield the current state.nextToken so we need to also
+    //   set state.lastTokenContext to match
+    //
+    //   TODO: Add parity tests for tokenizer's token/context states
+    state.lastTokenContext = state.nextTokenContext;
+    state.nextTokenContext = tokenContext;
+
+    /* Token Creation */
+    flatten = false;
+    columnNumber = 1 + (offset - lineOffset || 0);
+    lineNumber = 1 + (lineIndex || 0);
+
+    tokenNumber = ++tokenContext.tokenCount;
+    state.totalTokenCount++;
+
+    if (fault === true) tokenContext.faults++;
+
+    // hint = `${(isDelimiter ? type : currentGoalType && `in-${currentGoalType}`) ||
+    hint = `${
+      currentGoalType
+        ? isDelimiter && currentGoal.opener === text
+          ? `${type}`
+          : `in-${currentGoalType}`
+        : isDelimiter
+        ? type
+        : ''
+    }\n\n${contextId} #${tokenNumber}\n(${lineNumber}:${columnNumber})`;
+
+    tokenReference = isWhitespace || isComment ? 'lastTrivia' : 'lastAtom';
+
+    nextToken = tokenContext[tokenReference] = state[tokenReference] = tokenContext.lastToken = state.lastToken = {
+      text,
+      type,
+      offset,
+      punctuator,
+      hint,
+      lineOffset,
+      lineBreaks,
+      lineInset,
+      columnNumber,
+      lineNumber,
+      captureNumber,
+      captureCount: 1,
+      tokenNumber,
+      contextNumber,
+      contextDepth,
+
+      isWhitespace,
+      isOperator,
+      isDelimiter,
+      isComment,
+
+      // FIXME: Nondescript
+      fault,
+      fold,
+      flatten,
+
+      goal: currentGoal,
+      group: contextGroup,
+      state,
+      context: tokenContext,
+    };
+  }
+  /* Context */
+  !nextContext ||
+    ((state.nextContext = undefined), nextContext === currentContext) ||
+    ((state.lastContext = currentContext),
+    currentContext === nextContext.parentContext
+      ? (state.totalContextCount++,
+        (nextContext.precedingAtom = lastAtom),
+        (nextContext.precedingTrivia = lastTrivia),
+        (nextContext.precedingToken = lastToken))
+      : ((parentContext.nestedContextCount += currentContext.nestedContextCount + currentContext.contextCount),
+        (parentContext.nestedCaptureCount += currentContext.nestedCaptureCount + currentContext.captureCount),
+        (parentContext.nestedTokenCount += currentContext.nestedTokenCount + currentContext.tokenCount)),
+    (state.context = nextContext));
+
+  return nextToken;
 };
 
 Object.freeze(TokenMatcher);
@@ -3070,8 +3631,9 @@ const initializeState = state => {
     faults: 0,
     parentContext: undefined,
     goal: state.matcher.goal,
-    //@ts-ignore
+    // @ts-ignore
     group: (state.groups.root = Object.freeze({})),
+    //@ts-ignore
     state,
     ...(state.USE_CONSTRUCTS === true ? {currentConstruct: new Construct()} : {}),
   });
@@ -3104,220 +3666,6 @@ const finalizeState = state => {
 
   // Output to console when necessary
   debug && (error ? warn : log)(`[tokenizer]: ${error || 'done'} — %O`, state);
-};
-
-/** @param {Match} match @param {State} state @returns {Token}*/
-const createToken = (match, state) => {
-  let currentGoal,
-    // goalName,
-    currentGoalType,
-    contextId,
-    contextNumber,
-    contextDepth,
-    contextGroup,
-    parentContext,
-    tokenReference,
-    tokenContext,
-    nextToken,
-    text,
-    type,
-    fault,
-    punctuator,
-    offset,
-    lineInset,
-    lineBreaks,
-    isOperator,
-    isDelimiter,
-    isComment,
-    isWhitespace,
-    flatten,
-    fold,
-    columnNumber,
-    lineNumber,
-    tokenNumber,
-    captureNumber,
-    hint;
-
-  const {
-    context: currentContext,
-    nextContext,
-    lineIndex,
-    lineOffset,
-    nextOffset,
-    nextFault,
-    lastToken,
-    lastTrivia,
-    lastAtom,
-  } = state;
-
-  /* Capture */
-  ({
-    0: text,
-    capture: {inset: lineInset},
-    identity: type,
-    flatten,
-    fault,
-    punctuator,
-    index: offset,
-  } = match);
-
-  if (!text) return;
-
-  ({
-    id: contextId,
-    number: contextNumber,
-    depth: contextDepth,
-    goal: currentGoal,
-    group: contextGroup,
-    parentContext,
-  } = tokenContext = (type === 'opener' && nextContext) || currentContext);
-
-  currentGoalType = currentGoal.type;
-
-  if (nextOffset != null) {
-    state.nextOffset = undefined;
-    if (nextOffset > offset) {
-      text = match.input.slice(offset, nextOffset);
-      state.matcher.lastIndex = nextOffset;
-    }
-  } else if (nextFault != null) {
-    state.nextFault = undefined;
-    if (nextFault === true) {
-      fault = true;
-      flatten = false;
-      type = 'fault';
-      punctuator = undefined;
-      // console.log({state: {...state}, match, nextFault});
-    }
-  }
-
-  // nextOffset != null
-  //   ? ((state.nextOffset = undefined),
-  //     nextOffset > offset && ((text = match.input.slice(offset, nextOffset)), (state.matcher.lastIndex = nextOffset)))
-  //   : nextFault != null &&
-  //     ((state.nextFault = undefined),
-  //     fault || (nextFault === true && ((fault = true), (flatten = false), (type = 'fault'))));
-
-  lineBreaks = (text === '\n' && 1) || countLineBreaks(text);
-  (isOperator = type === 'operator' || type === 'delimiter' || type === 'breaker' || type === 'combinator') ||
-    (isDelimiter = type === 'closer' || type === 'opener') ||
-    (isWhitespace = type === 'whitespace' || type === 'break' || type === 'inset');
-
-  (isComment = type === 'comment' || punctuator === 'comment')
-    ? (type = 'comment')
-    : type || (type = (!isDelimiter && !fault && currentGoalType) || 'text');
-
-  if (lineBreaks) {
-    state.lineIndex += lineBreaks;
-    state.lineOffset = offset + (text === '\n' ? 1 : text.lastIndexOf('\n'));
-  }
-
-  /* Flattening / Token Folding */
-
-  flatten === false ||
-    flatten === true ||
-    (flatten = fault !== true && (isDelimiter !== true || currentGoal.fold === true) && currentGoal.flatten === true);
-
-  captureNumber = ++tokenContext.captureCount;
-  state.totalCaptureCount++;
-
-  if (
-    fault !== true && // type ! 'fault' &&
-    (fold = flatten) && // fold only if flatten is allowed
-    lastToken != null &&
-    ((lastToken.contextNumber === contextNumber && lastToken.fold === true) ||
-      (type === 'closer' && flatten === true)) && // never fold across contexts
-    (lastToken.type === type ||
-      (currentGoal.fold === true && (lastToken.type === currentGoalType || lastToken.punctuator === currentGoalType)))
-  ) {
-    lastToken.captureCount++;
-    lastToken.text += text;
-    lineBreaks && (lastToken.lineBreaks += lineBreaks);
-  } else {
-    // The generator retains this new as state.nextToken
-    //   which means tokenContext is state.nextTokenContext
-    //   and the fact that we are returning a token here will
-    //   yield the current state.nextToken so we need to also
-    //   set state.lastTokenContext to match
-    //
-    //   TODO: Add parity tests for tokenizer's token/context states
-    state.lastTokenContext = state.nextTokenContext;
-    state.nextTokenContext = tokenContext;
-
-    /* Token Creation */
-    flatten = false;
-    columnNumber = 1 + (offset - lineOffset || 0);
-    lineNumber = 1 + (lineIndex || 0);
-
-    tokenNumber = ++tokenContext.tokenCount;
-    state.totalTokenCount++;
-
-    if (fault === true) tokenContext.faults++;
-
-    // hint = `${(isDelimiter ? type : currentGoalType && `in-${currentGoalType}`) ||
-    hint = `${
-      currentGoalType
-        ? isDelimiter && currentGoal.opener === text
-          ? `${type}`
-          : `in-${currentGoalType}`
-        : isDelimiter
-        ? type
-        : ''
-    }\n\n${contextId} #${tokenNumber}\n(${lineNumber}:${columnNumber})`;
-
-    tokenReference = isWhitespace || isComment ? 'lastTrivia' : 'lastAtom';
-
-    nextToken = tokenContext[tokenReference] = state[tokenReference] = tokenContext.lastToken = state.lastToken = {
-      text,
-      type,
-      offset,
-      punctuator,
-      hint,
-      lineOffset,
-      lineBreaks,
-      lineInset,
-      columnNumber,
-      lineNumber,
-      captureNumber,
-      captureCount: 1,
-      tokenNumber,
-      contextNumber,
-      contextDepth,
-
-      isWhitespace,
-      isOperator,
-      isDelimiter,
-      isComment,
-
-      // FIXME: Nondescript
-      fault,
-      fold,
-      flatten,
-
-      goal: currentGoal,
-      group: contextGroup,
-      state,
-      context: tokenContext,
-    };
-  }
-  /* Context */
-  !nextContext ||
-    ((state.nextContext = undefined), nextContext === currentContext) ||
-    ((state.lastContext = currentContext),
-    currentContext === nextContext.parentContext
-      ? (state.totalContextCount++,
-        // tokenReference === 'lastAtom'
-        //   ? ((nextContext.firstAtom = nextToken), (nextContext.firstTrivia = undefined))
-        //   : ((nextContext.firstAtom = undefined), (nextContext.firstTrivia = nextToken)),
-        (nextContext.precedingAtom = lastAtom),
-        (nextContext.precedingTrivia = lastTrivia),
-        (nextContext.precedingToken = lastToken))
-      : ((parentContext.nestedContextCount += currentContext.nestedContextCount + currentContext.contextCount),
-        (parentContext.nestedCaptureCount += currentContext.nestedCaptureCount + currentContext.captureCount),
-        (parentContext.nestedTokenCount += currentContext.nestedTokenCount + currentContext.tokenCount)),
-    (state.context = nextContext));
-
-  return nextToken;
 };
 
 const initializeContext = (assign =>
@@ -3374,6 +3722,7 @@ const generateDefinitions = ({groups = {}, goals = {}, identities = {}, symbols 
   const punctuators = Object.create(null);
 
   for (const opener of Object.getOwnPropertyNames(groups)) {
+    // @ts-ignore
     const {[opener]: group} = groups;
     'goal' in group && (group.goal = goals[group.goal] || FaultGoal);
     'parentGoal' in group && (group.parentGoal = goals[group.parentGoal] || FaultGoal);
@@ -3456,7 +3805,7 @@ const generateDefinitions = ({groups = {}, goals = {}, identities = {}, symbols 
    * @template {{}} T
    * @param {Goal} goal
    * @param {string} text
-   * @param {type} type
+   * @param {string} type
    * @param {T} properties
    */
   function GoalSpecificTokenRecord(goal, text, type, properties) {
@@ -3476,19 +3825,17 @@ generateDefinitions({goals: {[FaultGoal.symbol]: FaultGoal}});
 
 Object.freeze(generateDefinitions);
 
-/**
- * @template {string} K
- * @template {string} I
- * @param {{[i in I]: K[]}} mappings
- */
-const Keywords = mappings => {
-  /** @type {{[i in I]: ReadonlyArray<K>}} */
-  //@ts-ignore
-  const identities = {};
+/** @typedef {Record<string, string[]>} Keywords.Mappings */
+/** @template {Keywords.Mappings} T @typedef {keyof T} Keywords.Mappings.Identities  */
+/** @template {Keywords.Mappings} T @typedef {T[keyof T][number]} Keywords.Mappings.Keywords */
+/** @template {Keywords.Mappings} T @typedef {Record<Keywords.Mappings.Keywords<T>, Keywords.Mappings.Identities<T>>} Keywords.Records.Keywords */
+/** @template {Keywords.Mappings} T @typedef {Record<Keywords.Mappings.Identities<T>, ReadonlyArray<Keywords.Mappings.Keywords<T>>>} Keywords.Records.Identities */
+/** @template {Keywords.Mappings} T @typedef {Iterable<Keywords.Mappings.Keywords<T>> & Readonly<Keywords.Records.Keywords<T>> & Readonly<Keywords.Records.Identities<T>>} Keywords.Records */
 
-  /** @type {{[k in K]: I}} */
-  //@ts-ignore
-  const keywords = {...Keywords.prototype};
+/** @template {Keywords.Mappings} T @param {T} mappings@returns {Keywords.Records<T>} */
+const Keywords = mappings => {
+  const identities = /** @type {any} */ ({});
+  const keywords = /** @type {any} */ ({...Keywords.prototype});
 
   for (const identity in mappings) {
     identities[identity] = Object.freeze([...mappings[identity]]);
@@ -3497,11 +3844,7 @@ const Keywords = mappings => {
     }
   }
 
-  Object.setPrototypeOf(keywords, identities);
-  Object.freeze(identities);
-  Object.freeze(keywords);
-
-  return keywords;
+  return Object.freeze(Object.setPrototypeOf(keywords, Object.freeze(identities)));
 };
 
 Keywords.prototype = {
@@ -3509,6 +3852,9 @@ Keywords.prototype = {
     return Object.getOwnPropertyNames(this)[Symbol.iterator]();
   },
 };
+
+/** @type {(keywords: string) => string[]} */
+Keywords.split = RegExp.prototype[Symbol.split].bind(/\W+/gu);
 
 const Construct = class Construct extends Array {
   constructor() {
@@ -3599,8 +3945,6 @@ const stats = {
 /** @typedef {import('./types').Contexts} Contexts */
 /** @typedef {import('./types').State} State */
 /** @typedef {import('./types').Token} Token */
-/** @typedef {Goal['type']} type */
-/** @typedef {{symbol: symbol, text: string, type: type, goal?: Goal, group?: Group}} token */
 
 //@ts-check
 
@@ -3625,6 +3969,7 @@ const {
     ContextualWord: 'ECMAScript.ContextualWord',
     RestrictedWord: 'ECMAScript.RestrictedWord',
     FutureReservedWord: 'ECMAScript.FutureReservedWord',
+    MetaProperty: 'ECMAScript.MetaProperty',
     Keyword: 'ECMAScript.Keyword',
   };
 
@@ -3638,18 +3983,12 @@ const {
     openers: ['{', '(', '[', "'", '"', '`', '/', '/*', '//'],
     // TODO: Properly fault on invalid closer
     closers: ['}', ')', ']'],
-    /** @type {ECMAScript.Keywords} */
-    // @ts-ignore
     keywords: Keywords({
       // TODO: Let's make those constructs (this.new.target borks)
-      // [identities.MetaProperty]: 'new.target import.meta',
-      [identities.Keyword]: [
-        ...['await', 'break', 'case', 'catch', 'class', 'const', 'continue'],
-        ...['debugger', 'default', 'delete', 'do', 'else', 'export', 'extends'],
-        ...['finally', 'for', 'function', 'if', 'import', 'in', 'instanceof'],
-        ...['let', 'new', 'return', 'super', 'switch', 'this', 'throw', 'try'],
-        ...['typeof', 'var', 'void', 'while', 'with', 'yield'],
-      ],
+      [identities.MetaProperty]: ['new.target', 'import.meta'],
+      [identities.Keyword]: /** @type {Array<'await'|'break'|'case'|'catch'|'class'|'const'|'continue'|'debugger'|'default'|'delete'|'do'|'else'|'export'|'extends'|'finally'|'for'|'function'|'if'|'import'|'in'|'instanceof'|'new'|'return'|'super'|'switch'|'this'|'throw'|'try'|'typeof'|'var'|'void'|'while'|'with'|'yield'>} */ (Keywords.split(
+        'await|break|case|catch|class|const|continue|debugger|default|delete|do|else|export|extends|finally|for|function|if|import|in|instanceof|let|new|return|super|switch|this|throw|try|typeof|var|void|while|with|yield',
+      )),
       [identities.RestrictedWord]: ['interface', 'implements', 'package', 'private', 'protected', 'public'],
       [identities.FutureReservedWord]: ['enum'],
       // NOTE: This is purposely not aligned with the spec
@@ -3692,6 +4031,15 @@ const {
         range`\p{ID_Continue}` ||
         range`0-9A-Z_a-z\xaa\xb5\xb7\xba\xc0-\xd6\xd8-\xf6\xf8-\u02c1\u02c6-\u02d1\u02e0-\u02e4\u02ec\u02ee\u0300-\u0374\u0376-\u0377\u037a-\u037d\u037f\u0386-\u038a\u038c\u038e-\u03a1\u03a3-\u03f5\u03f7-\u0481\u0483-\u0487\u048a-\u052f\u0531-\u0556\u0559\u0560-\u0588\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05c5\u05c7\u05d0-\u05ea\u05ef-\u05f2\u0610-\u061a\u0620-\u0669\u066e-\u06d3\u06d5-\u06dc\u06df-\u06e8\u06ea-\u06fc\u06ff\u0710-\u074a\u074d-\u07b1\u07c0-\u07f5\u07fa\u07fd\u0800-\u082d\u0840-\u085b\u0860-\u086a\u08a0-\u08b4\u08b6-\u08bd\u08d3-\u08e1\u08e3-\u0963\u0966-\u096f\u0971-\u0983\u0985-\u098c\u098f-\u0990\u0993-\u09a8\u09aa-\u09b0\u09b2\u09b6-\u09b9\u09bc-\u09c4\u09c7-\u09c8\u09cb-\u09ce\u09d7\u09dc-\u09dd\u09df-\u09e3\u09e6-\u09f1\u09fc\u09fe\u0a01-\u0a03\u0a05-\u0a0a\u0a0f-\u0a10\u0a13-\u0a28\u0a2a-\u0a30\u0a32-\u0a33\u0a35-\u0a36\u0a38-\u0a39\u0a3c\u0a3e-\u0a42\u0a47-\u0a48\u0a4b-\u0a4d\u0a51\u0a59-\u0a5c\u0a5e\u0a66-\u0a75\u0a81-\u0a83\u0a85-\u0a8d\u0a8f-\u0a91\u0a93-\u0aa8\u0aaa-\u0ab0\u0ab2-\u0ab3\u0ab5-\u0ab9\u0abc-\u0ac5\u0ac7-\u0ac9\u0acb-\u0acd\u0ad0\u0ae0-\u0ae3\u0ae6-\u0aef\u0af9-\u0aff\u0b01-\u0b03\u0b05-\u0b0c\u0b0f-\u0b10\u0b13-\u0b28\u0b2a-\u0b30\u0b32-\u0b33\u0b35-\u0b39\u0b3c-\u0b44\u0b47-\u0b48\u0b4b-\u0b4d\u0b56-\u0b57\u0b5c-\u0b5d\u0b5f-\u0b63\u0b66-\u0b6f\u0b71\u0b82-\u0b83\u0b85-\u0b8a\u0b8e-\u0b90\u0b92-\u0b95\u0b99-\u0b9a\u0b9c\u0b9e-\u0b9f\u0ba3-\u0ba4\u0ba8-\u0baa\u0bae-\u0bb9\u0bbe-\u0bc2\u0bc6-\u0bc8\u0bca-\u0bcd\u0bd0\u0bd7\u0be6-\u0bef\u0c00-\u0c0c\u0c0e-\u0c10\u0c12-\u0c28\u0c2a-\u0c39\u0c3d-\u0c44\u0c46-\u0c48\u0c4a-\u0c4d\u0c55-\u0c56\u0c58-\u0c5a\u0c60-\u0c63\u0c66-\u0c6f\u0c80-\u0c83\u0c85-\u0c8c\u0c8e-\u0c90\u0c92-\u0ca8\u0caa-\u0cb3\u0cb5-\u0cb9\u0cbc-\u0cc4\u0cc6-\u0cc8\u0cca-\u0ccd\u0cd5-\u0cd6\u0cde\u0ce0-\u0ce3\u0ce6-\u0cef\u0cf1-\u0cf2\u0d00-\u0d03\u0d05-\u0d0c\u0d0e-\u0d10\u0d12-\u0d44\u0d46-\u0d48\u0d4a-\u0d4e\u0d54-\u0d57\u0d5f-\u0d63\u0d66-\u0d6f\u0d7a-\u0d7f\u0d82-\u0d83\u0d85-\u0d96\u0d9a-\u0db1\u0db3-\u0dbb\u0dbd\u0dc0-\u0dc6\u0dca\u0dcf-\u0dd4\u0dd6\u0dd8-\u0ddf\u0de6-\u0def\u0df2-\u0df3\u0e01-\u0e3a\u0e40-\u0e4e\u0e50-\u0e59\u0e81-\u0e82\u0e84\u0e86-\u0e8a\u0e8c-\u0ea3\u0ea5\u0ea7-\u0ebd\u0ec0-\u0ec4\u0ec6\u0ec8-\u0ecd\u0ed0-\u0ed9\u0edc-\u0edf\u0f00\u0f18-\u0f19\u0f20-\u0f29\u0f35\u0f37\u0f39\u0f3e-\u0f47\u0f49-\u0f6c\u0f71-\u0f84\u0f86-\u0f97\u0f99-\u0fbc\u0fc6\u1000-\u1049\u1050-\u109d\u10a0-\u10c5\u10c7\u10cd\u10d0-\u10fa\u10fc-\u1248\u124a-\u124d\u1250-\u1256\u1258\u125a-\u125d\u1260-\u1288\u128a-\u128d\u1290-\u12b0\u12b2-\u12b5\u12b8-\u12be\u12c0\u12c2-\u12c5\u12c8-\u12d6\u12d8-\u1310\u1312-\u1315\u1318-\u135a\u135d-\u135f\u1369-\u1371\u1380-\u138f\u13a0-\u13f5\u13f8-\u13fd\u1401-\u166c\u166f-\u167f\u1681-\u169a\u16a0-\u16ea\u16ee-\u16f8\u1700-\u170c\u170e-\u1714\u1720-\u1734\u1740-\u1753\u1760-\u176c\u176e-\u1770\u1772-\u1773\u1780-\u17d3\u17d7\u17dc-\u17dd\u17e0-\u17e9\u180b-\u180d\u1810-\u1819\u1820-\u1878\u1880-\u18aa\u18b0-\u18f5\u1900-\u191e\u1920-\u192b\u1930-\u193b\u1946-\u196d\u1970-\u1974\u1980-\u19ab\u19b0-\u19c9\u19d0-\u19da\u1a00-\u1a1b\u1a20-\u1a5e\u1a60-\u1a7c\u1a7f-\u1a89\u1a90-\u1a99\u1aa7\u1ab0-\u1abd\u1b00-\u1b4b\u1b50-\u1b59\u1b6b-\u1b73\u1b80-\u1bf3\u1c00-\u1c37\u1c40-\u1c49\u1c4d-\u1c7d\u1c80-\u1c88\u1c90-\u1cba\u1cbd-\u1cbf\u1cd0-\u1cd2\u1cd4-\u1cfa\u1d00-\u1df9\u1dfb-\u1f15\u1f18-\u1f1d\u1f20-\u1f45\u1f48-\u1f4d\u1f50-\u1f57\u1f59\u1f5b\u1f5d\u1f5f-\u1f7d\u1f80-\u1fb4\u1fb6-\u1fbc\u1fbe\u1fc2-\u1fc4\u1fc6-\u1fcc\u1fd0-\u1fd3\u1fd6-\u1fdb\u1fe0-\u1fec\u1ff2-\u1ff4\u1ff6-\u1ffc\u203f-\u2040\u2054\u2071\u207f\u2090-\u209c\u20d0-\u20dc\u20e1\u20e5-\u20f0\u2102\u2107\u210a-\u2113\u2115\u2118-\u211d\u2124\u2126\u2128\u212a-\u2139\u213c-\u213f\u2145-\u2149\u214e\u2160-\u2188\u2c00-\u2c2e\u2c30-\u2c5e\u2c60-\u2ce4\u2ceb-\u2cf3\u2d00-\u2d25\u2d27\u2d2d\u2d30-\u2d67\u2d6f\u2d7f-\u2d96\u2da0-\u2da6\u2da8-\u2dae\u2db0-\u2db6\u2db8-\u2dbe\u2dc0-\u2dc6\u2dc8-\u2dce\u2dd0-\u2dd6\u2dd8-\u2dde\u2de0-\u2dff\u3005-\u3007\u3021-\u302f\u3031-\u3035\u3038-\u303c\u3041-\u3096\u3099-\u309f\u30a1-\u30fa\u30fc-\u30ff\u3105-\u312f\u3131-\u318e\u31a0-\u31ba\u31f0-\u31ff\u3400-\u4db5\u4e00-\u9fef\ua000-\ua48c\ua4d0-\ua4fd\ua500-\ua60c\ua610-\ua62b\ua640-\ua66f\ua674-\ua67d\ua67f-\ua6f1\ua717-\ua71f\ua722-\ua788\ua78b-\ua7bf\ua7c2-\ua7c6\ua7f7-\ua827\ua840-\ua873\ua880-\ua8c5\ua8d0-\ua8d9\ua8e0-\ua8f7\ua8fb\ua8fd-\ua92d\ua930-\ua953\ua960-\ua97c\ua980-\ua9c0\ua9cf-\ua9d9\ua9e0-\ua9fe\uaa00-\uaa36\uaa40-\uaa4d\uaa50-\uaa59\uaa60-\uaa76\uaa7a-\uaac2\uaadb-\uaadd\uaae0-\uaaef\uaaf2-\uaaf6\uab01-\uab06\uab09-\uab0e\uab11-\uab16\uab20-\uab26\uab28-\uab2e\uab30-\uab5a\uab5c-\uab67\uab70-\uabea\uabec-\uabed\uabf0-\uabf9\uac00-\ud7a3\ud7b0-\ud7c6\ud7cb-\ud7fb\uf900-\ufa6d\ufa70-\ufad9\ufb00-\ufb06\ufb13-\ufb17\ufb1d-\ufb28\ufb2a-\ufb36\ufb38-\ufb3c\ufb3e\ufb40-\ufb41\ufb43-\ufb44\ufb46-\ufbb1\ufbd3-\ufd3d\ufd50-\ufd8f\ufd92-\ufdc7\ufdf0-\ufdfb\ufe00-\ufe0f\ufe20-\ufe2f\ufe33-\ufe34\ufe4d-\ufe4f\ufe70-\ufe74\ufe76-\ufefc\uff10-\uff19\uff21-\uff3a\uff3f\uff41-\uff5a\uff66-\uffbe\uffc2-\uffc7\uffca-\uffcf\uffd2-\uffd7\uffda-\uffdc`,
     }),
+
+    initializeState: state => {
+      state.USE_CONSTRUCTS = state && state.options && state.options.mode ? state.options.mode.USE_CONSTRUCTS : true;
+      initializeState(state);
+    },
+
+    finalizeState: state => {
+      finalizeState(state);
+    },
   });
 
   const ECMAScriptCommentGoal = (goals[(symbols.ECMAScriptCommentGoal = defineSymbol('ECMAScriptCommentGoal'))] = {
@@ -3803,7 +4151,7 @@ const {
   ] = {
     type: 'quote',
     flatten: true,
-    fold: false,
+    fold: true,
     openers: ['${'],
     opener: '`',
     closer: '`',
@@ -4012,319 +4360,250 @@ const {
 /** @typedef {import('./types').State} State */
 /** @typedef {import('./types').Context} Context */
 
-/**
- * @typedef {'await'|'break'|'case'|'catch'|'class'|'const'|'continue'|'debugger'|'default'|'delete'|'do'|'else'|'export'|'extends'|'finally'|'for'|'function'|'if'|'import'|'in'|'instanceof'|'new'|'return'|'super'|'switch'|'this'|'throw'|'try'|'typeof'|'var'|'void'|'while'|'with'|'yield'} ECMAScript.Keyword
- * @typedef {'interface'|'implements'|'package'|'private'|'protected'|'public'} ECMAScript.RestrictedWord
- * @typedef {'enum'} ECMAScript.FutureReservedWord
- * @typedef {'arguments'|'async'|'as'|'from'|'of'|'static'} ECMAScript.ContextualKeyword
- * @typedef {Record<ECMAScript.Keyword|ECMAScript.RestrictedWord|ECMAScript.FutureReservedWord|ECMAScript.ContextualKeyword, symbol>} ECMAScript.Keywords
- */
-
 /** @type {TokenMatcher} */
-const matcher = (ECMAScript =>
-  TokenMatcher.define(
-    // Matcher generator for this matcher instance
-    entity =>
-      TokenMatcher.join(
-        entity(ECMAScript.Break()),
-        entity(ECMAScript.Whitespace()),
-        entity(ECMAScript.Escape()),
-        entity(ECMAScript.Comment()),
-        entity(ECMAScript.StringLiteral()),
-        entity(ECMAScript.Opener()),
-        entity(ECMAScript.Closer()),
-        entity(ECMAScript.Solidus()),
-        entity(ECMAScript.Operator()),
-        entity(ECMAScript.Keyword()),
-        entity(ECMAScript.Number()),
-        entity(ECMAScript.Identifier()),
+const matcher = TokenMatcher.define(
+  {
+    Break: () =>
+      TokenMatcher.define(entity => TokenMatcher.sequence/* regexp */ `(\r?\n${entity(TokenMatcher.breakEntity)})`),
 
-        // Defines how to address non-entity character(s):
-        // entity(ECMAScript.Fallthrough({type: 'fault',flatten: true})),
-        entity(ECMAScript.Fallthrough()),
+    Whitespace: () =>
+      TokenMatcher.define(entity => TokenMatcher.sequence/* regexp */ `(\s+${entity(TokenMatcher.whitespaceEntity)})`),
+
+    Escape: ({
+      fromUnicodeEscape = (fromCodePoint => text => fromCodePoint(parseInt(text.slice(2), 16)))(String.fromCodePoint),
+    } = {}) =>
+      TokenMatcher.define(
+        entity => TokenMatcher.sequence/* regexp */ `(
+          \\u[${ECMAScriptGoal.ranges.HexDigit}][${ECMAScriptGoal.ranges.HexDigit}][${
+          ECMAScriptGoal.ranges.HexDigit
+        }][${ECMAScriptGoal.ranges.HexDigit}]
+          ${entity((text, entity, match, state) => {
+            match.format = 'escape';
+            TokenMatcher.capture(
+              state.context.goal !== ECMAScriptGoal
+                ? state.context.goal.type || 'escape'
+                : (
+                    state.lastToken === null || state.lastToken.type !== 'identifier'
+                      ? ECMAScriptGoal.ranges.IdentifierStart.test(fromUnicodeEscape(text))
+                      : ECMAScriptGoal.ranges.IdentifierPart.test(fromUnicodeEscape(text))
+                  )
+                ? ((match.flatten = true), 'identifier')
+                : 'fault',
+              match,
+            );
+          })}
+        )|(
+          \\f|\\n|\\r|\\t|\\v|\\c[${ECMAScriptGoal.ranges.ControlLetter}]
+          |\\x[${ECMAScriptGoal.ranges.HexDigit}][${ECMAScriptGoal.ranges.HexDigit}]
+          |\\u\{[${ECMAScriptGoal.ranges.HexDigit}]*\}
+          |\\[^]
+          ${entity((text, entity, match, state) => {
+            TokenMatcher.capture(state.context.goal.type || 'escape', match);
+            match.capture[ECMAScriptGoal.keywords[text]] = text;
+          })}
+        )`,
       ),
-    // RegExp flags for this matcher instance
-    'gu',
-    // Property descriptors for this matcher instance
-    {
-      goal: {value: ECMAScriptGoal, enumerable: true, writable: false},
-    },
-  ))({
-  // Fallthrough: ({fallthrough = '.', type, flatten} = {}) =>
-  //   TokenMatcher.define(
-  //     (typeof fallthrough === 'string' || (fallthrough = '.'), type && typeof type === 'string')
-  //       ? entity => TokenMatcher.sequence/* regexp */ `(
-  //           ${fallthrough}
-  //           ${entity((text, entity, match, state) => {
-  //             TokenMatcher.capture(
-  //               type !== 'fault'
-  //                 ? type || state.context.goal.type || 'sequence'
-  //                 : state.context.goal !== ECMAScriptGoal
-  //                 ? state.context.goal.type || 'sequence'
-  //                 : 'fault',
-  //               match,
-  //             );
-  //             typeof flatten === 'boolean' && (match.flatten = flatten);
-  //           })}
-  //         )`
-  //       : entity => `${fallthrough}`,
-  //   ),
-  Fallthrough: () =>
-    TokenMatcher.define(
-      entity => TokenMatcher.sequence/* regexp */ `(
-        .
-        ${entity(TokenMatcher.fallthroughEntity)}
-      )`,
-    ),
-  Break: ({lf = true, crlf = false} = {}) =>
-    TokenMatcher.define(
-      entity => TokenMatcher.sequence/* regexp */ `(
-        ${TokenMatcher.join(lf && '\\n', crlf && '\\r\\n')}
-        ${entity(TokenMatcher.breakEntity)}
-      )`,
-    ),
-  Whitespace: () =>
-    TokenMatcher.define(
-      entity => TokenMatcher.sequence/* regexp */ `(
-        \s+
-        ${entity(TokenMatcher.whitespaceEntity)}
-      )`,
-    ),
-  Escape: ({
-    IdentifierStartCharacter = RegExp(
-      TokenMatcher.sequence/* regexp */ `[${ECMAScriptGoal.ranges.IdentifierStart}]`,
-      'u',
-    ),
-    IdentifierPartSequence = RegExp(
-      TokenMatcher.sequence/* regexp */ `[${ECMAScriptGoal.ranges.IdentifierPart}]+`,
-      'u',
-    ),
-    fromUnicodeEscape = (fromCodePoint => text => fromCodePoint(parseInt(text.slice(2), 16)))(String.fromCodePoint),
-  } = {}) =>
-    TokenMatcher.define(
-      entity => TokenMatcher.sequence/* regexp */ `(
-        \\u[${ECMAScriptGoal.ranges.HexDigit}][${ECMAScriptGoal.ranges.HexDigit}][${ECMAScriptGoal.ranges.HexDigit}][${
-        ECMAScriptGoal.ranges.HexDigit
-      }]
-        ${entity((text, entity, match, state) => {
-          match.format = 'escape';
-          TokenMatcher.capture(
-            state.context.goal !== ECMAScriptGoal
-              ? state.context.goal.type || 'escape'
-              : (
-                  state.lastToken === null || state.lastToken.type !== 'identifier'
-                    ? IdentifierStartCharacter.test(fromUnicodeEscape(text))
-                    : IdentifierPartSequence.test(fromUnicodeEscape(text))
-                )
-              ? ((match.flatten = true), 'identifier')
-              : 'fault',
-            match,
-          );
-        })}
-      )|(
-        \\f|\\n|\\r|\\t|\\v|\\c[${ECMAScriptGoal.ranges.ControlLetter}]
-        |\\x[${ECMAScriptGoal.ranges.HexDigit}][${ECMAScriptGoal.ranges.HexDigit}]
-        |\\u\{[${ECMAScriptGoal.ranges.HexDigit}]*\}
-        |\\[^]
-        ${entity((text, entity, match, state) => {
-          TokenMatcher.capture(state.context.goal.type || 'escape', match);
-          match.capture[ECMAScriptGoal.keywords[text]] = text;
-        })}
-      )`,
-    ),
-  Comment: () =>
-    TokenMatcher.define(
-      entity => TokenMatcher.sequence/* regexp */ `(
-        //|/\*|\*/
-        ${entity((text, entity, match, state) => {
-          match.format = 'punctuator';
-          TokenMatcher.capture(
-            state.context.goal.openers && state.context.goal.openers[text]
-              ? TokenMatcher.open(text, state) ||
-                  ((match[match.format] = state.nextContext.goal.type || 'comment'), (match.flatten = true), 'opener')
-              : state.context.group && state.context.group.closer === text
-              ? TokenMatcher.close(text, state) ||
-                (state.context.goal === ECMAScriptCommentGoal && (match[match.format] = ECMAScriptCommentGoal.type),
-                'closer')
-              : (text.length === 1 || ((state.nextOffset = match.index + 1), (text = match[0] = text[0])),
+
+    Comment: () =>
+      TokenMatcher.define(
+        entity => TokenMatcher.sequence/* regexp */ `(
+          //|/\*|\*/
+          ${entity((text, entity, match, state) => {
+            match.format = 'punctuator';
+            TokenMatcher.capture(
+              TokenMatcher.punctuate(text, state) ||
+                (text.length === 1 || ((state.nextOffset = match.index + 1), (text = match[0] = text[0])),
                 (((match.punctuator = state.context.goal.punctuation && state.context.goal.punctuation[text]) ||
                   (state.context.goal.punctuators && state.context.goal.punctuators[text] === true)) &&
                   'punctuator') ||
                   state.context.goal.type ||
                   'sequence'),
-            match,
-          );
-        })}
-      )`,
-    ),
-  StringLiteral: () =>
-    TokenMatcher.define(
-      entity => TokenMatcher.sequence/* regexp */ `(
-        "|'|${'`'}
-        ${entity(TokenMatcher.Quote)}
-      )`,
-    ),
-  Opener: () =>
-    TokenMatcher.define(
-      entity => TokenMatcher.sequence/* regexp */ `(
-        \$\{|\{|\(|\[
-        ${entity(TokenMatcher.Opener)}
-      )`,
-    ),
-  Closer: () =>
-    TokenMatcher.define(
-      entity => TokenMatcher.sequence/* regexp */ `(
-        \}|\)|\]
-        ${entity(TokenMatcher.Closer)}
-      )`,
-    ),
-  Solidus: () =>
-    // TODO: Refine the necessary criteria for RegExp vs Div
-    // TEST: [eval('var g;class x {}/1/g'), eval('var g=class x {}/1/g')]
-    TokenMatcher.define(
-      entity => TokenMatcher.sequence/* regexp */ `(
-        \/=|\/
-        ${entity((text, entity, match, state) => {
-          match.format = 'punctuator';
-          TokenMatcher.capture(
-            state.context.goal === ECMAScriptRegExpGoal
-              ? (text.length === 1 || ((state.nextOffset = match.index + 1), (text = match[0] = text[0])),
-                (match.punctuator = state.context.goal.type || 'sequence'),
-                state.context.group.closer !== ']'
-                  ? TokenMatcher.close(text, state) /* fault? */ || 'closer'
-                  : match.punctuator)
-              : state.context.goal !== ECMAScriptGoal
-              ? state.context.goal.type || 'sequence'
-              : state.lastAtom === undefined ||
-                state.lastAtom.type === 'delimiter' ||
-                state.lastAtom.type === 'breaker' ||
-                state.lastAtom.text === '=>' ||
-                (state.lastAtom.type === 'operator'
-                  ? state.lastAtom.text !== '++' && state.lastAtom.text !== '--'
-                  : state.lastAtom.type === 'closer'
-                  ? state.lastAtom.text === '}'
-                  : state.lastAtom.type === 'opener' || state.lastAtom.type === 'keyword')
-              ? TokenMatcher.open(text, state) ||
-                ((match.punctuator =
-                  (state.nextContext.goal.punctuation && state.nextContext.goal.punctuation[text]) ||
-                  state.nextContext.goal.type ||
-                  'pattern'),
-                'opener')
-              : (match.punctuator = 'operator'),
-            match,
-          );
-        })}
-      )`,
-    ),
-  Operator: () =>
-    TokenMatcher.define(
-      entity => TokenMatcher.sequence/* regexp */ `(
-        ,|;|\.\.\.|\.|:|\?${
-          // We're including non-conflicting RegExp atoms here
-          '[:=!]?'
-        }
-        |\+\+|--|=>
-        |\+=|-=|\*\*=|\*=
-        |&&|&=|&|\|\||\|=|\||%=|%|\^=|\^|~=|~
-        |<<=|<<|<=|<|>>>=|>>>|>>=|>>|>=|>
-        |!==|!=|!|===|==|=
-        |\+|-|\*\*|\*
-        ${entity((text, entity, match, state) => {
-          match.format = 'punctuator';
-          TokenMatcher.capture(
-            state.context.goal === ECMAScriptGoal
-              ? (text === '*' && state.lastAtom && state.lastAtom.text === 'function' && 'keyword') ||
-                  ECMAScriptGoal.punctuation[text] ||
-                  'operator'
-              : state.context.goal.punctuators && state.context.goal.punctuators[text] === true
-              ? (match.punctuator =
-                  (state.context.goal.punctuation && state.context.goal.punctuation[text]) || 'punctuation')
-              : (text.length === 1 || ((state.nextOffset = match.index + 1), (text = match[0] = text[0])),
-                state.context.goal.type || 'sequence'),
-            match,
-          );
-        })}
-      )`,
-    ),
-  Keyword: () =>
-    TokenMatcher.define(
-      entity => TokenMatcher.sequence/* regexp */ `\b(
-        ${TokenMatcher.join(...ECMAScriptGoal.keywords).replace(/\./g, '\\.')}
-        ${entity((text, entity, match, state) => {
-          match.format = 'identifier';
-          TokenMatcher.capture(
-            (match.flatten = state.context.goal !== ECMAScriptGoal)
-              ? state.context.goal.type || 'sequence'
-              : state.lastAtom != null && state.lastAtom.text === '.'
-              ? 'identifier'
-              : state.context.captureKeyword === undefined
-              ? 'keyword'
-              : state.context.captureKeyword(text, state) || 'fault',
-            match,
-          );
-        })}
-      )\b(?=[^\s$_:]|\s+[^:]|$)`,
-    ),
-  Identifier: ({
-    RegExpFlags = new RegExp(
-      /\w/g[Symbol.replace](
-        /*regexp*/ `^(?:g|i|m|s|u|y)+$`,
-        /*regexp*/ `$&(?=[^$&]*$)`, // interleaved
+              match,
+            );
+          })}
+        )`,
       ),
-    ),
-  } = {}) =>
-    TokenMatcher.define(
-      entity => TokenMatcher.sequence/* regexp */ `(
-        [${ECMAScriptGoal.ranges.IdentifierStart}][${ECMAScriptGoal.ranges.IdentifierPart}]*
-        ${entity((text, entity, match, state) => {
-          match.format = 'identifier';
-          TokenMatcher.capture(
-            state.context.goal !== ECMAScriptGoal
-              ? (([text] = text.split(/\b/, 2)),
-                (state.nextOffset = match.index + text.length),
-                (match[0] = text),
-                // identity
-                state.context.goal.type || 'sequence')
-              : state.lastToken != null && state.lastToken.punctuator === 'pattern' && RegExpFlags.test(text)
-              ? ((match.flatten = true), (match.punctuator = ECMAScriptRegExpGoal.type), 'closer')
-              : ((match.flatten = true), 'identifier'),
-            match,
-          );
-        })}
-      )`,
-      `${ECMAScriptGoal.ranges.IdentifierStart}${ECMAScriptGoal.ranges.IdentifierPart}`.includes('\\p{') ? 'u' : '',
-    ),
-  Number: ({
-    NumericSeparator,
-    Digits = NumericSeparator
-      ? Digit => TokenMatcher.sequence/* regexp */ `[${Digit}][${Digit}${TokenMatcher.escape(NumericSeparator)}]*`
-      : Digit => TokenMatcher.sequence/* regexp */ `[${Digit}]+`,
-    DecimalDigits = Digits(ECMAScriptGoal.ranges.DecimalDigit),
-    HexDigits = Digits(ECMAScriptGoal.ranges.HexDigit),
-    BinaryDigits = Digits(ECMAScriptGoal.ranges.BinaryDigit),
-  } = {}) =>
-    TokenMatcher.define(
-      entity => TokenMatcher.sequence/* regexp */ `\b(
-        ${DecimalDigits}\.${DecimalDigits}[eE]${DecimalDigits}
-        |\.${DecimalDigits}[eE]${DecimalDigits}
-        |0[xX]${HexDigits}
-        |0[bB]${BinaryDigits}
-        |${DecimalDigits}\.${DecimalDigits}
-        |\.${DecimalDigits}
-        |${DecimalDigits}
-        ${entity((text, entity, match, state) => {
-          match.format = 'number';
-          TokenMatcher.capture(state.context.goal.type || 'number', match); // , text
-        })}
-      )\b`,
-    ),
-});
+
+    StringLiteral: () =>
+      TokenMatcher.define(
+        entity => TokenMatcher.sequence/* regexp */ `("|'|${'`'}${entity(TokenMatcher.quoteEntity)})`,
+      ),
+
+    Opener: () =>
+      TokenMatcher.define(
+        entity => TokenMatcher.sequence/* regexp */ `(\$\{|\{|\(|\[${entity(TokenMatcher.openerEntity)})`,
+      ),
+
+    Closer: () =>
+      TokenMatcher.define(entity => TokenMatcher.sequence/* regexp */ `(\}|\)|\]${entity(TokenMatcher.closerEntity)})`),
+
+    Solidus: () =>
+      // TODO: Refine the necessary criteria for RegExp vs Div
+      // TEST: [eval('var g;class x {}/1/g'), eval('var g=class x {}/1/g')]
+      TokenMatcher.define(
+        entity => TokenMatcher.sequence/* regexp */ `(
+          \/=|\/
+          ${entity((text, entity, match, state) => {
+            match.format = 'punctuator';
+            TokenMatcher.capture(
+              state.context.goal === ECMAScriptRegExpGoal
+                ? (text.length === 1 || ((state.nextOffset = match.index + 1), (text = match[0] = text[0])),
+                  (match.punctuator = state.context.goal.type || 'sequence'),
+                  state.context.group.closer !== ']'
+                    ? TokenMatcher.close(text, state) /* fault? */ || 'closer'
+                    : match.punctuator)
+                : state.context.goal !== ECMAScriptGoal
+                ? state.context.goal.type || 'sequence'
+                : state.lastAtom === undefined ||
+                  state.lastAtom.type === 'delimiter' ||
+                  state.lastAtom.type === 'breaker' ||
+                  state.lastAtom.text === '=>' ||
+                  (state.lastAtom.type === 'operator'
+                    ? state.lastAtom.text !== '++' && state.lastAtom.text !== '--'
+                    : state.lastAtom.type === 'closer'
+                    ? state.lastAtom.text === '}'
+                    : state.lastAtom.type === 'opener' || state.lastAtom.type === 'keyword')
+                ? TokenMatcher.open(text, state) ||
+                  ((match.punctuator =
+                    (state.nextContext.goal.punctuation && state.nextContext.goal.punctuation[text]) ||
+                    state.nextContext.goal.type ||
+                    'pattern'),
+                  'opener')
+                : (match.punctuator = 'operator'),
+              match,
+            );
+          })}
+        )`,
+      ),
+
+    Operator: () =>
+      TokenMatcher.define(
+        entity => TokenMatcher.sequence/* regexp */ `(
+          ,|;|\.\.\.|\.|:|\?${
+            // We're including non-conflicting RegExp atoms here
+            '[:=!]?'
+          }
+          |\+\+|--|=>
+          |\+=|-=|\*\*=|\*=
+          |&&|&=|&|\|\||\|=|\||%=|%|\^=|\^|~=|~
+          |<<=|<<|<=|<|>>>=|>>>|>>=|>>|>=|>
+          |!==|!=|!|===|==|=
+          |\+|-|\*\*|\*
+          ${entity((text, entity, match, state) => {
+            match.format = 'punctuator';
+            TokenMatcher.capture(
+              state.context.goal === ECMAScriptGoal
+                ? (text === '*' && state.lastAtom && state.lastAtom.text === 'function' && 'keyword') ||
+                    ECMAScriptGoal.punctuation[text] ||
+                    'operator'
+                : state.context.goal.punctuators && state.context.goal.punctuators[text] === true
+                ? (match.punctuator =
+                    (state.context.goal.punctuation && state.context.goal.punctuation[text]) || 'punctuation')
+                : (text.length === 1 || ((state.nextOffset = match.index + 1), (text = match[0] = text[0])),
+                  state.context.goal.type || 'sequence'),
+              match,
+            );
+          })}
+        )`,
+      ),
+
+    Keyword: () =>
+      TokenMatcher.define(
+        entity => TokenMatcher.sequence/* regexp */ `\b(
+          ${TokenMatcher.join(...ECMAScriptGoal.keywords).replace(/\./g, '\\.')}
+          ${entity((text, entity, match, state) => {
+            match.format = 'identifier';
+            TokenMatcher.capture(
+              (match.flatten = state.context.goal !== ECMAScriptGoal)
+                ? state.context.goal.type || 'sequence'
+                : state.lastAtom != null && state.lastAtom.text === '.'
+                ? 'identifier'
+                : state.context.captureKeyword === undefined
+                ? 'keyword'
+                : state.context.captureKeyword(text, state) || 'fault',
+              match,
+            );
+          })}
+        )\b(?=[^\s$_:]|\s+[^:]|$)`,
+      ),
+
+    Number: ({
+      //@ts-ignore
+      NumericSeparator,
+      Digits = NumericSeparator
+        ? Digit => TokenMatcher.sequence/* regexp */ `[${Digit}][${Digit}${TokenMatcher.escape(NumericSeparator)}]*`
+        : Digit => TokenMatcher.sequence/* regexp */ `[${Digit}]+`,
+      DecimalDigits = Digits(ECMAScriptGoal.ranges.DecimalDigit),
+      HexDigits = Digits(ECMAScriptGoal.ranges.HexDigit),
+      BinaryDigits = Digits(ECMAScriptGoal.ranges.BinaryDigit),
+    } = {}) =>
+      TokenMatcher.define(
+        entity => TokenMatcher.sequence/* regexp */ `\b(
+          ${DecimalDigits}\.${DecimalDigits}[eE]${DecimalDigits}
+          |\.${DecimalDigits}[eE]${DecimalDigits}
+          |0[xX]${HexDigits}
+          |0[bB]${BinaryDigits}
+          |${DecimalDigits}\.${DecimalDigits}
+          |\.${DecimalDigits}
+          |${DecimalDigits}
+          ${entity((text, entity, match, state) => {
+            match.format = 'number';
+            TokenMatcher.capture(state.context.goal.type || 'number', match); // , text
+          })}
+        )\b`,
+      ),
+
+    Identifier: ({
+      RegExpFlags = new RegExp(
+        /\w/g[Symbol.replace](
+          /*regexp*/ `^(?:g|i|m|s|u|y)+$`,
+          /*regexp*/ `$&(?=[^$&]*$)`, // interleaved
+        ),
+      ),
+    } = {}) =>
+      TokenMatcher.define(
+        entity => TokenMatcher.sequence/* regexp */ `(
+          [${ECMAScriptGoal.ranges.IdentifierStart}][${ECMAScriptGoal.ranges.IdentifierPart}]*
+          ${entity((text, entity, match, state) => {
+            match.format = 'identifier';
+            TokenMatcher.capture(
+              state.context.goal !== ECMAScriptGoal
+                ? (([text] = text.split(/\b/, 2)),
+                  (state.nextOffset = match.index + text.length),
+                  (match[0] = text),
+                  // identity
+                  state.context.goal.type || 'sequence')
+                : state.lastToken != null && state.lastToken.punctuator === 'pattern' && RegExpFlags.test(text)
+                ? ((match.flatten = true), (match.punctuator = ECMAScriptRegExpGoal.type), 'closer')
+                : ((match.flatten = true), 'identifier'),
+              match,
+            );
+          })}
+        )`,
+        `${ECMAScriptGoal.ranges.IdentifierStart}${ECMAScriptGoal.ranges.IdentifierPart}`.includes('\\p{') ? 'u' : '',
+      ),
+
+    Fallthrough: () =>
+      TokenMatcher.define(
+        entity => TokenMatcher.sequence/* regexp */ `(
+          .
+          ${entity(TokenMatcher.fallthroughEntity)}
+        )`,
+      ),
+  },
+  // RegExp flags for this matcher instance
+  'gu',
+  // Property descriptors for this matcher instance
+  {
+    goal: {value: ECMAScriptGoal, enumerable: true, writable: false},
+  },
+);
 
 //@ts-check
 
 //@ts-ignore
 const mode = TokenMatcher.createMode(matcher, {
-  USE_CONSTRUCTS: false,
+  USE_CONSTRUCTS: true,
 
   syntax: 'ecmascript',
   aliases: ['es', 'js', 'javascript'],
@@ -4334,19 +4613,10 @@ const mode = TokenMatcher.createMode(matcher, {
     parser.unregister('ecmascript');
   },
 
-  initializeState: state => {
-    state.USE_CONSTRUCTS = mode.USE_CONSTRUCTS === true;
-    initializeState(state);
-  },
-
-  finalizeState: state => {
-    finalizeState(state);
-  },
-
   createToken: (log => (match, state) => {
     // let construct;
     // const lastAtom = state.lastAtom;
-    const token = createToken(match, state);
+    const token = TokenMatcher.createToken(match, state);
 
     if (state.USE_CONSTRUCTS === true && token !== undefined) {
       const {type, text, context = state.nextTokenContext} = token;
