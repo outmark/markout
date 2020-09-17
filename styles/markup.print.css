@@ -1,7 +1,0 @@
-﻿@media print {
-	pre {
-		/* height: max-content !important; */
-		overflow-x: hidden !important;
-		overflow-wrap: break-word !important;
-	}
-}

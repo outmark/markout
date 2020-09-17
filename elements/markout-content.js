@@ -2,7 +2,11 @@
 
 import '../lib/content/dom.js';
 import {content} from '../lib/content.js';
-import {Component} from '../lib/components.js';
+import '/components/lib/templates.js';
+import '/components/lib/css.js';
+import '/components/lib/attributes.js';
+import '/components/lib/assets.js';
+import {Component} from '/components/lib/component.js';
 
 export class MarkoutContent extends Component {
   /** @type {{[name: string]: boolean | undefined}} */

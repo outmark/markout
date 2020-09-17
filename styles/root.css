@@ -1,10 +1,13 @@
 ﻿@import url('./fonts/iosevka.css');
+@import url('./fonts/smotaal-io.css');
 
 :root {
+  /**/ /**/ /**/ /**/ /** GLOBALS **/ /**/ /**/ /**/ /**/
   --font-display: block;
-}
+  --color-scheme: auto;
 
-:root {
+  /**/ /**/ /**/ /**/ /** DEFAULTS **/ /**/ /**/ /**/ /**/
+
   --light--markout--text: #000;
   --dark--markout--text: #ccc;
   --light--markout--background: #eee;
@@ -61,6 +64,39 @@
   --dark--markout--visited-link-text: #f3f;
   --light--markout--active-link-text: #c93;
   --dark--markout--active-link-text: #f96;
+}
+
+@media screen and (prefers-color-scheme: light) {
+  :root {
+    --color-scheme: light;
+  }
+}
+
+@media screen and (prefers-color-scheme: dark) {
+  :root {
+    --color-scheme: dark;
+  }
+}
+
+@media screen {
+  .dark-mode,
+  :host(.dark-mode) {
+    --color-scheme: dark;
+  }
+
+  .light-mode,
+  :host(.light-mode) {
+    --color-scheme: light;
+  }
+}
+
+:root,
+:host(.dark-mode),
+:host(.light-mode),
+:host,
+.dark-mode,
+.light-mode {
+  color-scheme: var(--color-scheme);
 }
 
 @supports (color: -webkit-text) or (-moz-box-flex: initial) {

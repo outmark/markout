@@ -1,137 +1,4 @@
-import { encodeEntities, render as render$1, tokenize as tokenize$1, encodeEntity } from './markup.js';
-
-//@ts-check
-const CurrentMatch = Symbol('CurrentMatch');
-const CurrentToken = Symbol('CurrentToken');
-const CreatedToken = Symbol('CreatedToken');
-const TotalTokens = Symbol('TotalTokens');
-const TotalMatches = Symbol('TotalMatches');
-const Next = Symbol('Next');
-const Initialize = Symbol('Initialize');
-const Finalize = Symbol('Finalize');
-const Tokens = Symbol('Tokens');
-
-/** @template {RegExp} T  @implements {MatcherIterator<T>} */
-class MatcherState {
-  /** @param {Partial<MatcherState<T>> & {initialize?(): void, finalize?(): void}} properties */
-  constructor({source, matcher, initialize, finalize, ...properties}) {
-    Object.assign(this, properties);
-
-    this.done = false;
-    /** @type {*} */
-    this.value = undefined;
-
-    /** @type {string} */
-    this.source = String(source);
-    /** @type {T} */
-    this.matcher =
-      matcher &&
-      (matcher instanceof RegExp
-        ? Object.setPrototypeOf(RegExp(matcher.source, matcher.flags || 'g'), matcher)
-        : RegExp(matcher, 'g'));
-
-    /** @type {RegExpExecArray} */
-    this[CurrentMatch] = undefined;
-    this[TotalMatches] = -1;
-    this[Next] = this.getNextMatch;
-    this[Initialize] =
-      typeof initialize === 'function'
-        ? () => {
-            this.initialize();
-            initialize();
-          }
-        : this.initialize;
-    this[Finalize] =
-      typeof finalize === 'function'
-        ? () => {
-            finalize();
-            this.finalize();
-          }
-        : this.finalize;
-  }
-
-  initialize() {
-    Object.defineProperties(this, {
-      source: {value: this.source, writable: false, configurable: true},
-      matcher: {value: this.matcher, writable: false, configurable: true},
-    });
-    this[TotalMatches] = 0;
-  }
-
-  finalize() {
-    Object.freeze(this);
-  }
-
-  [Symbol.iterator]() {
-    return this;
-  }
-
-  next() {
-    if (this.done) return this;
-    if (this[TotalMatches] === -1) this[Initialize]();
-    if ((this.done = (this.value = this[Next]()) == null)) this[Finalize]();
-    else this[TotalMatches]++;
-    return this;
-  }
-
-  getNextMatch() {
-    return !this.done &&
-      this.matcher.lastIndex <
-        ((this[CurrentMatch] = this.matcher.exec(this.source)) != null /* */
-          ? this.matcher.lastIndex + (this[CurrentMatch][0].length === 0 && 1)
-          : this.matcher.lastIndex)
-      ? this[CurrentMatch]
-      : undefined;
-  }
-}
-
-/** @template {RegExp} T  @extends {MatcherState<T>} */
-class TokenizerState extends MatcherState {
-  /** @param {Partial<TokenizerState<T>>} properties */
-  constructor(properties) {
-    super(properties)[Next] = this.getNextToken;
-  }
-
-  initialize() {
-    super.initialize();
-    this[TotalTokens] = 0;
-  }
-
-  finalize() {
-    super.finalize();
-  }
-
-  getNextToken() {
-    if (this.done || this.getNextMatch() == null) return;
-
-    this[CurrentToken] = this[CreatedToken];
-    this[CreatedToken] = this.createToken(this[CurrentMatch], this);
-
-    if (this[CreatedToken] !== undefined) {
-      this[CreatedToken].index = ++this[TotalTokens];
-    }
-
-    // Initial design considered holding on to one token
-    //   that used to be set to state.nextToken along with
-    //   the matching state.nextTokenContext.
-    //
-    // TODO: Replace graceful holding with construct stacking.
-    return this[CurrentToken] || this.getNextToken();
-  }
-
-  get [Tokens]() {
-    return Object.defineProperty(this, Tokens, {value: [], writable: false, configurable: true})[Tokens];
-  }
-
-  /** @template T @returns {T} */
-  createToken(match, state) {
-    return;
-  }
-}
-
-TokenizerState.prototype.previousToken = TokenizerState.prototype.nextToken = /** @type {Token} */ (undefined);
-
-TokenizerState.defaults = {source: undefined, initialize: undefined, finalize: undefined};
+import { e as encodeEntities, r as render$1, t as tokenize$1, a as encodeEntity } from './tokenizer.browser.es.extended.js';
 
 //@ts-check
 
@@ -141,7 +8,7 @@ class Matcher extends RegExp {
    * @param {MatcherPattern} pattern
    * @param {MatcherFlags} [flags]
    * @param {MatcherEntities} [entities]
-   * @param {{}} [state]
+   * @param {{currentMatch?:MatcherExecArray|null, lastMatch?:MatcherExecArray|null}} [state]
    */
   constructor(pattern, flags, entities, state) {
     //@ts-ignore
@@ -170,7 +37,12 @@ class Matcher extends RegExp {
   /** @param {MatcherExecArray} match */
   capture(match) {
     // @ts-ignore
-    if (match === null) return null;
+    if (match === null) {
+      if (this.state) this.state.lastMatch = this.state.currentMatch = null;
+      return;
+    }
+
+    if (this.state) this.state.currentMatch = match;
 
     // @ts-ignore
     match.matcher = this;
@@ -188,6 +60,9 @@ class Matcher extends RegExp {
       );
 
     );
+
+    this.state.lastMatch = match;
+    this.state.currentMatch = null;
 
     return match;
   }
@@ -243,6 +118,7 @@ class Matcher extends RegExp {
 
         return entity.source;
       } else {
+        //@ts-ignore
         entities.push(((entity != null || undefined) && entity) || undefined);
       }
     });
@@ -312,11 +188,7 @@ class Matcher extends RegExp {
   static get join() {
     const {sequence} = this;
 
-    const join = (...values) =>
-      values
-        .map(sequence.span)
-        .filter(Boolean)
-        .join('|');
+    const join = (...values) => values.map(sequence.span).filter(Boolean).join('|');
 
     Object.defineProperty(Matcher, 'join', {value: Object.freeze(join), enumerable: true, writable: false});
 
@@ -398,8 +270,8 @@ class Matcher extends RegExp {
    * @template {Matcher} T
    * @template {{}} U
    * @param {T} matcher
-   * @param {TokenizerState<T, U>} [state]
-   * @returns {TokenMatcher<U>}
+   * @param {TokenMatcherState} [state]
+   * @returns {TokenMatcher}
    */
   static create(matcher, state) {
     /** @type {typeof Matcher} */
@@ -415,8 +287,7 @@ class Matcher extends RegExp {
         ? matcher.constructor
         : Species === Matcher || typeof Species.clone !== 'function'
         ? Matcher
-        : Species
-      ).clone(matcher)),
+        : Species).clone(matcher)),
       'state',
       {value: state},
     );
@@ -1734,8 +1605,6 @@ var flags = /*#__PURE__*/Object.freeze({
   ASSET_REMAPPING: ASSET_REMAPPING,
   ASSET_INITIALIZATION: ASSET_INITIALIZATION
 });
-
-
 
 var defaults = /*#__PURE__*/Object.freeze({
   __proto__: null,

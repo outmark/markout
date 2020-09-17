@@ -1,0 +1,8 @@
+@font-face {
+  font-family: smotaal-io;
+  /* font-style: normal; */
+  /* font-weight: normal; */
+  font-display: var(--font-display, swap);
+  src: url('./smotaal-io/smotaal-io.woff') format('woff'), url('./smotaal-io/smotaal-io.ttf') format('ttf'),
+    url('./smotaal-io/smotaal-io.svg') format('svg');
+}
