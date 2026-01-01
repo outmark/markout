@@ -97,6 +97,17 @@ if (typeof document === 'object' && document && typeof location === 'object' && 
 
         if (href === section.sourceURL) return;
 
+        try {
+            const { origin } = new URL(href);
+          
+            if (
+              origin.toLowerCase() !== location.origin.toLowerCase()
+              && origin.toLowerCase() !== 'https://fetcher.smotaal.workers.dev'
+            ) href = `https://fetcher.smotaal.workers.dev?href=${encodeURIComponent(href)}`;
+        } catch (error) {
+          console.warn(error);
+        }
+
         await (section.load ? section.load(href) : section.setAttribute('src', href));
 
         await resizeFrameElement();
